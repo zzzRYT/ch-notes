@@ -10,10 +10,12 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
+import { useTheme } from "@/theme/ThemeProvider";
 import type { Note } from "@/domain/types";
 
 export default function NotesList() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[] | null>(null);
@@ -29,7 +31,6 @@ export default function NotesList() {
     }, [reload]),
   );
 
-  // 검색 디바운스 200ms
   useEffect(() => {
     const q = query.trim();
     if (!q) {
@@ -62,13 +63,17 @@ export default function NotesList() {
   const isSearching = results !== null;
 
   return (
-    <View style={styles.root}>
-      <View style={styles.searchBar}>
+    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+      <View style={[styles.searchBar, { borderColor: colors.line }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[
+            styles.searchInput,
+            { backgroundColor: colors.chipBg, color: colors.text },
+          ]}
           value={query}
           onChangeText={setQuery}
           placeholder="검색 (제목·인용)"
+          placeholderTextColor={colors.subtle}
           accessibilityLabel="노트 검색"
           autoCorrect={false}
           autoCapitalize="none"
@@ -87,30 +92,36 @@ export default function NotesList() {
         ListEmptyComponent={
           isSearching ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>검색 결과 없음</Text>
+              <Text style={[styles.emptyText, { color: colors.subtle }]}>
+                검색 결과 없음
+              </Text>
             </View>
           ) : (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>첫 번째 설교 노트를 시작하세요</Text>
+              <Text style={[styles.emptyText, { color: colors.subtle }]}>
+                첫 번째 설교 노트를 시작하세요
+              </Text>
               <Pressable
-                style={styles.startBtn}
+                style={[styles.startBtn, { backgroundColor: colors.accent }]}
                 onPress={createNote}
                 accessibilityRole="button"
                 accessibilityLabel="시작하기"
               >
-                <Text style={styles.startBtnText}>시작하기</Text>
+                <Text style={[styles.startBtnText, { color: colors.accentText }]}>
+                  시작하기
+                </Text>
               </Pressable>
             </View>
           )
         }
       />
       <Pressable
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.accent }]}
         onPress={createNote}
         accessibilityRole="button"
         accessibilityLabel="새 노트"
       >
-        <Text style={styles.fabText}>＋</Text>
+        <Text style={[styles.fabText, { color: colors.accentText }]}>＋</Text>
       </Pressable>
     </View>
   );
@@ -122,10 +133,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderColor: "#eee",
   },
   searchInput: {
-    backgroundColor: "#f4f4f4",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -133,16 +142,15 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   empty: { alignItems: "center", paddingTop: 120, gap: 16 },
-  emptyText: { fontSize: 18, color: "#666" },
+  emptyText: { fontSize: 18 },
   startBtn: {
-    backgroundColor: "#222",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 999,
     minHeight: 48,
     justifyContent: "center",
   },
-  startBtnText: { color: "white", fontSize: 16 },
+  startBtnText: { fontSize: 16 },
   fab: {
     position: "absolute",
     right: 24,
@@ -150,9 +158,8 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#222",
     alignItems: "center",
     justifyContent: "center",
   },
-  fabText: { color: "white", fontSize: 32, lineHeight: 36 },
+  fabText: { fontSize: 32, lineHeight: 36 },
 });

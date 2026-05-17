@@ -12,6 +12,7 @@ import { QuoteBlock } from "./QuoteBlock";
 import { RefChip } from "./RefChip";
 import { detectRefAtCursor } from "./useAutocomplete";
 import { lookupVerses } from "@/parser/verse-lookup";
+import { useTheme, scaled } from "@/theme/ThemeProvider";
 
 type Props = {
   body: BlockNode[];
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function NoteEditor({ body, onChangeBody }: Props) {
+  const { colors, fontScale } = useTheme();
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [cursorMap, setCursorMap] = useState<Record<number, number>>({});
 
@@ -63,7 +65,10 @@ export function NoteEditor({ body, onChangeBody }: Props) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.root}>
+    <ScrollView
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={styles.root}
+    >
       {body.map((block, idx) => {
         if (block.type === "quote") return <QuoteBlock key={idx} {...block} />;
         const cursor = cursorMap[idx] ?? block.text.length;
@@ -72,7 +77,14 @@ export function NoteEditor({ body, onChangeBody }: Props) {
         return (
           <View key={idx}>
             <TextInput
-              style={styles.paragraph}
+              style={[
+                styles.paragraph,
+                {
+                  color: colors.text,
+                  fontSize: scaled(18, fontScale),
+                  lineHeight: scaled(26, fontScale),
+                },
+              ]}
               value={block.text}
               multiline
               onFocus={() => setActiveIdx(idx)}
@@ -89,6 +101,7 @@ export function NoteEditor({ body, onChangeBody }: Props) {
               }}
               onKeyPress={(e) => handleKeyPress(idx, e)}
               placeholder={idx === 0 ? "오늘의 설교를 적어보세요" : ""}
+              placeholderTextColor={colors.subtle}
             />
             {detected && (
               <RefChip
@@ -105,5 +118,5 @@ export function NoteEditor({ body, onChangeBody }: Props) {
 
 const styles = StyleSheet.create({
   root: { padding: 16, gap: 8 },
-  paragraph: { fontSize: 18, lineHeight: 26, minHeight: 28 },
+  paragraph: { minHeight: 28 },
 });

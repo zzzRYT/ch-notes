@@ -9,10 +9,12 @@ import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
 import { exportNote } from "@/share/export-note";
 import { extractCitedRefs } from "@/editor/cited-refs";
+import { useTheme } from "@/theme/ThemeProvider";
 import type { BlockNode } from "@/domain/types";
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors } = useTheme();
   const [title, _setTitle] = useState<string | null>(null);
   const [body, setBody] = useState<BlockNode[]>([
     { type: "paragraph", text: "" },
@@ -118,7 +120,7 @@ export default function NoteEditorScreen() {
 
   if (!ready) return null;
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: colors.bg }]}>
       <View style={styles.toolbar}>
         <Pressable
           onPress={handleExport}
@@ -127,7 +129,7 @@ export default function NoteEditorScreen() {
           hitSlop={12}
           style={styles.toolbarBtn}
         >
-          <Text style={styles.toolbarIcon}>📤</Text>
+          <Text style={[styles.toolbarIcon, { color: colors.text }]}>📤</Text>
         </Pressable>
         <Pressable
           onPress={() => setBrowserOpen((b) => !b)}
@@ -136,12 +138,12 @@ export default function NoteEditorScreen() {
           hitSlop={12}
           style={styles.toolbarBtn}
         >
-          <Text style={styles.toolbarIcon}>📖</Text>
+          <Text style={[styles.toolbarIcon, { color: colors.text }]}>📖</Text>
         </Pressable>
       </View>
       {saveErr && (
-        <View style={styles.errBanner}>
-          <Text style={styles.errText}>{saveErr}</Text>
+        <View style={[styles.errBanner, { backgroundColor: colors.errBg }]}>
+          <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
       <NoteEditor body={body} onChangeBody={setBody} />
@@ -169,6 +171,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   toolbarIcon: { fontSize: 24 },
-  errBanner: { backgroundColor: "#fde2e1", padding: 8 },
-  errText: { color: "#c8342a" },
+  errBanner: { padding: 8 },
 });
