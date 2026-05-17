@@ -16,6 +16,7 @@ import {
   type Testament,
 } from "./books-meta";
 import { ChapterGrid } from "./ChapterGrid";
+import { VerseList } from "./VerseList";
 
 export type BrowserLevel =
   | { kind: "books" }
@@ -28,7 +29,7 @@ type Props = {
   onInsertVerse: (ref: string) => void;
 };
 
-export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }: Props) {
+export function BibleBrowser({ visible, onClose, onInsertVerse }: Props) {
   const { mode } = useResponsiveLayout();
   const [level, setLevel] = useState<BrowserLevel>({ kind: "books" });
   const [testament, setTestament] = useState<Testament>("OT");
@@ -122,11 +123,14 @@ export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }
       )}
 
       {level.kind === "verses" && (
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>
-            {level.book} {level.chapter}장 절 (Lv3 — Task 3.4c)
-          </Text>
-        </View>
+        <VerseList
+          book={level.book}
+          chapter={level.chapter}
+          onInsert={(ref) => onInsertVerse(ref)}
+          onChangeChapter={(chapter) =>
+            setLevel({ kind: "verses", book: level.book, chapter })
+          }
+        />
       )}
     </View>
   );

@@ -99,10 +99,7 @@ export default function NoteEditorScreen() {
       <BibleBrowser
         visible={browserOpen}
         onClose={() => setBrowserOpen(false)}
-        onInsertVerse={(ref) => {
-          insertVerseFromBrowser(ref);
-          setBrowserOpen(false);
-        }}
+        onInsertVerse={insertVerseFromBrowser}
       />
     </View>
   );
