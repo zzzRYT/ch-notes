@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { NoteEditor } from "@/editor/NoteEditor";
 import { useAutoSave } from "@/editor/useAutoSave";
+import { BibleBrowser } from "@/browser/BibleBrowser";
+import { lookupVerses } from "@/parser/verse-lookup";
 import { openNoteRepo } from "@/db/expo-adapter";
 import type { BlockNode } from "@/domain/types";
 
@@ -14,6 +16,17 @@ export default function NoteEditorScreen() {
   ]);
   const [ready, setReady] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [browserOpen, setBrowserOpen] = useState(false);
+
+  const insertVerseFromBrowser = useCallback((ref: string) => {
+    const verses = lookupVerses(ref);
+    if (!verses) return;
+    setBody((b) => [
+      ...b,
+      { type: "quote", ref, verses, status: "loaded" },
+      { type: "paragraph", text: "" },
+    ]);
+  }, []);
 
   // 노트 로드
   useEffect(() => {
@@ -66,18 +79,50 @@ export default function NoteEditorScreen() {
   if (!ready) return null;
   return (
     <View style={styles.root}>
+      <View style={styles.toolbar}>
+        <Pressable
+          onPress={() => setBrowserOpen((b) => !b)}
+          accessibilityRole="button"
+          accessibilityLabel="성경 브라우저 열기"
+          hitSlop={12}
+          style={styles.toolbarBtn}
+        >
+          <Text style={styles.toolbarIcon}>📖</Text>
+        </Pressable>
+      </View>
       {saveErr && (
         <View style={styles.errBanner}>
           <Text style={styles.errText}>{saveErr}</Text>
         </View>
       )}
       <NoteEditor body={body} onChangeBody={setBody} />
+      <BibleBrowser
+        visible={browserOpen}
+        onClose={() => setBrowserOpen(false)}
+        onInsertVerse={(ref) => {
+          insertVerseFromBrowser(ref);
+          setBrowserOpen(false);
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  toolbar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  toolbarBtn: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toolbarIcon: { fontSize: 24 },
   errBanner: { backgroundColor: "#fde2e1", padding: 8 },
   errText: { color: "#c8342a" },
 });
