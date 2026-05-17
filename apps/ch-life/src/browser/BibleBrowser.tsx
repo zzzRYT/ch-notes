@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   Modal,
   Pressable,
   StyleSheet,
+  FlatList,
 } from "react-native";
 import type { BookCode } from "@/parser/book-map";
 import { useResponsiveLayout } from "./useResponsiveLayout";
+import { BOOKS_META, type Testament, type BookMeta } from "./books-meta";
 
 export type BrowserLevel =
   | { kind: "books" }
@@ -22,29 +24,97 @@ type Props = {
 
 export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }: Props) {
   const { mode } = useResponsiveLayout();
-  const [level, _setLevel] = useState<BrowserLevel>({ kind: "books" });
+  const [level, setLevel] = useState<BrowserLevel>({ kind: "books" });
+  const [testament, setTestament] = useState<Testament>("OT");
+
+  const filteredBooks = useMemo(
+    () => BOOKS_META.filter((m) => m.testament === testament),
+    [testament],
+  );
+
+  const headerTitle =
+    level.kind === "books"
+      ? "성경"
+      : level.kind === "chapters"
+        ? "장 선택"
+        : `${level.book} ${level.chapter}장`;
+
+  const showBackBtn = level.kind !== "books";
+
+  const onBack = () => {
+    if (level.kind === "chapters") setLevel({ kind: "books" });
+    else if (level.kind === "verses")
+      setLevel({ kind: "chapters", book: level.book });
+  };
 
   const body = (
     <View style={styles.body}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>성경</Text>
+        {showBackBtn ? (
+          <Pressable
+            onPress={onBack}
+            accessibilityRole="button"
+            accessibilityLabel="뒤로"
+            hitSlop={12}
+            style={styles.headerBtn}
+          >
+            <Text style={styles.headerBtnText}>←</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.headerBtn} />
+        )}
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {headerTitle}
+        </Text>
         <Pressable
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel="브라우저 닫기"
           hitSlop={12}
+          style={styles.headerBtn}
         >
-          <Text style={styles.closeBtn}>✕</Text>
+          <Text style={styles.headerBtnText}>✕</Text>
         </Pressable>
       </View>
-      <View style={styles.placeholder}>
-        <Text style={styles.placeholderText}>
-          {level.kind === "books" && "책 목록 (Lv1)"}
-          {level.kind === "chapters" && `${level.book} 장 (Lv2)`}
-          {level.kind === "verses" &&
-            `${level.book} ${level.chapter}장 절 (Lv3)`}
-        </Text>
-      </View>
+
+      {level.kind === "books" && (
+        <>
+          <View style={styles.segment}>
+            <SegmentBtn
+              label="구약"
+              active={testament === "OT"}
+              onPress={() => setTestament("OT")}
+            />
+            <SegmentBtn
+              label="신약"
+              active={testament === "NT"}
+              onPress={() => setTestament("NT")}
+            />
+          </View>
+          <FlatList
+            data={filteredBooks}
+            keyExtractor={(m) => m.code}
+            renderItem={({ item }) => (
+              <BookRow
+                meta={item}
+                onPress={() =>
+                  setLevel({ kind: "chapters", book: item.code })
+                }
+              />
+            )}
+          />
+        </>
+      )}
+
+      {level.kind !== "books" && (
+        <View style={styles.placeholder}>
+          <Text style={styles.placeholderText}>
+            {level.kind === "chapters" && `${level.book} 장 그리드 (Lv2 — Task 3.4b)`}
+            {level.kind === "verses" &&
+              `${level.book} ${level.chapter}장 절 (Lv3 — Task 3.4c)`}
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -67,19 +137,102 @@ export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }
   );
 }
 
+function SegmentBtn({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={label}
+    >
+      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function BookRow({
+  meta,
+  onPress,
+}: {
+  meta: BookMeta;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={styles.bookRow}
+      accessibilityRole="button"
+      accessibilityLabel={meta.nameKo}
+    >
+      <Text style={styles.bookName}>{meta.nameKo}</Text>
+      <Text style={styles.bookCode}>{meta.code}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   body: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
-  headerTitle: { fontSize: 18, fontWeight: "600" },
-  closeBtn: { fontSize: 20, color: "#555", padding: 4 },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerBtnText: { fontSize: 20, color: "#555" },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  segment: {
+    flexDirection: "row",
+    padding: 12,
+    gap: 8,
+  },
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 40,
+  },
+  segmentBtnActive: { backgroundColor: "#222" },
+  segmentText: { color: "#555", fontSize: 15 },
+  segmentTextActive: { color: "white", fontWeight: "600" },
+  bookRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: "#f4f4f4",
+    minHeight: 48,
+  },
+  bookName: { fontSize: 16, color: "#111" },
+  bookCode: { fontSize: 13, color: "#999" },
   placeholder: { flex: 1, alignItems: "center", justifyContent: "center" },
   placeholderText: { color: "#666" },
   sidebar: {
