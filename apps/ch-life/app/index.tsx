@@ -7,33 +7,16 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { getDb } from "@/db";
-import { makeNoteRepo, type DbAdapter } from "@/db/note-repo";
+import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import type { Note } from "@/domain/types";
-
-function adapterFromExpoDb(db: Awaited<ReturnType<typeof getDb>>): DbAdapter {
-  return {
-    execAsync: (sql: string) => db.execAsync(sql),
-    runAsync: async (sql, params = []) => {
-      await db.runAsync(sql, params as never);
-    },
-    getAllAsync: async <T,>(sql: string, params: unknown[] = []) =>
-      (await db.getAllAsync(sql, params as never)) as T[],
-    getFirstAsync: async <T,>(sql: string, params: unknown[] = []) => {
-      const r = await db.getFirstAsync(sql, params as never);
-      return (r as T | null) ?? null;
-    },
-  };
-}
 
 export default function NotesList() {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
 
   const reload = useCallback(async () => {
-    const db = await getDb();
-    const repo = makeNoteRepo(adapterFromExpoDb(db));
+    const repo = await openNoteRepo();
     setNotes(await repo.listRecent({ limit: 200 }));
   }, []);
 
@@ -44,8 +27,7 @@ export default function NotesList() {
   );
 
   const createNote = useCallback(async () => {
-    const db = await getDb();
-    const repo = makeNoteRepo(adapterFromExpoDb(db));
+    const repo = await openNoteRepo();
     const id = await repo.create({
       title: null,
       body: [{ type: "paragraph", text: "" }],

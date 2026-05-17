@@ -3,24 +3,8 @@ import { Text, View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { NoteEditor } from "@/editor/NoteEditor";
 import { useAutoSave } from "@/editor/useAutoSave";
-import { getDb } from "@/db";
-import { makeNoteRepo, type DbAdapter } from "@/db/note-repo";
+import { openNoteRepo } from "@/db/expo-adapter";
 import type { BlockNode } from "@/domain/types";
-
-function adapterFromExpoDb(db: Awaited<ReturnType<typeof getDb>>): DbAdapter {
-  return {
-    execAsync: (sql: string) => db.execAsync(sql),
-    runAsync: async (sql, params = []) => {
-      await db.runAsync(sql, params as never);
-    },
-    getAllAsync: async <T,>(sql: string, params: unknown[] = []) =>
-      (await db.getAllAsync(sql, params as never)) as T[],
-    getFirstAsync: async <T,>(sql: string, params: unknown[] = []) => {
-      const r = await db.getFirstAsync(sql, params as never);
-      return (r as T | null) ?? null;
-    },
-  };
-}
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,8 +20,7 @@ export default function NoteEditorScreen() {
     if (!id) return;
     let cancelled = false;
     (async () => {
-      const db = await getDb();
-      const repo = makeNoteRepo(adapterFromExpoDb(db));
+      const repo = await openNoteRepo();
       const note = await repo.findById(id);
       if (cancelled) return;
       if (note) {
@@ -63,8 +46,7 @@ export default function NoteEditorScreen() {
       citedRefs: string[];
     }) => {
       if (!id) return;
-      const db = await getDb();
-      const repo = makeNoteRepo(adapterFromExpoDb(db));
+      const repo = await openNoteRepo();
       await repo.update(id, patch);
       setSaveErr(null);
     },
