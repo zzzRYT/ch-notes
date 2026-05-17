@@ -9,7 +9,13 @@ import {
 } from "react-native";
 import type { BookCode } from "@/parser/book-map";
 import { useResponsiveLayout } from "./useResponsiveLayout";
-import { BOOKS_META, type Testament, type BookMeta } from "./books-meta";
+import {
+  BOOKS_META,
+  findBookMeta,
+  type BookMeta,
+  type Testament,
+} from "./books-meta";
+import { ChapterGrid } from "./ChapterGrid";
 
 export type BrowserLevel =
   | { kind: "books" }
@@ -36,8 +42,8 @@ export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }
     level.kind === "books"
       ? "성경"
       : level.kind === "chapters"
-        ? "장 선택"
-        : `${level.book} ${level.chapter}장`;
+        ? (findBookMeta(level.book)?.nameKo ?? level.book)
+        : `${findBookMeta(level.book)?.nameKo ?? level.book} ${level.chapter}장`;
 
   const showBackBtn = level.kind !== "books";
 
@@ -106,12 +112,19 @@ export function BibleBrowser({ visible, onClose, onInsertVerse: _onInsertVerse }
         </>
       )}
 
-      {level.kind !== "books" && (
+      {level.kind === "chapters" && (
+        <ChapterGrid
+          book={level.book}
+          onSelect={(chapter) =>
+            setLevel({ kind: "verses", book: level.book, chapter })
+          }
+        />
+      )}
+
+      {level.kind === "verses" && (
         <View style={styles.placeholder}>
           <Text style={styles.placeholderText}>
-            {level.kind === "chapters" && `${level.book} 장 그리드 (Lv2 — Task 3.4b)`}
-            {level.kind === "verses" &&
-              `${level.book} ${level.chapter}장 절 (Lv3 — Task 3.4c)`}
+            {level.book} {level.chapter}장 절 (Lv3 — Task 3.4c)
           </Text>
         </View>
       )}
