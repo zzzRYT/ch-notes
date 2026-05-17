@@ -107,6 +107,22 @@ export function makeNoteRepo(db: DbAdapter) {
     async delete(id: string): Promise<void> {
       await db.runAsync(`DELETE FROM notes WHERE id = ?`, [id]);
     },
+
+    async searchNotes(query: string): Promise<Note[]> {
+      const q = query.trim();
+      if (!q) return [];
+      // FTS5 input sanitize: 따옴표 제거 (구문 오류 방지)
+      const sanitized = q.replace(/["']/g, "");
+      if (!sanitized) return [];
+      const rows = await db.getAllAsync<Row>(
+        `SELECT n.* FROM notes n
+         JOIN notes_fts f ON f.id = n.id
+         WHERE notes_fts MATCH ?
+         ORDER BY n.updated_at DESC LIMIT 200`,
+        [`${sanitized}*`],
+      );
+      return rows.map(rowToNote);
+    },
   };
 }
 

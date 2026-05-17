@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   FlatList,
   Pressable,
   Text,
+  TextInput,
   StyleSheet,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -14,6 +15,8 @@ import type { Note } from "@/domain/types";
 export default function NotesList() {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Note[] | null>(null);
 
   const reload = useCallback(async () => {
     const repo = await openNoteRepo();
@@ -26,6 +29,25 @@ export default function NotesList() {
     }, [reload]),
   );
 
+  // 검색 디바운스 200ms
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setResults(null);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const repo = await openNoteRepo();
+        setResults(await repo.searchNotes(q));
+      } catch (e) {
+        console.warn("search failed", e);
+        setResults([]);
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [query]);
+
   const createNote = useCallback(async () => {
     const repo = await openNoteRepo();
     const id = await repo.create({
@@ -36,10 +58,25 @@ export default function NotesList() {
     router.push(`/note/${id}`);
   }, [router]);
 
+  const data = results ?? notes;
+  const isSearching = results !== null;
+
   return (
     <View style={styles.root}>
+      <View style={styles.searchBar}>
+        <TextInput
+          style={styles.searchInput}
+          value={query}
+          onChangeText={setQuery}
+          placeholder="검색 (제목·인용)"
+          accessibilityLabel="노트 검색"
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
+        />
+      </View>
       <FlatList
-        data={notes}
+        data={data}
         keyExtractor={(n) => n.id}
         renderItem={({ item }) => (
           <NoteCard
@@ -48,17 +85,23 @@ export default function NotesList() {
           />
         )}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>첫 번째 설교 노트를 시작하세요</Text>
-            <Pressable
-              style={styles.startBtn}
-              onPress={createNote}
-              accessibilityRole="button"
-              accessibilityLabel="시작하기"
-            >
-              <Text style={styles.startBtnText}>시작하기</Text>
-            </Pressable>
-          </View>
+          isSearching ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>검색 결과 없음</Text>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>첫 번째 설교 노트를 시작하세요</Text>
+              <Pressable
+                style={styles.startBtn}
+                onPress={createNote}
+                accessibilityRole="button"
+                accessibilityLabel="시작하기"
+              >
+                <Text style={styles.startBtnText}>시작하기</Text>
+              </Pressable>
+            </View>
+          )
         }
       />
       <Pressable
@@ -75,6 +118,20 @@ export default function NotesList() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  searchBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+  searchInput: {
+    backgroundColor: "#f4f4f4",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    fontSize: 16,
+    minHeight: 40,
+  },
   empty: { alignItems: "center", paddingTop: 120, gap: 16 },
   emptyText: { fontSize: 18, color: "#666" },
   startBtn: {
