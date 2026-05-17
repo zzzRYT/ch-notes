@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   FlatList,
+  TextInput,
 } from "react-native";
 import type { BookCode } from "@/parser/book-map";
 import { useResponsiveLayout } from "./useResponsiveLayout";
@@ -17,6 +18,7 @@ import {
 } from "./books-meta";
 import { ChapterGrid } from "./ChapterGrid";
 import { VerseList } from "./VerseList";
+import { resolveBrowserQuery } from "./browser-search";
 
 export type BrowserLevel =
   | { kind: "books" }
@@ -33,6 +35,18 @@ export function BibleBrowser({ visible, onClose, onInsertVerse }: Props) {
   const { mode } = useResponsiveLayout();
   const [level, setLevel] = useState<BrowserLevel>({ kind: "books" });
   const [testament, setTestament] = useState<Testament>("OT");
+  const [search, setSearch] = useState("");
+
+  const onSubmitSearch = () => {
+    const r = resolveBrowserQuery(search);
+    if (!r) return;
+    if (r.kind === "book") setLevel({ kind: "chapters", book: r.book });
+    else if (r.kind === "chapter")
+      setLevel({ kind: "verses", book: r.book, chapter: r.chapter });
+    else if (r.kind === "verse")
+      setLevel({ kind: "verses", book: r.book, chapter: r.chapter });
+    setSearch("");
+  };
 
   const filteredBooks = useMemo(
     () => BOOKS_META.filter((m) => m.testament === testament),
@@ -86,6 +100,19 @@ export function BibleBrowser({ visible, onClose, onInsertVerse }: Props) {
 
       {level.kind === "books" && (
         <>
+          <View style={styles.searchWrap}>
+            <TextInput
+              style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
+              onSubmitEditing={onSubmitSearch}
+              placeholder="책·장·절 (예: 골 3:20)"
+              accessibilityLabel="성경 검색"
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="go"
+            />
+          </View>
           <View style={styles.segment}>
             <SegmentBtn
               label="구약"
@@ -221,9 +248,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
+  searchWrap: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
+  searchInput: {
+    backgroundColor: "#f4f4f4",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 15,
+    minHeight: 40,
+  },
   segment: {
     flexDirection: "row",
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     gap: 8,
   },
   segmentBtn: {
