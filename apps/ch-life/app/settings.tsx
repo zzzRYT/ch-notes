@@ -176,10 +176,10 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 12, textTransform: "uppercase" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 999,
-    minHeight: 40,
+    minHeight: 48,
     justifyContent: "center",
   },
   chipText: { fontSize: 14 },

@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
   },
   navBtn: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 40,
+    paddingVertical: 12,
+    minHeight: 48,
     justifyContent: "center",
   },
   navBtnDisabled: { opacity: 0.3 },

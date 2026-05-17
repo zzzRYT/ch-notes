@@ -174,7 +174,12 @@ export function BibleBrowser({ visible, onClose, onInsertVerse }: Props) {
       onRequestClose={onClose}
     >
       <View style={styles.sheetBackdrop}>
-        <Pressable style={styles.backdropTap} onPress={onClose} />
+        <Pressable
+          style={styles.backdropTap}
+          onPress={onClose}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <View style={styles.sheet}>{body}</View>
       </View>
     </Modal>
@@ -268,12 +273,12 @@ const styles = StyleSheet.create({
   },
   segmentBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 999,
     backgroundColor: "#f0f0f0",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 40,
+    minHeight: 48,
   },
   segmentBtnActive: { backgroundColor: "#222" },
   segmentText: { color: "#555", fontSize: 15 },
