@@ -4,6 +4,7 @@ describe("app-store", () => {
   beforeEach(() => {
     useAppStore.setState({
       currentNoteId: null,
+      pendingInsertRef: null,
       settings: {
         fontScale: 1.2,
         themePreference: "system",
@@ -30,5 +31,21 @@ describe("app-store", () => {
     const s = useAppStore.getState().settings;
     expect(s.fontScale).toBe(1.4);
     expect(s.themePreference).toBe("system");
+  });
+
+  it("pendingInsertRef 초기값은 null", () => {
+    expect(useAppStore.getState().pendingInsertRef).toBeNull();
+  });
+
+  it("requestInsertRef → consumePendingInsert 흐름", () => {
+    useAppStore.getState().requestInsertRef("Col 3:20");
+    expect(useAppStore.getState().pendingInsertRef).toBe("Col 3:20");
+    const popped = useAppStore.getState().consumePendingInsert();
+    expect(popped).toBe("Col 3:20");
+    expect(useAppStore.getState().pendingInsertRef).toBeNull();
+  });
+
+  it("consumePendingInsert가 비었으면 null", () => {
+    expect(useAppStore.getState().consumePendingInsert()).toBeNull();
   });
 });

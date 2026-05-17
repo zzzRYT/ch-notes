@@ -6,6 +6,7 @@ import { useAutoSave } from "@/editor/useAutoSave";
 import { BibleBrowser } from "@/browser/BibleBrowser";
 import { lookupVerses } from "@/parser/verse-lookup";
 import { openNoteRepo } from "@/db/expo-adapter";
+import { useAppStore } from "@/state/app-store";
 import type { BlockNode } from "@/domain/types";
 
 export default function NoteEditorScreen() {
@@ -27,6 +28,25 @@ export default function NoteEditorScreen() {
       { type: "paragraph", text: "" },
     ]);
   }, []);
+
+  // 에디터 진입/종료 시 currentNoteId 동기화
+  useEffect(() => {
+    if (!id) return;
+    useAppStore.getState().setCurrentNoteId(id);
+    return () => {
+      // 다른 노트 진입 또는 목록 복귀 시 클리어
+      const cur = useAppStore.getState().currentNoteId;
+      if (cur === id) useAppStore.getState().setCurrentNoteId(null);
+    };
+  }, [id]);
+
+  // ready 직후 pendingInsertRef 소비 (외부 진입점이 큐잉한 경우)
+  useEffect(() => {
+    if (!ready) return;
+    const pending = useAppStore.getState().consumePendingInsert();
+    if (!pending) return;
+    insertVerseFromBrowser(pending);
+  }, [ready, insertVerseFromBrowser]);
 
   // 노트 로드
   useEffect(() => {
