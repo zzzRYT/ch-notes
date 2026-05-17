@@ -7,6 +7,8 @@ import { BibleBrowser } from "@/browser/BibleBrowser";
 import { lookupVerses } from "@/parser/verse-lookup";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
+import { exportNote } from "@/share/export-note";
+import { extractCitedRefs } from "@/editor/cited-refs";
 import type { BlockNode } from "@/domain/types";
 
 export default function NoteEditorScreen() {
@@ -18,6 +20,24 @@ export default function NoteEditorScreen() {
   const [ready, setReady] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    if (!id) return;
+    try {
+      const repo = await openNoteRepo();
+      const fresh = await repo.findById(id);
+      if (!fresh) return;
+      await exportNote({
+        ...fresh,
+        body,
+        title,
+        citedRefs: extractCitedRefs(body),
+      });
+    } catch (e) {
+      console.warn("export failed", e);
+      setSaveErr("공유 실패");
+    }
+  }, [id, body, title]);
 
   const insertVerseFromBrowser = useCallback((ref: string) => {
     const verses = lookupVerses(ref);
@@ -100,6 +120,15 @@ export default function NoteEditorScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.toolbar}>
+        <Pressable
+          onPress={handleExport}
+          accessibilityRole="button"
+          accessibilityLabel="노트 공유"
+          hitSlop={12}
+          style={styles.toolbarBtn}
+        >
+          <Text style={styles.toolbarIcon}>📤</Text>
+        </Pressable>
         <Pressable
           onPress={() => setBrowserOpen((b) => !b)}
           accessibilityRole="button"
