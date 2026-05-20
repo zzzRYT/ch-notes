@@ -1,71 +1,118 @@
 import React from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
 import type { Note } from "@/domain/types";
-import { formatNoteCard } from "./format-card";
+import { formatTime, notePreview, noteTitleOrFallback } from "./group-notes";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
 
 type Props = {
   note: Note;
   onPress: () => void;
+  isFirst?: boolean;
 };
 
-export function NoteCard({ note, onPress }: Props) {
+export function NoteCard({ note, onPress, isFirst }: Props) {
   const { colors, fontScale } = useTheme();
-  const { mainLabel, refChips } = formatNoteCard(note);
+  const title = noteTitleOrFallback(note);
+  const passage = note.citedRefs[0];
+  const preview = notePreview(note);
   return (
     <Pressable
-      style={[styles.card, { borderColor: colors.line }]}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={mainLabel}
+      accessibilityLabel={title}
+      style={[
+        styles.row,
+        {
+          borderTopColor: isFirst ? "transparent" : colors.rule,
+        },
+      ]}
     >
       <Text
         style={[
-          styles.title,
-          { color: colors.text, fontSize: scaled(18, fontScale) },
+          styles.time,
+          {
+            color: colors.ink3,
+            fontSize: scaled(13, fontScale),
+          },
         ]}
-        numberOfLines={1}
       >
-        {mainLabel}
+        {formatTime(note.createdAt)}
       </Text>
-      {(refChips.visible.length > 0 || refChips.moreCount > 0) && (
-        <View style={styles.chips}>
-          {refChips.visible.map((r) => (
-            <View
-              key={r}
-              style={[styles.chip, { backgroundColor: colors.chipBg }]}
+      <View style={styles.body}>
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.title,
+            { color: colors.ink, fontSize: scaled(17, fontScale) },
+          ]}
+        >
+          {title}
+        </Text>
+        {passage && (
+          <View style={styles.metaRow}>
+            <Text
+              style={[
+                styles.passage,
+                { color: colors.accent, fontSize: scaled(13, fontScale) },
+              ]}
             >
-              <Text style={[styles.chipText, { color: colors.chipText }]}>
-                {r}
+              {passage}
+            </Text>
+            {note.citedRefs.length > 1 && (
+              <Text
+                style={[
+                  styles.metaMore,
+                  { color: colors.ink3, fontSize: scaled(13, fontScale) },
+                ]}
+              >
+                +{note.citedRefs.length - 1}
               </Text>
-            </View>
-          ))}
-          {refChips.moreCount > 0 && (
-            <View style={[styles.chip, { backgroundColor: colors.chipBg }]}>
-              <Text style={[styles.chipText, { color: colors.chipText }]}>
-                +{refChips.moreCount}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
+            )}
+          </View>
+        )}
+        {preview.length > 0 && (
+          <Text
+            numberOfLines={2}
+            style={[
+              styles.preview,
+              {
+                color: colors.ink2,
+                fontSize: scaled(14, fontScale),
+                lineHeight: scaled(21, fontScale),
+              },
+            ]}
+          >
+            {preview}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    minHeight: 72,
-    borderBottomWidth: 1,
-    justifyContent: "center",
+  row: {
+    flexDirection: "row",
+    paddingHorizontal: 22,
+    paddingVertical: 16,
+    gap: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontWeight: "500", marginBottom: 6 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  chip: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+  time: {
+    width: 60,
+    paddingTop: 3,
   },
-  chipText: { fontSize: 13 },
+  body: { flex: 1 },
+  title: { fontWeight: "600", letterSpacing: -0.2 },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+    marginTop: 4,
+  },
+  passage: { fontWeight: "600" },
+  metaMore: {},
+  preview: {
+    marginTop: 8,
+  },
 });

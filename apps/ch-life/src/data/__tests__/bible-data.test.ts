@@ -1,9 +1,9 @@
-import bible from "../../../assets/bible-krv.json";
+import bible from "../../../assets/bible.json";
 
 type BibleData = Record<string, Record<string, Record<string, string>>>;
 const DATA = bible as BibleData;
 
-describe("bible-krv.json", () => {
+describe("bible.json", () => {
   it("66권을 가진다", () => {
     expect(Object.keys(DATA)).toHaveLength(66);
   });

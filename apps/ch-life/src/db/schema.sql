@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS notes (
   cited_refs  TEXT NOT NULL DEFAULT '[]'
 );
 
-CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notes_title ON notes(title);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(

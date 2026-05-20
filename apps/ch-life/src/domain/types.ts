@@ -23,8 +23,11 @@ export type Note = {
   citedRefs: string[];
 };
 
+export type Variation = "minimal" | "paper" | "focus" | "dark";
+
 export type Settings = {
   fontScale: 1.0 | 1.2 | 1.4 | 1.6;
   themePreference: "system" | "light" | "dark";
+  variation: Variation;
   lastOpenedNoteId: string | null;
 };

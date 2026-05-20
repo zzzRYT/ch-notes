@@ -12,7 +12,7 @@ const config: ExpoConfig = {
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#257AB4",
   },
   ios: {
     bundleIdentifier: "com.leejaejin.chlife",
@@ -26,7 +26,7 @@ const config: ExpoConfig = {
     package: "com.leejaejin.chlife",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#257AB4",
     },
   },
   web: {

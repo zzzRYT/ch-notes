@@ -1,21 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, TextInput, View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { NoteEditor } from "@/editor/NoteEditor";
 import { useAutoSave } from "@/editor/useAutoSave";
+import { EditorKeyboardToolbar } from "@/editor/EditorKeyboardToolbar";
 import { BibleBrowser } from "@/browser/BibleBrowser";
 import { lookupVerses } from "@/parser/verse-lookup";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
 import { exportNote } from "@/share/export-note";
 import { extractCitedRefs } from "@/editor/cited-refs";
-import { useTheme } from "@/theme/ThemeProvider";
+import { useTheme, scaled } from "@/theme/ThemeProvider";
 import type { BlockNode } from "@/domain/types";
+
+const DEFAULT_RECENTS = ["창 1:1", "엡 2:8", "시 23:1"];
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useTheme();
-  const [title, _setTitle] = useState<string | null>(null);
+  const { colors, fontScale } = useTheme();
+  const [title, setTitle] = useState<string | null>(null);
   const [body, setBody] = useState<BlockNode[]>([
     { type: "paragraph", text: "" },
   ]);
@@ -41,6 +44,10 @@ export default function NoteEditorScreen() {
     }
   }, [id, body, title]);
 
+  const handleChangeTitle = useCallback((next: string) => {
+    setTitle(next.length === 0 ? null : next);
+  }, []);
+
   const insertVerseFromBrowser = useCallback((ref: string) => {
     const verses = lookupVerses(ref);
     if (!verses) return;
@@ -51,18 +58,15 @@ export default function NoteEditorScreen() {
     ]);
   }, []);
 
-  // 에디터 진입/종료 시 currentNoteId 동기화
   useEffect(() => {
     if (!id) return;
     useAppStore.getState().setCurrentNoteId(id);
     return () => {
-      // 다른 노트 진입 또는 목록 복귀 시 클리어
       const cur = useAppStore.getState().currentNoteId;
       if (cur === id) useAppStore.getState().setCurrentNoteId(null);
     };
   }, [id]);
 
-  // ready 직후 pendingInsertRef 소비 (외부 진입점이 큐잉한 경우)
   useEffect(() => {
     if (!ready) return;
     const pending = useAppStore.getState().consumePendingInsert();
@@ -70,7 +74,6 @@ export default function NoteEditorScreen() {
     insertVerseFromBrowser(pending);
   }, [ready, insertVerseFromBrowser]);
 
-  // 노트 로드
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -79,7 +82,7 @@ export default function NoteEditorScreen() {
       const note = await repo.findById(id);
       if (cancelled) return;
       if (note) {
-        _setTitle(note.title);
+        setTitle(note.title);
         setBody(
           note.body.length ? note.body : [{ type: "paragraph", text: "" }],
         );
@@ -118,10 +121,16 @@ export default function NoteEditorScreen() {
 
   useAutoSave({ title, body, save, onError });
 
+  const recents = useMemo<string[]>(() => {
+    const refs = extractCitedRefs(body);
+    if (refs.length === 0) return DEFAULT_RECENTS;
+    return refs.slice(-3).reverse();
+  }, [body]);
+
   if (!ready) return null;
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <View style={styles.toolbar}>
+      <View style={[styles.toolbar, { borderBottomColor: colors.rule }]}>
         <Pressable
           onPress={handleExport}
           accessibilityRole="button"
@@ -129,7 +138,7 @@ export default function NoteEditorScreen() {
           hitSlop={12}
           style={styles.toolbarBtn}
         >
-          <Text style={[styles.toolbarIcon, { color: colors.text }]}>📤</Text>
+          <Text style={[styles.toolbarIcon, { color: colors.ink2 }]}>↑</Text>
         </Pressable>
         <Pressable
           onPress={() => setBrowserOpen((b) => !b)}
@@ -138,7 +147,7 @@ export default function NoteEditorScreen() {
           hitSlop={12}
           style={styles.toolbarBtn}
         >
-          <Text style={[styles.toolbarIcon, { color: colors.text }]}>📖</Text>
+          <Text style={[styles.toolbarIcon, { color: colors.ink2 }]}>📖</Text>
         </Pressable>
       </View>
       {saveErr && (
@@ -146,7 +155,29 @@ export default function NoteEditorScreen() {
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
+      <TextInput
+        style={[
+          styles.titleInput,
+          {
+            color: colors.ink,
+            fontSize: scaled(24, fontScale),
+            lineHeight: scaled(32, fontScale),
+          },
+        ]}
+        value={title ?? ""}
+        onChangeText={handleChangeTitle}
+        placeholder="제목"
+        placeholderTextColor={colors.ink3}
+        accessibilityLabel="노트 제목"
+        returnKeyType="next"
+        maxLength={120}
+      />
       <NoteEditor body={body} onChangeBody={setBody} />
+      <EditorKeyboardToolbar
+        recents={recents}
+        onInsertRef={insertVerseFromBrowser}
+        onOpenBrowser={() => setBrowserOpen(true)}
+      />
       <BibleBrowser
         visible={browserOpen}
         onClose={() => setBrowserOpen(false)}
@@ -162,14 +193,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   toolbarBtn: {
-    minWidth: 48,
-    minHeight: 48,
+    minWidth: 44,
+    minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
   },
-  toolbarIcon: { fontSize: 24 },
+  toolbarIcon: { fontSize: 20 },
   errBanner: { padding: 8 },
+  titleInput: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 8,
+    fontWeight: "700",
+  },
 });

@@ -29,8 +29,8 @@ describe("lookupVerses", () => {
   });
 
   it("범위 일부가 비면 null", () => {
-    // Col 3:20-23 — 23은 placeholder JSON에 없음
-    expect(lookupVerses("골 3:20-23")).toBeNull();
+    // 골 3장은 25절까지 — 24-26 범위는 26절이 없으므로 전체 null
+    expect(lookupVerses("골 3:24-26")).toBeNull();
   });
 
   it("end < verse면 null", () => {

@@ -9,7 +9,7 @@ import {
 import Constants from "expo-constants";
 import { useAppStore } from "@/state/app-store";
 import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
-import { useTheme } from "@/theme/ThemeProvider";
+import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
 import type { Note, Settings } from "@/domain/types";
 
 function promptPolicy(existing: Note): Promise<ConflictPolicy> {
@@ -39,15 +39,6 @@ const FONT_OPTIONS: ReadonlyArray<{
   { label: "크게", value: 1.2 },
   { label: "더 크게", value: 1.4 },
   { label: "아주 크게", value: 1.6 },
-];
-
-const THEME_OPTIONS: ReadonlyArray<{
-  label: string;
-  value: Settings["themePreference"];
-}> = [
-  { label: "시스템", value: "system" },
-  { label: "라이트", value: "light" },
-  { label: "다크", value: "dark" },
 ];
 
 export default function SettingsScreen() {
@@ -94,14 +85,16 @@ export default function SettingsScreen() {
       accessibilityLabel={label}
       style={[
         styles.chip,
-        { backgroundColor: selected ? colors.accent : colors.chipBg },
+        {
+          backgroundColor: selected ? colors.ink : colors.chipBg,
+        },
       ]}
     >
       <Text
         style={[
           styles.chipText,
           {
-            color: selected ? colors.accentText : colors.chipText,
+            color: selected ? colors.paper : colors.ink2,
             fontWeight: selected ? "600" : "400",
           },
         ]}
@@ -114,7 +107,58 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.subtle }]}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+          테마 (variation)
+        </Text>
+        <View style={styles.col}>
+          {VARIATION_OPTIONS.map((o) => {
+            const selected = settings.variation === o.value;
+            return (
+              <Pressable
+                key={o.value}
+                onPress={() => setSettings({ variation: o.value })}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${o.label} — ${o.hint}`}
+                style={[
+                  styles.variationRow,
+                  {
+                    backgroundColor: selected ? colors.accentSoft : colors.paper,
+                    borderColor: selected ? colors.accent : colors.rule,
+                  },
+                ]}
+              >
+                <View style={styles.variationLabels}>
+                  <Text
+                    style={[
+                      styles.variationLabel,
+                      { color: colors.ink },
+                    ]}
+                  >
+                    {o.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.variationHint,
+                      { color: colors.ink3 },
+                    ]}
+                  >
+                    {o.hint}
+                  </Text>
+                </View>
+                {selected && (
+                  <Text style={{ color: colors.accent, fontWeight: "600" }}>
+                    ✓
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
           글꼴 크기
         </Text>
         <View style={styles.row}>
@@ -127,24 +171,13 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.subtle }]}>테마</Text>
-        <View style={styles.row}>
-          {THEME_OPTIONS.map((o) =>
-            renderChip(o.label, settings.themePreference === o.value, () =>
-              setSettings({ themePreference: o.value }),
-            ),
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.subtle }]}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
           가져오기 / 내보내기
         </Text>
         <Pressable
           style={[
             styles.btn,
-            { backgroundColor: colors.accent },
+            { backgroundColor: colors.ink },
             busy && styles.btnBusy,
           ]}
           onPress={handleImport}
@@ -152,19 +185,19 @@ export default function SettingsScreen() {
           accessibilityRole="button"
           accessibilityLabel="마크다운 노트 가져오기"
         >
-          <Text style={[styles.btnText, { color: colors.accentText }]}>
+          <Text style={[styles.btnText, { color: colors.paper }]}>
             {busy ? "가져오는 중…" : "마크다운 파일 가져오기"}
           </Text>
         </Pressable>
-        <Text style={[styles.hint, { color: colors.subtle }]}>
-          내보내기는 노트 화면 오른쪽 위의 📤 버튼을 사용하세요.
+        <Text style={[styles.hint, { color: colors.ink3 }]}>
+          내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
         </Text>
-        {lastMsg && <Text style={{ color: colors.text }}>{lastMsg}</Text>}
+        {lastMsg && <Text style={{ color: colors.ink }}>{lastMsg}</Text>}
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.subtle }]}>정보</Text>
-        <Text style={{ color: colors.text }}>버전 {version}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
+        <Text style={{ color: colors.ink }}>버전 {version}</Text>
       </View>
     </View>
   );
@@ -173,25 +206,44 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, padding: 16, gap: 8 },
   section: { gap: 12, marginBottom: 20 },
-  sectionTitle: { fontSize: 12, textTransform: "uppercase" },
+  sectionTitle: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    fontWeight: "600",
+  },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  col: { gap: 8 },
+  variationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    minHeight: 56,
+  },
+  variationLabels: { gap: 2 },
+  variationLabel: { fontSize: 15, fontWeight: "600" },
+  variationHint: { fontSize: 12 },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 999,
-    minHeight: 48,
+    minHeight: 44,
     justifyContent: "center",
   },
   chipText: { fontSize: 14 },
   btn: {
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
     minHeight: 48,
     justifyContent: "center",
   },
   btnBusy: { opacity: 0.5 },
-  btnText: { fontSize: 16 },
+  btnText: { fontSize: 16, fontWeight: "600" },
   hint: { fontSize: 13 },
 });

@@ -98,7 +98,7 @@ export function makeNoteRepo(db: DbAdapter) {
 
     async listRecent(opts: { limit: number }): Promise<Note[]> {
       const rows = await db.getAllAsync<Row>(
-        `SELECT * FROM notes ORDER BY updated_at DESC LIMIT ?`,
+        `SELECT * FROM notes ORDER BY created_at DESC LIMIT ?`,
         [opts.limit],
       );
       return rows.map(rowToNote);
@@ -118,7 +118,7 @@ export function makeNoteRepo(db: DbAdapter) {
         `SELECT n.* FROM notes n
          JOIN notes_fts f ON f.id = n.id
          WHERE notes_fts MATCH ?
-         ORDER BY n.updated_at DESC LIMIT 200`,
+         ORDER BY n.created_at DESC LIMIT 200`,
         [`${sanitized}*`],
       );
       return rows.map(rowToNote);

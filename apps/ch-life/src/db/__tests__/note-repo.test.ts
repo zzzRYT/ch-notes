@@ -40,11 +40,14 @@ describe("note-repo", () => {
     expect(note?.citedRefs).toEqual([]);
   });
 
-  it("최신순 정렬", async () => {
+  it("createdAt 내림차순 정렬 (업데이트해도 순서 변하지 않음)", async () => {
     const repo = setup();
     const a = await repo.create({ title: "A", body: [], citedRefs: [] });
     await new Promise((r) => setTimeout(r, 5));
     const b = await repo.create({ title: "B", body: [], citedRefs: [] });
+    // 더 일찍 만든 a를 나중에 업데이트해도 b가 먼저 와야 한다.
+    await new Promise((r) => setTimeout(r, 5));
+    await repo.update(a, { title: "A2" });
     const list = await repo.listRecent({ limit: 10 });
     expect(list[0]?.id).toBe(b);
     expect(list[1]?.id).toBe(a);

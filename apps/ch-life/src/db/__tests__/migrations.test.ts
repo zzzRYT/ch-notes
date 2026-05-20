@@ -26,7 +26,7 @@ describe("schema", () => {
       .all()
       .map((r) => (r as { name: string }).name);
     expect(indexes).toEqual(
-      expect.arrayContaining(["idx_notes_updated_at", "idx_notes_title"]),
+      expect.arrayContaining(["idx_notes_created_at", "idx_notes_title"]),
     );
 
     const triggers = db

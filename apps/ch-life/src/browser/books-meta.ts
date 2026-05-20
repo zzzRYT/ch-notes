@@ -1,5 +1,5 @@
 import type { BookCode } from "@/parser/book-map";
-import bible from "../../assets/bible-krv.json";
+import bible from "../../assets/bible.json";
 
 type BibleData = Record<string, Record<string, Record<string, string>>>;
 const DATA: BibleData = bible as BibleData;

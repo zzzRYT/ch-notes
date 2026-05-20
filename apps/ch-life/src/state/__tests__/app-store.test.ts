@@ -8,6 +8,7 @@ describe("app-store", () => {
       settings: {
         fontScale: 1.2,
         themePreference: "system",
+        variation: "minimal",
         lastOpenedNoteId: null,
       },
     });

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
-  FlatList,
+  SectionList,
   Pressable,
   Text,
   TextInput,
@@ -10,12 +10,29 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
-import { useTheme } from "@/theme/ThemeProvider";
+import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
+import { useTheme, scaled } from "@/theme/ThemeProvider";
 import type { Note } from "@/domain/types";
+
+type Section = {
+  key: string;
+  date: string;
+  dow: string;
+  data: Note[];
+};
+
+function toSections(groups: ReadonlyArray<NoteGroup>): Section[] {
+  return groups.map((g) => ({
+    key: g.key,
+    date: g.date,
+    dow: g.dow,
+    data: g.notes,
+  }));
+}
 
 export default function NotesList() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, fontScale } = useTheme();
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[] | null>(null);
@@ -62,52 +79,118 @@ export default function NotesList() {
   const data = results ?? notes;
   const isSearching = results !== null;
 
+  const sections = useMemo<Section[]>(
+    () => toSections(groupNotesByDay(data)),
+    [data],
+  );
+
+  const subtitleText = useMemo(() => {
+    if (data.length === 0) return "노트 없음";
+    return `최근 ${data.length}편`;
+  }, [data.length]);
+
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <View style={[styles.searchBar, { borderColor: colors.line }]}>
-        <TextInput
-          style={[
-            styles.searchInput,
-            { backgroundColor: colors.chipBg, color: colors.text },
-          ]}
-          value={query}
-          onChangeText={setQuery}
-          placeholder="검색 (제목·인용)"
-          placeholderTextColor={colors.subtle}
-          accessibilityLabel="노트 검색"
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-        />
-      </View>
-      <FlatList
-        data={data}
+      <SectionList
+        sections={sections}
         keyExtractor={(n) => n.id}
-        renderItem={({ item }) => (
+        stickySectionHeadersEnabled={false}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View>
+            <View style={styles.listHead}>
+              <Text
+                style={[
+                  styles.listTitle,
+                  { color: colors.ink, fontSize: scaled(30, fontScale) },
+                ]}
+              >
+                노트
+              </Text>
+              <Text
+                style={[
+                  styles.listSub,
+                  { color: colors.ink3, fontSize: scaled(13, fontScale) },
+                ]}
+              >
+                {subtitleText}
+              </Text>
+            </View>
+            <View
+              style={[styles.searchBar, { backgroundColor: colors.chipBg }]}
+            >
+              <TextInput
+                style={[styles.searchInput, { color: colors.ink }]}
+                value={query}
+                onChangeText={setQuery}
+                placeholder="검색 — 제목, 본문, 인용"
+                placeholderTextColor={colors.ink3}
+                accessibilityLabel="노트 검색"
+                autoCorrect={false}
+                autoCapitalize="none"
+                returnKeyType="search"
+              />
+            </View>
+          </View>
+        }
+        renderSectionHeader={({ section }) => (
+          <View style={styles.groupHead}>
+            <Text
+              style={[
+                styles.groupDate,
+                { color: colors.ink, fontSize: scaled(22, fontScale) },
+              ]}
+            >
+              {section.date}
+            </Text>
+            <Text
+              style={[
+                styles.groupDow,
+                { color: colors.ink3, fontSize: scaled(13, fontScale) },
+              ]}
+            >
+              {section.dow}
+            </Text>
+            <View
+              style={[styles.groupCount, { backgroundColor: colors.chipBg }]}
+            >
+              <Text
+                style={[
+                  styles.groupCountText,
+                  { color: colors.ink3, fontSize: scaled(11, fontScale) },
+                ]}
+              >
+                {section.data.length}
+              </Text>
+            </View>
+          </View>
+        )}
+        renderItem={({ item, index }) => (
           <NoteCard
             note={item}
+            isFirst={index === 0}
             onPress={() => router.push(`/note/${item.id}`)}
           />
         )}
         ListEmptyComponent={
           isSearching ? (
             <View style={styles.empty}>
-              <Text style={[styles.emptyText, { color: colors.subtle }]}>
+              <Text style={[styles.emptyText, { color: colors.ink3 }]}>
                 검색 결과 없음
               </Text>
             </View>
           ) : (
             <View style={styles.empty}>
-              <Text style={[styles.emptyText, { color: colors.subtle }]}>
+              <Text style={[styles.emptyText, { color: colors.ink3 }]}>
                 첫 번째 설교 노트를 시작하세요
               </Text>
               <Pressable
-                style={[styles.startBtn, { backgroundColor: colors.accent }]}
+                style={[styles.startBtn, { backgroundColor: colors.ink }]}
                 onPress={createNote}
                 accessibilityRole="button"
                 accessibilityLabel="시작하기"
               >
-                <Text style={[styles.startBtnText, { color: colors.accentText }]}>
+                <Text style={[styles.startBtnText, { color: colors.paper }]}>
                   시작하기
                 </Text>
               </Pressable>
@@ -116,12 +199,12 @@ export default function NotesList() {
         }
       />
       <Pressable
-        style={[styles.fab, { backgroundColor: colors.accent }]}
+        style={[styles.fab, { backgroundColor: colors.ink }]}
         onPress={createNote}
         accessibilityRole="button"
         accessibilityLabel="새 노트"
       >
-        <Text style={[styles.fabText, { color: colors.accentText }]}>＋</Text>
+        <Text style={[styles.fabText, { color: colors.paper }]}>＋</Text>
       </Pressable>
     </View>
   );
@@ -129,18 +212,50 @@ export default function NotesList() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  listContent: { paddingBottom: 120 },
+  listHead: {
+    paddingHorizontal: 22,
+    paddingTop: 4,
+    paddingBottom: 12,
+  },
+  listTitle: {
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  listSub: {
+    marginTop: 4,
+  },
   searchBar: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
+    marginHorizontal: 22,
+    marginBottom: 18,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minHeight: 40,
+    justifyContent: "center",
   },
   searchInput: {
-    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
-    fontSize: 16,
+    fontSize: 14,
     minHeight: 40,
   },
+  groupHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    paddingHorizontal: 22,
+    paddingTop: 22,
+    paddingBottom: 8,
+    gap: 10,
+  },
+  groupDate: { fontWeight: "700", letterSpacing: -0.4 },
+  groupDow: {},
+  groupCount: {
+    marginLeft: "auto",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    alignSelf: "center",
+  },
+  groupCountText: { fontWeight: "600" },
   empty: { alignItems: "center", paddingTop: 120, gap: 16 },
   emptyText: { fontSize: 18 },
   startBtn: {
@@ -150,16 +265,21 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: "center",
   },
-  startBtnText: { fontSize: 16 },
+  startBtnText: { fontSize: 16, fontWeight: "600" },
   fab: {
     position: "absolute",
-    right: 24,
+    right: 18,
     bottom: 36,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  fabText: { fontSize: 32, lineHeight: 36 },
+  fabText: { fontSize: 28, lineHeight: 32, fontWeight: "300" },
 });

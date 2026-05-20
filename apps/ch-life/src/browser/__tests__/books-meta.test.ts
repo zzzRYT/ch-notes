@@ -19,17 +19,17 @@ describe("BOOKS_META", () => {
 });
 
 describe("chapterCount / verseCount", () => {
-  it("Col 3장 있음 (placeholder)", () => {
+  it("Col 3장 있음", () => {
     expect(chapterCount("Col")).toBeGreaterThanOrEqual(1);
   });
-  it("Col 3장 절 3개 (placeholder seed)", () => {
-    expect(verseCount("Col", 3)).toBe(3);
+  it("Col 3장 절 수 (KRV)", () => {
+    expect(verseCount("Col", 3)).toBe(25);
   });
-  it("Gen 1장 절 1개 (placeholder seed)", () => {
-    expect(verseCount("Gen", 1)).toBe(1);
+  it("Gen 1장 절 수 (KRV)", () => {
+    expect(verseCount("Gen", 1)).toBe(31);
   });
-  it("존재하지 않는 책/장은 0", () => {
-    expect(chapterCount("Rev")).toBe(0);
+  it("존재하지 않는 장은 0", () => {
     expect(verseCount("Rev", 99)).toBe(0);
+    expect(verseCount("Gen", 999)).toBe(0);
   });
 });

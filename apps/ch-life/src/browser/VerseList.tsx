@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import type { BookCode } from "@/parser/book-map";
-import bible from "../../assets/bible-krv.json";
+import bible from "../../assets/bible.json";
 import { chapterCount, findBookMeta } from "./books-meta";
 
 type BibleData = Record<string, Record<string, Record<string, string>>>;

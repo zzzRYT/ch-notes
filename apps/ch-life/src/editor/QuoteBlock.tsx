@@ -7,57 +7,113 @@ type Props = Extract<BlockNode, { type: "quote" }>;
 
 export function QuoteBlock({ ref, verses, status }: Props) {
   const { colors, fontScale } = useTheme();
-  const barColor = status === "error" ? colors.errBar : colors.quoteBar;
+  const borderColor = status === "error" ? colors.errBar : colors.rule;
+
   return (
     <View
-      style={[styles.row, { borderLeftColor: barColor }]}
+      style={[
+        styles.card,
+        { backgroundColor: colors.paper, borderColor },
+      ]}
       accessibilityRole="text"
       accessibilityLabel={`인용 ${ref}`}
     >
-      <View style={styles.body}>
+      <View style={styles.head}>
+        <View style={[styles.dot, { backgroundColor: colors.accent }]} />
         <Text
           style={[
-            styles.ref,
-            { color: colors.text, fontSize: scaled(16, fontScale) },
+            styles.label,
+            {
+              color: colors.accent,
+              fontSize: scaled(12, fontScale),
+            },
           ]}
         >
           {ref}
         </Text>
-        {status === "loading" && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={colors.subtle} />
-            <Text style={{ color: colors.subtle }}>불러오는 중…</Text>
-          </View>
-        )}
-        {status === "loaded" &&
-          verses.map((v) => (
+      </View>
+      {status === "loading" && (
+        <View style={styles.loadingRow}>
+          <ActivityIndicator size="small" color={colors.ink3} />
+          <Text style={{ color: colors.ink3 }}>불러오는 중…</Text>
+        </View>
+      )}
+      {status === "loaded" &&
+        verses.map((v) => (
+          <View
+            key={`${v.book}-${v.chapter}-${v.verse}`}
+            style={styles.verseRow}
+          >
             <Text
-              key={`${v.book}-${v.chapter}-${v.verse}`}
-              style={{
-                color: colors.text,
-                fontSize: scaled(16, fontScale),
-                lineHeight: scaled(24, fontScale),
-              }}
+              style={[
+                styles.verseNum,
+                {
+                  color: colors.ink3,
+                  fontSize: scaled(11, fontScale),
+                  lineHeight: scaled(20, fontScale),
+                },
+              ]}
+            >
+              {v.verse}
+            </Text>
+            <Text
+              style={[
+                styles.verseText,
+                {
+                  color: colors.ink,
+                  fontSize: scaled(15, fontScale),
+                  lineHeight: scaled(24, fontScale),
+                },
+              ]}
             >
               {v.text}
             </Text>
-          ))}
-        {status === "error" && (
-          <Text style={{ color: colors.errText }}>본문을 찾을 수 없습니다</Text>
-        )}
-      </View>
+          </View>
+        ))}
+      {status === "error" && (
+        <Text style={{ color: colors.errText }}>본문을 찾을 수 없습니다</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    paddingLeft: 12,
-    borderLeftWidth: 4,
-    marginVertical: 8,
+  card: {
+    marginVertical: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    padding: 14,
   },
-  body: { flex: 1 },
-  ref: { fontWeight: "600", marginBottom: 4 },
-  loadingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  label: {
+    fontWeight: "600",
+    letterSpacing: 0,
+  },
+  loadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  verseRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 2,
+  },
+  verseNum: {
+    minWidth: 16,
+    paddingTop: 2,
+    fontWeight: "600",
+    textAlign: "left",
+  },
+  verseText: { flex: 1 },
 });
