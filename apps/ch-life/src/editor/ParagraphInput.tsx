@@ -43,7 +43,7 @@ function ParagraphInputImpl({
   onActiveChange,
   onBackspaceAtStart,
 }: Props) {
-  const { colors, fontScale } = useTheme();
+  const { colors, fontScale, fontStack } = useTheme();
   const [text, setText] = useState<string>(initialText);
   const textRef = useRef<string>(initialText);
   const cursorRef = useRef<number>(initialText.length);
@@ -168,6 +168,7 @@ function ParagraphInputImpl({
         styles.paragraph,
         {
           color: colors.ink,
+          fontFamily: fontStack,
           fontSize: scaled(16, fontScale),
           lineHeight: scaled(26, fontScale),
         },

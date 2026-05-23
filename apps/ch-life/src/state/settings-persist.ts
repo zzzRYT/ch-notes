@@ -1,5 +1,11 @@
 import * as FileSystem from "expo-file-system/legacy";
-import type { Settings, Variation } from "@/domain/types";
+import type {
+  AccentChoice,
+  BlockStyle,
+  FontFamily,
+  Settings,
+  Variation,
+} from "@/domain/types";
 
 const PATH = `${FileSystem.documentDirectory ?? ""}settings.json`;
 
@@ -15,6 +21,22 @@ const ALLOWED_VARIATION: ReadonlyArray<Variation> = [
   "focus",
   "dark",
 ];
+const ALLOWED_BLOCK_STYLE: ReadonlyArray<BlockStyle> = [
+  "default",
+  "card",
+  "quote",
+  "collapse",
+];
+const ALLOWED_FONT_FAMILY: ReadonlyArray<FontFamily> = ["sans", "serif", "mono"];
+const ALLOWED_ACCENT: ReadonlyArray<AccentChoice> = [
+  "default",
+  "#1e6fd9",
+  "#b15c2e",
+  "#1f8a5b",
+  "#f5b35e",
+  "#7a5af0",
+  "#6b7280",
+];
 
 function readVariation(value: unknown, themePref: unknown): Variation {
   if (
@@ -25,7 +47,21 @@ function readVariation(value: unknown, themePref: unknown): Variation {
   }
   // Migration: derive from previous themePreference if variation absent.
   if (themePref === "dark") return "dark";
-  return "minimal";
+  return "focus";
+}
+
+function readEnum<T extends string>(
+  value: unknown,
+  allowed: ReadonlyArray<T>,
+  fallback: T,
+): T {
+  if (
+    typeof value === "string" &&
+    (allowed as ReadonlyArray<string>).includes(value)
+  ) {
+    return value as T;
+  }
+  return fallback;
 }
 
 function parseSettings(x: unknown): Settings | null {
@@ -47,6 +83,9 @@ function parseSettings(x: unknown): Settings | null {
     fontScale: s.fontScale as Settings["fontScale"],
     themePreference: s.themePreference as Settings["themePreference"],
     variation: readVariation(s.variation, s.themePreference),
+    blockStyle: readEnum(s.blockStyle, ALLOWED_BLOCK_STYLE, "default"),
+    fontFamily: readEnum(s.fontFamily, ALLOWED_FONT_FAMILY, "sans"),
+    accentChoice: readEnum(s.accentChoice, ALLOWED_ACCENT, "default"),
     lastOpenedNoteId: s.lastOpenedNoteId as string | null,
   };
 }

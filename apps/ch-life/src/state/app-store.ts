@@ -14,7 +14,10 @@ type AppState = {
 const DEFAULT_SETTINGS: Settings = {
   fontScale: 1.2,
   themePreference: "system",
-  variation: "minimal",
+  variation: "focus",
+  blockStyle: "default",
+  fontFamily: "sans",
+  accentChoice: "default",
   lastOpenedNoteId: null,
 };
 

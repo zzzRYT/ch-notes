@@ -6,13 +6,17 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
+import { TabletWorkspace } from "@/workspace/TabletWorkspace";
 import type { Note } from "@/domain/types";
+
+const TABLET_BREAKPOINT = 900;
 
 type Section = {
   key: string;
@@ -31,6 +35,14 @@ function toSections(groups: ReadonlyArray<NoteGroup>): Section[] {
 }
 
 export default function NotesList() {
+  const { width } = useWindowDimensions();
+  if (width >= TABLET_BREAKPOINT) {
+    return <TabletWorkspace />;
+  }
+  return <PhoneNotesList />;
+}
+
+function PhoneNotesList() {
   const router = useRouter();
   const { colors, fontScale } = useTheme();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -86,7 +98,8 @@ export default function NotesList() {
 
   const subtitleText = useMemo(() => {
     if (data.length === 0) return "노트 없음";
-    return `최근 ${data.length}편`;
+    const month = new Date().getMonth() + 1;
+    return `최근 ${data.length}편 · ${month}월`;
   }, [data.length]);
 
   return (
@@ -98,6 +111,16 @@ export default function NotesList() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View>
+            <View style={styles.eyebrowRow}>
+              <Text
+                style={[
+                  styles.eyebrowText,
+                  { color: colors.ink3, fontSize: scaled(13, fontScale) },
+                ]}
+              >
+                설교 노트
+              </Text>
+            </View>
             <View style={styles.listHead}>
               <Text
                 style={[
@@ -213,6 +236,15 @@ export default function NotesList() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   listContent: { paddingBottom: 120 },
+  eyebrowRow: {
+    paddingHorizontal: 22,
+    paddingTop: 10,
+    paddingBottom: 0,
+  },
+  eyebrowText: {
+    fontWeight: "500",
+    letterSpacing: -0.1,
+  },
   listHead: {
     paddingHorizontal: 22,
     paddingTop: 4,

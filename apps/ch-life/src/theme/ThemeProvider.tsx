@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useAppStore } from "@/state/app-store";
-import type { Variation } from "@/domain/types";
+import type { BlockStyle, FontFamily, Variation } from "@/domain/types";
 
 // Design tokens align with styles.css from the Claude Design handoff
 // (설교 노트 앱 — 4 variations).  Each palette carries the legacy
@@ -35,6 +35,9 @@ export type Theme = {
   fontScale: number;
   variation: Variation;
   isDark: boolean;
+  blockStyle: Exclude<BlockStyle, "default">;
+  fontStack: string;
+  density: "regular" | "compact";
 };
 
 const MINIMAL: ThemeColors = {
@@ -136,25 +139,87 @@ const PALETTES: Record<Variation, ThemeColors> = {
   dark: DARK,
 };
 
+// Block style baked into each variation's design intent.
+const VARIATION_BLOCK_STYLE: Record<Variation, Exclude<BlockStyle, "default">> =
+  {
+    minimal: "card",
+    paper: "quote",
+    focus: "collapse",
+    dark: "quote",
+  };
+
+const VARIATION_DENSITY: Record<Variation, "regular" | "compact"> = {
+  minimal: "regular",
+  paper: "regular",
+  focus: "compact",
+  dark: "regular",
+};
+
+function fontStackFor(family: FontFamily): string {
+  switch (family) {
+    case "serif":
+      return "Noto Serif KR, serif";
+    case "mono":
+      return "JetBrains Mono, Menlo, monospace";
+    default:
+      return "Pretendard, -apple-system, system-ui, sans-serif";
+  }
+}
+
+// Apply soft alpha (~0.08) on an arbitrary accent so we can derive accentSoft
+// when a user overrides the variation default.
+function softenAccent(hex: string): string {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m || !m[1]) return hex;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  return `rgba(${r}, ${g}, ${b}, 0.08)`;
+}
+
 const Ctx = createContext<Theme>({
   colors: MINIMAL,
   fontScale: 1,
   variation: "minimal",
   isDark: false,
+  blockStyle: "card",
+  fontStack: fontStackFor("sans"),
+  density: "regular",
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const settings = useAppStore((s) => s.settings);
   const variation: Variation = settings.variation;
-  const value = useMemo<Theme>(
-    () => ({
-      colors: PALETTES[variation],
+  const value = useMemo<Theme>(() => {
+    const base = PALETTES[variation];
+    const accent =
+      settings.accentChoice === "default" ? base.accent : settings.accentChoice;
+    const accentSoft =
+      settings.accentChoice === "default"
+        ? base.accentSoft
+        : softenAccent(accent);
+    const colors: ThemeColors = { ...base, accent, accentSoft };
+    const blockStyle =
+      settings.blockStyle === "default"
+        ? VARIATION_BLOCK_STYLE[variation]
+        : settings.blockStyle;
+    return {
+      colors,
       fontScale: settings.fontScale,
       variation,
       isDark: variation === "dark",
-    }),
-    [variation, settings.fontScale],
-  );
+      blockStyle,
+      fontStack: fontStackFor(settings.fontFamily),
+      density: VARIATION_DENSITY[variation],
+    };
+  }, [
+    variation,
+    settings.fontScale,
+    settings.blockStyle,
+    settings.fontFamily,
+    settings.accentChoice,
+  ]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

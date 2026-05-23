@@ -17,7 +17,7 @@ const DEFAULT_RECENTS = ["창 1:1", "엡 2:8", "시 23:1"];
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, fontScale } = useTheme();
+  const { colors, fontScale, fontStack } = useTheme();
   const [title, setTitle] = useState<string | null>(null);
   const [body, setBody] = useState<BlockNode[]>([
     { type: "paragraph", text: "" },
@@ -160,6 +160,7 @@ export default function NoteEditorScreen() {
           styles.titleInput,
           {
             color: colors.ink,
+            fontFamily: fontStack,
             fontSize: scaled(24, fontScale),
             lineHeight: scaled(32, fontScale),
           },

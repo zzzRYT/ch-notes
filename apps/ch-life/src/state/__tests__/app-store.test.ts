@@ -9,6 +9,9 @@ describe("app-store", () => {
         fontScale: 1.2,
         themePreference: "system",
         variation: "minimal",
+        blockStyle: "default",
+        fontFamily: "sans",
+        accentChoice: "default",
         lastOpenedNoteId: null,
       },
     });

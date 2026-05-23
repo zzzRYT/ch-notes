@@ -11,7 +11,8 @@ type Props = {
 };
 
 export function NoteCard({ note, onPress, isFirst }: Props) {
-  const { colors, fontScale } = useTheme();
+  const { colors, fontScale, density } = useTheme();
+  const compact = density === "compact";
   const title = noteTitleOrFallback(note);
   const passage = note.citedRefs[0];
   const preview = notePreview(note);
@@ -22,6 +23,7 @@ export function NoteCard({ note, onPress, isFirst }: Props) {
       accessibilityLabel={title}
       style={[
         styles.row,
+        compact ? styles.rowCompact : styles.rowRegular,
         {
           borderTopColor: isFirst ? "transparent" : colors.rule,
         },
@@ -70,7 +72,7 @@ export function NoteCard({ note, onPress, isFirst }: Props) {
             )}
           </View>
         )}
-        {preview.length > 0 && (
+        {!compact && preview.length > 0 && (
           <Text
             numberOfLines={2}
             style={[
@@ -94,10 +96,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     paddingHorizontal: 22,
-    paddingVertical: 16,
     gap: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
+  rowRegular: { paddingVertical: 16 },
+  rowCompact: { paddingVertical: 10 },
   time: {
     width: 60,
     paddingTop: 3,

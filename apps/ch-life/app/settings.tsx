@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -10,7 +11,13 @@ import Constants from "expo-constants";
 import { useAppStore } from "@/state/app-store";
 import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
 import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
-import type { Note, Settings } from "@/domain/types";
+import type {
+  AccentChoice,
+  BlockStyle,
+  FontFamily,
+  Note,
+  Settings,
+} from "@/domain/types";
 
 function promptPolicy(existing: Note): Promise<ConflictPolicy> {
   return new Promise((resolve) => {
@@ -39,6 +46,39 @@ const FONT_OPTIONS: ReadonlyArray<{
   { label: "크게", value: 1.2 },
   { label: "더 크게", value: 1.4 },
   { label: "아주 크게", value: 1.6 },
+];
+
+const FONT_FAMILY_OPTIONS: ReadonlyArray<{
+  label: string;
+  value: FontFamily;
+}> = [
+  { label: "Sans", value: "sans" },
+  { label: "Serif", value: "serif" },
+  { label: "Mono", value: "mono" },
+];
+
+const BLOCK_STYLE_OPTIONS: ReadonlyArray<{
+  label: string;
+  value: BlockStyle;
+}> = [
+  { label: "변형별 기본값", value: "default" },
+  { label: "카드", value: "card" },
+  { label: "인용바", value: "quote" },
+  { label: "접힘", value: "collapse" },
+];
+
+const ACCENT_SWATCHES: ReadonlyArray<{
+  label: string;
+  value: AccentChoice;
+  swatch: string | null;
+}> = [
+  { label: "변형별 기본 색상", value: "default", swatch: null },
+  { label: "파랑", value: "#1e6fd9", swatch: "#1e6fd9" },
+  { label: "갈색 (종이톤)", value: "#b15c2e", swatch: "#b15c2e" },
+  { label: "녹색 (말씀)", value: "#1f8a5b", swatch: "#1f8a5b" },
+  { label: "호박 (다크)", value: "#f5b35e", swatch: "#f5b35e" },
+  { label: "보라", value: "#7a5af0", swatch: "#7a5af0" },
+  { label: "슬레이트 (포커스)", value: "#6b7280", swatch: "#6b7280" },
 ];
 
 export default function SettingsScreen() {
@@ -105,7 +145,10 @@ export default function SettingsScreen() {
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <ScrollView
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={styles.root}
+    >
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
           테마 (variation)
@@ -172,6 +215,75 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+          폰트
+        </Text>
+        <View style={styles.row}>
+          {FONT_FAMILY_OPTIONS.map((o) =>
+            renderChip(o.label, settings.fontFamily === o.value, () =>
+              setSettings({ fontFamily: o.value }),
+            ),
+          )}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+          성경 블록 스타일
+        </Text>
+        <View style={styles.row}>
+          {BLOCK_STYLE_OPTIONS.map((o) =>
+            renderChip(o.label, settings.blockStyle === o.value, () =>
+              setSettings({ blockStyle: o.value }),
+            ),
+          )}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+          강조 색상
+        </Text>
+        <View style={styles.row}>
+          {ACCENT_SWATCHES.map((o) => {
+            const selected = settings.accentChoice === o.value;
+            return (
+              <Pressable
+                key={o.value}
+                onPress={() => setSettings({ accentChoice: o.value })}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={o.label}
+                style={[
+                  styles.accentChip,
+                  {
+                    backgroundColor: selected ? colors.ink : colors.chipBg,
+                  },
+                ]}
+              >
+                {o.swatch && (
+                  <View
+                    style={[styles.swatchDot, { backgroundColor: o.swatch }]}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.chipText,
+                    {
+                      color: selected ? colors.paper : colors.ink2,
+                      fontWeight: selected ? "600" : "400",
+                    },
+                  ]}
+                >
+                  {o.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
           가져오기 / 내보내기
         </Text>
         <Pressable
@@ -199,12 +311,12 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
         <Text style={{ color: colors.ink }}>버전 {version}</Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, padding: 16, gap: 8 },
+  root: { padding: 16, gap: 8, paddingBottom: 80 },
   section: { gap: 12, marginBottom: 20 },
   sectionTitle: {
     fontSize: 11,
@@ -235,6 +347,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   chipText: { fontSize: 14 },
+  accentChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    minHeight: 44,
+  },
+  swatchDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   btn: {
     paddingHorizontal: 20,
     paddingVertical: 14,
