@@ -9,10 +9,10 @@ import {
   TextInput,
   StyleSheet,
   type NativeSyntheticEvent,
+  type TextInputKeyPressEventData,
   type TextInputSelectionChangeEventData,
 } from "react-native";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
-import { EDITOR_ACCESSORY_ID } from "./EditorKeyboardToolbar";
 import { detectRefAtCursor, type DetectedRef } from "./useAutocomplete";
 
 const TRIGGER_RE = /[\s\n]$/;
@@ -31,6 +31,7 @@ type Props = {
   onCommit: (idx: number, text: string) => void;
   onTrigger: (idx: number, textBefore: string, detected: DetectedRef) => void;
   onActiveChange: (state: ActiveInputState | null) => void;
+  onBackspaceAtStart: (idx: number, currentText: string) => void;
 };
 
 function ParagraphInputImpl({
@@ -40,10 +41,13 @@ function ParagraphInputImpl({
   onCommit,
   onTrigger,
   onActiveChange,
+  onBackspaceAtStart,
 }: Props) {
   const { colors, fontScale } = useTheme();
   const [text, setText] = useState<string>(initialText);
+  const textRef = useRef<string>(initialText);
   const cursorRef = useRef<number>(initialText.length);
+  const selectionStartRef = useRef<number>(initialText.length);
   const focusedRef = useRef<boolean>(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCommittedRef = useRef<string>(initialText);
@@ -55,6 +59,7 @@ function ParagraphInputImpl({
     if (focusedRef.current) return;
     if (initialText === text) return;
     setText(initialText);
+    textRef.current = initialText;
     lastCommittedRef.current = initialText;
   }, [initialText, text]);
 
@@ -97,12 +102,14 @@ function ParagraphInputImpl({
           cancelDebounce();
           lastCommittedRef.current = before;
           setText(before);
+          textRef.current = before;
           onActiveChange(null);
           onTrigger(idx, before, detected);
           return;
         }
       }
       setText(next);
+      textRef.current = next;
       if (focusedRef.current) {
         onActiveChange({ idx, text: next, cursor: next.length });
       }
@@ -113,13 +120,30 @@ function ParagraphInputImpl({
 
   const handleSelectionChange = useCallback(
     (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>): void => {
-      const end = e.nativeEvent.selection.end;
+      const { start, end } = e.nativeEvent.selection;
+      selectionStartRef.current = start;
       cursorRef.current = end;
       if (focusedRef.current) {
         onActiveChange({ idx, text, cursor: end });
       }
     },
     [idx, text, onActiveChange],
+  );
+
+  const handleKeyPress = useCallback(
+    (e: NativeSyntheticEvent<TextInputKeyPressEventData>): void => {
+      if (e.nativeEvent.key !== "Backspace") return;
+      if (selectionStartRef.current !== 0 || cursorRef.current !== 0) return;
+      // Flush any pending debounced commit so the parent has the latest text
+      // before it reshapes the block list.
+      const current = textRef.current;
+      cancelDebounce();
+      if (current !== lastCommittedRef.current) {
+        lastCommittedRef.current = current;
+      }
+      onBackspaceAtStart(idx, current);
+    },
+    [idx, onBackspaceAtStart],
   );
 
   const handleFocus = useCallback((): void => {
@@ -133,6 +157,7 @@ function ParagraphInputImpl({
     cancelDebounce();
     if (text !== lastCommittedRef.current) {
       lastCommittedRef.current = text;
+      textRef.current = text;
       onCommit(idx, text);
     }
   }, [idx, text, onCommit, onActiveChange]);
@@ -153,6 +178,7 @@ function ParagraphInputImpl({
       onBlur={handleBlur}
       onSelectionChange={handleSelectionChange}
       onChangeText={handleChangeText}
+      onKeyPress={handleKeyPress}
       placeholder={
         isFirst
           ? "예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다"
@@ -162,7 +188,6 @@ function ParagraphInputImpl({
       autoCorrect={false}
       autoCapitalize="none"
       spellCheck={false}
-      inputAccessoryViewID={EDITOR_ACCESSORY_ID}
     />
   );
 }

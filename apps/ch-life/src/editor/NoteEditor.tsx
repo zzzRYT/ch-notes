@@ -87,6 +87,34 @@ export function NoteEditor({ body, onChangeBody }: Props) {
     [],
   );
 
+  // Backspace at column 0 of a paragraph that directly follows a quote
+  // removes the quote. When there is also a paragraph before the quote,
+  // the two surrounding paragraphs are merged so the deletion undoes the
+  // earlier split caused by quote insertion.
+  const handleBackspaceAtStart = useCallback(
+    (idx: number, tailText: string): void => {
+      const cur = bodyRef.current;
+      if (idx <= 0) return;
+      const quote = cur[idx - 1];
+      if (!quote || quote.type !== "quote") return;
+
+      const head = idx >= 2 ? cur[idx - 2] : null;
+      const next = cur.slice();
+      if (head && head.type === "paragraph") {
+        next.splice(idx - 2, 3, {
+          type: "paragraph",
+          text: head.text + tailText,
+        });
+      } else {
+        next[idx] = { type: "paragraph", text: tailText };
+        next.splice(idx - 1, 1);
+      }
+      setActive(null);
+      onChangeBody(next);
+    },
+    [onChangeBody],
+  );
+
   const liveHint = active
     ? detectRefAtCursor(active.text, active.cursor)
     : null;
@@ -111,6 +139,7 @@ export function NoteEditor({ body, onChangeBody }: Props) {
               onCommit={handleCommit}
               onTrigger={handleTrigger}
               onActiveChange={handleActiveChange}
+              onBackspaceAtStart={handleBackspaceAtStart}
             />
           );
         })}

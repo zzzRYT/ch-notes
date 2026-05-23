@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 import {
-  InputAccessoryView,
-  Keyboard,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+  KeyboardStickyView,
+  useKeyboardState,
+} from "react-native-keyboard-controller";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
-
-export const EDITOR_ACCESSORY_ID = "ch-life-editor-accessory";
 
 type Props = {
   recents: ReadonlyArray<string>;
@@ -24,10 +18,7 @@ function ToolbarBody({ recents, onInsertRef, onOpenBrowser }: Props) {
     <View
       style={[
         styles.bar,
-        {
-          backgroundColor: colors.paper,
-          borderTopColor: colors.rule,
-        },
+        { backgroundColor: colors.paper, borderTopColor: colors.rule },
       ]}
     >
       <Pressable
@@ -85,52 +76,18 @@ function ToolbarBody({ recents, onInsertRef, onOpenBrowser }: Props) {
 }
 
 export function EditorKeyboardToolbar(props: Props) {
-  if (Platform.OS === "ios") {
-    return (
-      <InputAccessoryView nativeID={EDITOR_ACCESSORY_ID}>
-        <ToolbarBody {...props} />
-      </InputAccessoryView>
-    );
-  }
-  return <AndroidToolbar {...props} />;
-}
-
-function AndroidToolbar(props: Props) {
-  const [visible, setVisible] = useState(false);
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    const show = Keyboard.addListener("keyboardDidShow", (e) => {
-      setOffset(e.endCoordinates.height);
-      setVisible(true);
-    });
-    const hide = Keyboard.addListener("keyboardDidHide", () => {
-      setVisible(false);
-      setOffset(0);
-    });
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
-
-  if (!visible) return null;
+  const isVisible = useKeyboardState((s) => s.isVisible);
+  if (!isVisible) return null;
   return (
-    <View
-      style={[styles.androidWrap, { bottom: offset }]}
-      pointerEvents="box-none"
-    >
+    <KeyboardStickyView offset={STICKY_OFFSET}>
       <ToolbarBody {...props} />
-    </View>
+    </KeyboardStickyView>
   );
 }
 
+const STICKY_OFFSET = { closed: 0, opened: 0 };
+
 const styles = StyleSheet.create({
-  androidWrap: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-  },
   bar: {
     flexDirection: "row",
     alignItems: "center",

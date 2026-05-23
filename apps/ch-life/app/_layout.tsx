@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useAppStore } from "@/state/app-store";
 import { loadSettings, saveSettings } from "@/state/settings-persist";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
@@ -49,9 +50,11 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <ThemedStack />
-      </ThemeProvider>
+      <KeyboardProvider>
+        <ThemeProvider>
+          <ThemedStack />
+        </ThemeProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }
