@@ -20,6 +20,7 @@ function ThemedStack() {
       <Stack.Screen name="index" options={{ title: "노트" }} />
       <Stack.Screen name="note/[id]" options={{ title: "" }} />
       <Stack.Screen name="settings" options={{ title: "설정" }} />
+      <Stack.Screen name="licenses" options={{ title: "출처 및 라이선스" }} />
     </Stack>
   );
 }

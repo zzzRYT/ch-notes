@@ -8,7 +8,8 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { Stack, useRouter, useFocusEffect } from "expo-router";
+import { Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
@@ -36,10 +37,28 @@ function toSections(groups: ReadonlyArray<NoteGroup>): Section[] {
 
 export default function NotesList() {
   const { width } = useWindowDimensions();
-  if (width >= TABLET_BREAKPOINT) {
-    return <TabletWorkspace />;
-  }
-  return <PhoneNotesList />;
+  const router = useRouter();
+  const { colors } = useTheme();
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push("/settings")}
+              accessibilityRole="button"
+              accessibilityLabel="설정"
+              hitSlop={8}
+              style={styles.headerBtn}
+            >
+              <Settings size={24} color={colors.ink} strokeWidth={2} />
+            </Pressable>
+          ),
+        }}
+      />
+      {width >= TABLET_BREAKPOINT ? <TabletWorkspace /> : <PhoneNotesList />}
+    </>
+  );
 }
 
 function PhoneNotesList() {
@@ -314,4 +333,10 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fabText: { fontSize: 28, lineHeight: 32, fontWeight: "300" },
+  headerBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    minHeight: 44,
+    justifyContent: "center",
+  },
 });

@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import { useAppStore } from "@/state/app-store";
 import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
 import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
@@ -110,6 +111,7 @@ export default function SettingsScreen() {
   };
 
   const version = Constants.expoConfig?.version ?? "?";
+  const router = useRouter();
 
   const renderChip = (
     label: string,
@@ -309,6 +311,17 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
         <Text style={{ color: colors.ink }}>버전 {version}</Text>
+        <Pressable
+          onPress={() => router.push("/licenses")}
+          accessibilityRole="button"
+          accessibilityLabel="출처 및 라이선스"
+          style={[styles.navRow, { borderTopColor: colors.rule }]}
+        >
+          <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+            출처 및 라이선스
+          </Text>
+          <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>›</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -370,5 +383,16 @@ const styles = StyleSheet.create({
   },
   btnBusy: { opacity: 0.5 },
   btnText: { fontSize: 16, fontWeight: "600" },
-  hint: { fontSize: 13 },
+  hint: { fontSize: 13, lineHeight: 19 },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    marginTop: 4,
+    minHeight: 48,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  navRowLabel: { fontSize: 15 },
+  navRowChevron: { fontSize: 22 },
 });
