@@ -12,7 +12,10 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
 
 async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(SCHEMA_SQL);
-  await addMissingNoteColumns(db);
+  await addMissingNoteColumns({
+    execAsync: (sql) => db.execAsync(sql),
+    getAllAsync: <T,>(sql: string) => db.getAllAsync<T>(sql),
+  });
 }
 
 const SCHEMA_SQL = `
