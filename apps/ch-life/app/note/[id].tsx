@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View, StyleSheet } from "react-native";
+import { Pressable, Text, View, StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { NoteEditor } from "@/editor/NoteEditor";
+import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
 import { useAutoSave } from "@/editor/useAutoSave";
 import { EditorKeyboardToolbar } from "@/editor/EditorKeyboardToolbar";
 import { BibleBrowser } from "@/browser/BibleBrowser";
@@ -10,15 +11,19 @@ import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
 import { exportNote } from "@/share/export-note";
 import { extractCitedRefs } from "@/editor/cited-refs";
-import { useTheme, scaled } from "@/theme/ThemeProvider";
+import { useTheme } from "@/theme/ThemeProvider";
 import type { BlockNode } from "@/domain/types";
 
 const DEFAULT_RECENTS = ["창 1:1", "엡 2:8", "시 23:1"];
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, fontScale, fontStack } = useTheme();
+  const { colors } = useTheme();
   const [title, setTitle] = useState<string | null>(null);
+  const [sermonDate, setSermonDate] = useState<string | null>(null);
+  const [preacher, setPreacher] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
+  const [scripture, setScripture] = useState<string | null>(null);
   const [body, setBody] = useState<BlockNode[]>([
     { type: "paragraph", text: "" },
   ]);
@@ -36,16 +41,20 @@ export default function NoteEditorScreen() {
         ...fresh,
         body,
         title,
+        sermonDate,
+        preacher,
+        location,
+        scripture,
         citedRefs: extractCitedRefs(body),
       });
     } catch (e) {
       console.warn("export failed", e);
       setSaveErr("공유 실패");
     }
-  }, [id, body, title]);
+  }, [id, body, title, sermonDate, preacher, location, scripture]);
 
-  const handleChangeTitle = useCallback((next: string) => {
-    setTitle(next.length === 0 ? null : next);
+  const handleChangeTitle = useCallback((next: string | null) => {
+    setTitle(next);
   }, []);
 
   const insertVerseFromBrowser = useCallback((ref: string) => {
@@ -83,6 +92,10 @@ export default function NoteEditorScreen() {
       if (cancelled) return;
       if (note) {
         setTitle(note.title);
+        setSermonDate(note.sermonDate);
+        setPreacher(note.preacher);
+        setLocation(note.location);
+        setScripture(note.scripture);
         setBody(
           note.body.length ? note.body : [{ type: "paragraph", text: "" }],
         );
@@ -102,6 +115,10 @@ export default function NoteEditorScreen() {
       title: string | null;
       body: BlockNode[];
       citedRefs: string[];
+      sermonDate: string | null;
+      preacher: string | null;
+      location: string | null;
+      scripture: string | null;
     }) => {
       if (!id) return;
       const repo = await openNoteRepo();
@@ -119,7 +136,7 @@ export default function NoteEditorScreen() {
     [],
   );
 
-  useAutoSave({ title, body, save, onError });
+  useAutoSave({ title, body, sermonDate, preacher, location, scripture, save, onError });
 
   const recents = useMemo<string[]>(() => {
     const refs = extractCitedRefs(body);
@@ -155,23 +172,17 @@ export default function NoteEditorScreen() {
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
-      <TextInput
-        style={[
-          styles.titleInput,
-          {
-            color: colors.ink,
-            fontFamily: fontStack,
-            fontSize: scaled(24, fontScale),
-            lineHeight: scaled(32, fontScale),
-          },
-        ]}
-        value={title ?? ""}
-        onChangeText={handleChangeTitle}
-        placeholder="제목"
-        placeholderTextColor={colors.ink3}
-        accessibilityLabel="노트 제목"
-        returnKeyType="next"
-        maxLength={120}
+      <SermonMetaHeader
+        title={title}
+        sermonDate={sermonDate}
+        preacher={preacher}
+        location={location}
+        scripture={scripture}
+        onChangeTitle={handleChangeTitle}
+        onChangeSermonDate={setSermonDate}
+        onChangePreacher={setPreacher}
+        onChangeLocation={setLocation}
+        onChangeScripture={setScripture}
       />
       <NoteEditor body={body} onChangeBody={setBody} />
       <EditorKeyboardToolbar
@@ -205,10 +216,4 @@ const styles = StyleSheet.create({
   },
   toolbarIcon: { fontSize: 20 },
   errBanner: { padding: 8 },
-  titleInput: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 8,
-    fontWeight: "700",
-  },
 });
