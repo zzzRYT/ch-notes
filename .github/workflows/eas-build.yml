@@ -1,0 +1,56 @@
+name: EAS Build
+
+# Manual native builds on EAS servers. Kept manual (workflow_dispatch) so build
+# credits are only consumed on demand. Uses --no-wait: the job queues the build
+# and returns a build URL instead of blocking a runner for the full build.
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile"
+        type: choice
+        default: preview
+        options: [preview, production, development]
+      platform:
+        description: "Target platform"
+        type: choice
+        default: all
+        options: [all, ios, android]
+
+defaults:
+  run:
+    working-directory: apps/ch-life
+
+jobs:
+  build:
+    name: EAS build (${{ github.event.inputs.profile }} / ${{ github.event.inputs.platform }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/ch-life/pnpm-lock.yaml
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          EAS_PROFILE: ${{ github.event.inputs.profile }}
+          EAS_PLATFORM: ${{ github.event.inputs.platform }}
+        run: eas build --profile "$EAS_PROFILE" --platform "$EAS_PLATFORM" --non-interactive --no-wait

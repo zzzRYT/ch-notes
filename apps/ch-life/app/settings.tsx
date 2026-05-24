@@ -109,8 +109,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const version =
-    Constants.expoConfig?.version ?? Constants.manifest2?.extra?.version ?? "?";
+  const version = Constants.expoConfig?.version ?? "?";
 
   const renderChip = (
     label: string,

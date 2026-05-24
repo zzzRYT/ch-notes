@@ -3,12 +3,19 @@ import { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "ch-life",
   slug: "ch-life",
+  owner: "leejaejin_0403",
   version: "0.1.0",
   orientation: "default",
   icon: "./assets/icon.png",
   scheme: "chlife",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
+  updates: {
+    url: "https://u.expo.dev/be4c4c47-3ef3-4438-a005-821a6078892a",
+  },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
@@ -34,6 +41,11 @@ const config: ExpoConfig = {
   },
   plugins: ["expo-router"],
   experiments: { typedRoutes: true },
+  extra: {
+    eas: {
+      projectId: "be4c4c47-3ef3-4438-a005-821a6078892a",
+    },
+  },
 };
 
 export default config;

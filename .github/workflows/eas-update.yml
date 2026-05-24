@@ -1,0 +1,65 @@
+name: EAS Update (OTA)
+
+# Publishes an over-the-air JS/asset update. Runs automatically only after the
+# CI workflow succeeds on main, so we never ship an OTA update that failed
+# typecheck/lint/tests. Can also be triggered manually with a branch choice.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "EAS Update branch to publish to"
+        type: choice
+        default: preview
+        options: [preview, production]
+
+concurrency:
+  group: eas-update-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/ch-life
+
+jobs:
+  update:
+    name: Publish OTA update
+    runs-on: ubuntu-latest
+    # On workflow_run, only proceed when CI passed. Manual runs always proceed.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Publish the exact commit that passed CI (workflow_run), else current ref.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/ch-life/pnpm-lock.yaml
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish update
+        env:
+          EAS_BRANCH: ${{ github.event.inputs.branch || 'preview' }}
+          # Passed via env (not inline ${{ }}) to avoid shell injection from messages.
+          UPDATE_MESSAGE: ${{ github.event.workflow_run.head_commit.message || github.sha }}
+        run: eas update --branch "$EAS_BRANCH" --message "$UPDATE_MESSAGE" --non-interactive
