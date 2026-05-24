@@ -13,6 +13,10 @@ const base: Note = {
   createdAt: 0,
   updatedAt: 0,
   citedRefs: [],
+  sermonDate: null,
+  preacher: null,
+  location: null,
+  scripture: null,
 };
 
 function noteOn(iso: string, overrides: Partial<Note> = {}): Note {
