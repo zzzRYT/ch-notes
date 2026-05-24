@@ -21,6 +21,10 @@ export type Note = {
   createdAt: number;
   updatedAt: number;
   citedRefs: string[];
+  sermonDate: string | null;
+  preacher: string | null;
+  location: string | null;
+  scripture: string | null;
 };
 
 export type Variation = "minimal" | "paper" | "focus" | "dark";
