@@ -14,7 +14,6 @@ import { extractCitedRefs } from "@/editor/cited-refs";
 import { useTheme } from "@/theme/ThemeProvider";
 import type { BlockNode } from "@/domain/types";
 
-const DEFAULT_RECENTS = ["창 1:1", "엡 2:8", "시 23:1"];
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -138,12 +137,6 @@ export default function NoteEditorScreen() {
 
   useAutoSave({ title, body, sermonDate, preacher, location, scripture, save, onError });
 
-  const recents = useMemo<string[]>(() => {
-    const refs = extractCitedRefs(body);
-    if (refs.length === 0) return DEFAULT_RECENTS;
-    return refs.slice(-3).reverse();
-  }, [body]);
-
   if (!ready) return null;
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
@@ -185,11 +178,7 @@ export default function NoteEditorScreen() {
         onChangeScripture={setScripture}
       />
       <NoteEditor body={body} onChangeBody={setBody} />
-      <EditorKeyboardToolbar
-        recents={recents}
-        onInsertRef={insertVerseFromBrowser}
-        onOpenBrowser={() => setBrowserOpen(true)}
-      />
+      <EditorKeyboardToolbar onOpenBrowser={() => setBrowserOpen(true)} />
       <BibleBrowser
         visible={browserOpen}
         onClose={() => setBrowserOpen(false)}
