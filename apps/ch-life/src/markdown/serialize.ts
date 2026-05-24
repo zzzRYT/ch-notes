@@ -10,6 +10,10 @@ type Frontmatter = {
   updatedAt: string;
   citedRefs: string[];
   schemaVersion: number;
+  sermonDate?: string;
+  preacher?: string;
+  location?: string;
+  scripture?: string;
 };
 
 export function noteToMarkdown(note: Note): string {
@@ -31,6 +35,10 @@ export function noteToMarkdown(note: Note): string {
     schemaVersion: SCHEMA_VERSION,
   };
   if (note.title) data.title = note.title;
+  if (note.sermonDate) data.sermonDate = note.sermonDate;
+  if (note.preacher) data.preacher = note.preacher;
+  if (note.location) data.location = note.location;
+  if (note.scripture) data.scripture = note.scripture;
 
   return matter.stringify(body, data);
 }

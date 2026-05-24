@@ -29,6 +29,10 @@ const sample: Note = {
   createdAt: 1747000000000,
   updatedAt: 1747001000000,
   citedRefs: ["Col 3:20"],
+  sermonDate: null,
+  preacher: null,
+  location: null,
+  scripture: null,
 };
 
 describe("noteToMarkdown", () => {

@@ -25,6 +25,10 @@ const note: Note = {
   createdAt: 1747000000000,
   updatedAt: 1747001000000,
   citedRefs: ["Col 3:20"],
+  sermonDate: "2026-05-24",
+  preacher: "홍길동 목사",
+  location: "본당",
+  scripture: "Col 3:20",
 };
 
 describe("markdown roundtrip", () => {
@@ -35,6 +39,10 @@ describe("markdown roundtrip", () => {
     expect(back?.id).toBe(note.id);
     expect(back?.title).toBe(note.title);
     expect(back?.citedRefs).toEqual(note.citedRefs);
+    expect(back?.sermonDate).toBe("2026-05-24");
+    expect(back?.preacher).toBe("홍길동 목사");
+    expect(back?.location).toBe("본당");
+    expect(back?.scripture).toBe("Col 3:20");
     expect(back?.body[0]).toEqual({
       type: "paragraph",
       text: "오늘 본문은 골 3:20",
@@ -57,6 +65,10 @@ describe("markdown roundtrip", () => {
     expect(back).not.toBeNull();
     expect(back?.id).toBeTruthy(); // 새 id
     expect(back?.title).toBeNull();
+    expect(back?.sermonDate).toBeNull();
+    expect(back?.preacher).toBeNull();
+    expect(back?.location).toBeNull();
+    expect(back?.scripture).toBeNull();
     expect(back?.body[0]).toEqual({ type: "paragraph", text: "자유 메모" });
     expect(back?.body[1]?.type).toBe("quote");
     if (back?.body[1]?.type === "quote") {

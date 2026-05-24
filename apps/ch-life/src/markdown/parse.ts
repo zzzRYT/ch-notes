@@ -25,8 +25,12 @@ export function markdownToNote(md: string): Note | null {
         (x): x is string => typeof x === "string",
       )
     : extractRefsFromBlocks(blocks);
+  const sermonDate = typeof fm.sermonDate === "string" ? fm.sermonDate : null;
+  const preacher = typeof fm.preacher === "string" ? fm.preacher : null;
+  const location = typeof fm.location === "string" ? fm.location : null;
+  const scripture = typeof fm.scripture === "string" ? fm.scripture : null;
 
-  return { id, title, body: blocks, createdAt, updatedAt, citedRefs };
+  return { id, title, body: blocks, createdAt, updatedAt, citedRefs, sermonDate, preacher, location, scripture };
 }
 
 function parseBody(content: string): BlockNode[] {
