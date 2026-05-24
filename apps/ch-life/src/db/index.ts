@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+import { addMissingNoteColumns } from "./migrate";
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 
@@ -11,6 +12,7 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
 
 async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(SCHEMA_SQL);
+  await addMissingNoteColumns(db);
 }
 
 const SCHEMA_SQL = `
@@ -20,7 +22,11 @@ CREATE TABLE IF NOT EXISTS notes (
   body_json   TEXT NOT NULL,
   created_at  INTEGER NOT NULL,
   updated_at  INTEGER NOT NULL,
-  cited_refs  TEXT NOT NULL DEFAULT '[]'
+  cited_refs  TEXT NOT NULL DEFAULT '[]',
+  sermon_date TEXT,
+  preacher    TEXT,
+  location    TEXT,
+  scripture   TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at DESC);
 DROP INDEX IF EXISTS idx_notes_updated_at;
