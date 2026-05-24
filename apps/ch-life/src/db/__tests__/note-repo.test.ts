@@ -82,4 +82,47 @@ describe("note-repo", () => {
     const note = await repo.findById(id);
     expect(note?.citedRefs).toEqual(["Col 3:20", "Eph 5:21"]);
   });
+
+  it("설교 메타데이터를 저장하고 읽는다", async () => {
+    const repo = setup();
+    const id = await repo.create({
+      title: "주일설교",
+      body: [],
+      citedRefs: [],
+      sermonDate: "2026-05-24",
+      preacher: "홍길동 목사",
+      location: "본당",
+      scripture: "요 3:16",
+    });
+    const note = await repo.findById(id);
+    expect(note?.sermonDate).toBe("2026-05-24");
+    expect(note?.preacher).toBe("홍길동 목사");
+    expect(note?.location).toBe("본당");
+    expect(note?.scripture).toBe("요 3:16");
+  });
+
+  it("메타 필드 미지정 시 null로 저장된다", async () => {
+    const repo = setup();
+    const id = await repo.create({ title: null, body: [], citedRefs: [] });
+    const note = await repo.findById(id);
+    expect(note?.sermonDate).toBeNull();
+    expect(note?.preacher).toBeNull();
+    expect(note?.location).toBeNull();
+    expect(note?.scripture).toBeNull();
+  });
+
+  it("update가 메타 필드를 부분 갱신한다", async () => {
+    const repo = setup();
+    const id = await repo.create({
+      title: "x",
+      body: [],
+      citedRefs: [],
+      preacher: "전임 목사",
+    });
+    await repo.update(id, { preacher: "후임 목사", location: "교육관" });
+    const note = await repo.findById(id);
+    expect(note?.preacher).toBe("후임 목사");
+    expect(note?.location).toBe("교육관");
+    expect(note?.title).toBe("x");
+  });
 });

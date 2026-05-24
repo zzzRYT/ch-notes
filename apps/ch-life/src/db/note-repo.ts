@@ -14,6 +14,10 @@ type Row = {
   created_at: number;
   updated_at: number;
   cited_refs: string;
+  sermon_date: string | null;
+  preacher: string | null;
+  location: string | null;
+  scripture: string | null;
 };
 
 function rowToNote(r: Row): Note {
@@ -24,6 +28,10 @@ function rowToNote(r: Row): Note {
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     citedRefs: JSON.parse(r.cited_refs) as string[],
+    sermonDate: r.sermon_date,
+    preacher: r.preacher,
+    location: r.location,
+    scripture: r.scripture,
   };
 }
 
@@ -39,12 +47,16 @@ export function makeNoteRepo(db: DbAdapter) {
       title?: string | null;
       body: BlockNode[];
       citedRefs: string[];
+      sermonDate?: string | null;
+      preacher?: string | null;
+      location?: string | null;
+      scripture?: string | null;
     }): Promise<string> {
       const id = makeId();
       const now = Date.now();
       await db.runAsync(
-        `INSERT INTO notes(id, title, body_json, created_at, updated_at, cited_refs)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO notes(id, title, body_json, created_at, updated_at, cited_refs, sermon_date, preacher, location, scripture)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           input.title ?? null,
@@ -52,6 +64,10 @@ export function makeNoteRepo(db: DbAdapter) {
           now,
           now,
           JSON.stringify(input.citedRefs),
+          input.sermonDate ?? null,
+          input.preacher ?? null,
+          input.location ?? null,
+          input.scripture ?? null,
         ],
       );
       return id;
@@ -63,6 +79,10 @@ export function makeNoteRepo(db: DbAdapter) {
         title?: string | null;
         body?: BlockNode[];
         citedRefs?: string[];
+        sermonDate?: string | null;
+        preacher?: string | null;
+        location?: string | null;
+        scripture?: string | null;
       },
     ): Promise<void> {
       const current = await db.getFirstAsync<Row>(
@@ -79,12 +99,16 @@ export function makeNoteRepo(db: DbAdapter) {
         cited_refs: patch.citedRefs
           ? JSON.stringify(patch.citedRefs)
           : current.cited_refs,
+        sermon_date: patch.sermonDate !== undefined ? patch.sermonDate : current.sermon_date,
+        preacher: patch.preacher !== undefined ? patch.preacher : current.preacher,
+        location: patch.location !== undefined ? patch.location : current.location,
+        scripture: patch.scripture !== undefined ? patch.scripture : current.scripture,
         updated_at: Date.now(),
       };
       await db.runAsync(
-        `UPDATE notes SET title=?, body_json=?, cited_refs=?, updated_at=?
+        `UPDATE notes SET title=?, body_json=?, cited_refs=?, sermon_date=?, preacher=?, location=?, scripture=?, updated_at=?
          WHERE id=?`,
-        [next.title, next.body_json, next.cited_refs, next.updated_at, id],
+        [next.title, next.body_json, next.cited_refs, next.sermon_date, next.preacher, next.location, next.scripture, next.updated_at, id],
       );
     },
 
