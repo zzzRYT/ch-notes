@@ -1,14 +1,11 @@
-import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import type { BlockNode } from "@/domain/types";
-import { QuoteBlock } from "./QuoteBlock";
-import {
-  ParagraphInput,
-  type ActiveInputState,
-} from "./ParagraphInput";
-import { detectRefAtCursor, type DetectedRef } from "./useAutocomplete";
-import { lookupVerses } from "@/parser/verse-lookup";
-import { useTheme } from "@/theme/ThemeProvider";
+import React, { useCallback, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { BlockNode } from '@/domain/types';
+import { QuoteBlock } from './QuoteBlock';
+import { ParagraphInput, type ActiveInputState } from './ParagraphInput';
+import { detectRefAtCursor, type DetectedRef } from './useAutocomplete';
+import { lookupVerses } from '@/parser/verse-lookup';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
   body: BlockNode[];
@@ -26,16 +23,16 @@ function splitParagraphWithQuote(
   const next = source.slice();
   const current = next[idx];
   const head =
-    current?.type === "paragraph"
-      ? before.slice(0, ref.start).replace(/\s+$/, "")
-      : "";
-  const tail = current?.type === "paragraph" ? before.slice(ref.end) : "";
-  next[idx] = { type: "paragraph", text: head };
+    current?.type === 'paragraph'
+      ? before.slice(0, ref.start).replace(/\s+$/, '')
+      : '';
+  const tail = current?.type === 'paragraph' ? before.slice(ref.end) : '';
+  next[idx] = { type: 'paragraph', text: head };
   next.splice(
     idx + 1,
     0,
-    { type: "quote", ref: ref.ref, verses, status: "loaded" },
-    { type: "paragraph", text: tail },
+    { type: 'quote', ref: ref.ref, verses, status: 'loaded' },
+    { type: 'paragraph', text: tail },
   );
   return next;
 }
@@ -55,10 +52,10 @@ export function NoteEditor({ body, onChangeBody }: Props) {
     (idx: number, text: string): void => {
       const cur = bodyRef.current;
       const prev = cur[idx];
-      if (prev?.type !== "paragraph") return;
+      if (prev?.type !== 'paragraph') return;
       if (prev.text === text) return;
       const next = cur.slice();
-      next[idx] = { type: "paragraph", text };
+      next[idx] = { type: 'paragraph', text };
       onChangeBody(next);
     },
     [onChangeBody],
@@ -68,7 +65,7 @@ export function NoteEditor({ body, onChangeBody }: Props) {
     (idx: number, textBefore: string, detected: DetectedRef): void => {
       const cur = bodyRef.current;
       const staged = cur.slice();
-      staged[idx] = { type: "paragraph", text: textBefore };
+      staged[idx] = { type: 'paragraph', text: textBefore };
       const updated = splitParagraphWithQuote(
         staged,
         idx,
@@ -96,17 +93,17 @@ export function NoteEditor({ body, onChangeBody }: Props) {
       const cur = bodyRef.current;
       if (idx <= 0) return;
       const quote = cur[idx - 1];
-      if (!quote || quote.type !== "quote") return;
+      if (!quote || quote.type !== 'quote') return;
 
       const head = idx >= 2 ? cur[idx - 2] : null;
       const next = cur.slice();
-      if (head && head.type === "paragraph") {
+      if (head && head.type === 'paragraph') {
         next.splice(idx - 2, 3, {
-          type: "paragraph",
+          type: 'paragraph',
           text: head.text + tailText,
         });
       } else {
-        next[idx] = { type: "paragraph", text: tailText };
+        next[idx] = { type: 'paragraph', text: tailText };
         next.splice(idx - 1, 1);
       }
       setActive(null);
@@ -127,7 +124,7 @@ export function NoteEditor({ body, onChangeBody }: Props) {
         keyboardShouldPersistTaps="handled"
       >
         {body.map((block, idx) => {
-          if (block.type === "quote") {
+          if (block.type === 'quote') {
             return <QuoteBlock key={`q-${idx}`} {...block} />;
           }
           return (
@@ -170,15 +167,15 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 24, paddingBottom: 80, gap: 4 },
   hintWrap: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 10,
-    alignItems: "center",
+    bottom: 25,
+    alignItems: 'center',
   },
   hint: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -191,7 +188,7 @@ const styles = StyleSheet.create({
   },
   hintLabel: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   hintKbd: {
     paddingHorizontal: 5,
@@ -201,7 +198,7 @@ const styles = StyleSheet.create({
   },
   hintKbdText: {
     fontSize: 10,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   hintArrow: {
     fontSize: 11,

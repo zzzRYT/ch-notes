@@ -1,18 +1,16 @@
-import React from "react";
-import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
+import React from 'react';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   KeyboardStickyView,
   useKeyboardState,
-} from "react-native-keyboard-controller";
-import { useTheme, scaled } from "@/theme/ThemeProvider";
+} from 'react-native-keyboard-controller';
+import { useTheme, scaled } from '@/theme/ThemeProvider';
 
 type Props = {
-  recents: ReadonlyArray<string>;
-  onInsertRef: (ref: string) => void;
   onOpenBrowser: () => void;
 };
 
-function ToolbarBody({ recents, onInsertRef, onOpenBrowser }: Props) {
+function ToolbarBody({ onOpenBrowser }: Props) {
   const { colors, fontScale } = useTheme();
   return (
     <View
@@ -40,27 +38,6 @@ function ToolbarBody({ recents, onInsertRef, onOpenBrowser }: Props) {
         </Text>
       </Pressable>
       <View style={[styles.divider, { backgroundColor: colors.rule }]} />
-      {recents.slice(0, 3).map((r) => (
-        <Pressable
-          key={r}
-          onPress={() => onInsertRef(r)}
-          accessibilityRole="button"
-          accessibilityLabel={`${r} 인용 삽입`}
-          style={[
-            styles.chip,
-            { backgroundColor: colors.bg, borderColor: colors.rule },
-          ]}
-        >
-          <Text
-            style={[
-              styles.chipText,
-              { color: colors.ink2, fontSize: scaled(12, fontScale) },
-            ]}
-          >
-            {r}
-          </Text>
-        </Pressable>
-      ))}
       <View style={styles.spacer} />
       <Pressable
         onPress={() => Keyboard.dismiss()}
@@ -89,8 +66,8 @@ const STICKY_OFFSET = { closed: 0, opened: 0 };
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -102,7 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  primaryText: { fontWeight: "600" },
+  primaryText: { fontWeight: '600' },
   divider: { width: StyleSheet.hairlineWidth, height: 18 },
   chip: {
     paddingHorizontal: 10,
@@ -110,13 +87,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  chipText: { fontWeight: "500" },
+  chipText: { fontWeight: '500' },
   spacer: { flex: 1 },
   iconBtn: {
     width: 30,
     height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconText: { fontSize: 18 },
 });
