@@ -3,13 +3,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
-import { useTheme, scaled } from "@/theme/ThemeProvider";
+import { useTheme } from "@/theme/ThemeProvider";
 import { NoteEditor } from "@/editor/NoteEditor";
+import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
 import { useAutoSave } from "@/editor/useAutoSave";
 import { extractCitedRefs } from "@/editor/cited-refs";
 import { lookupVerses } from "@/parser/verse-lookup";
@@ -38,6 +38,10 @@ export function TabletWorkspace() {
   const [body, setBody] = useState<BlockNode[]>([
     { type: "paragraph", text: "" },
   ]);
+  const [sermonDate, setSermonDate] = useState<string | null>(null);
+  const [preacher, setPreacher] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
+  const [scripture, setScripture] = useState<string | null>(null);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [saveErr, setSaveErr] = useState<string | null>(null);
@@ -57,6 +61,10 @@ export function TabletWorkspace() {
         setBody(
           first.body.length ? first.body : [{ type: "paragraph", text: "" }],
         );
+        setSermonDate(first.sermonDate);
+        setPreacher(first.preacher);
+        setLocation(first.location);
+        setScripture(first.scripture);
       }
     })().catch((e) => console.warn("workspace load failed", e));
     return () => {
@@ -74,6 +82,10 @@ export function TabletWorkspace() {
       if (cancelled || !n) return;
       setTitle(n.title);
       setBody(n.body.length ? n.body : [{ type: "paragraph", text: "" }]);
+      setSermonDate(n.sermonDate);
+      setPreacher(n.preacher);
+      setLocation(n.location);
+      setScripture(n.scripture);
       useAppStore.getState().setCurrentNoteId(n.id);
     })().catch((e) => console.warn("note load failed", e));
     return () => {
@@ -86,6 +98,10 @@ export function TabletWorkspace() {
       title: string | null;
       body: BlockNode[];
       citedRefs: string[];
+      sermonDate: string | null;
+      preacher: string | null;
+      location: string | null;
+      scripture: string | null;
     }) => {
       if (!selectedId) return;
       const repo = await openNoteRepo();
@@ -98,6 +114,10 @@ export function TabletWorkspace() {
                 title: patch.title,
                 body: patch.body,
                 citedRefs: patch.citedRefs,
+                sermonDate: patch.sermonDate,
+                preacher: patch.preacher,
+                location: patch.location,
+                scripture: patch.scripture,
                 updatedAt: Date.now(),
               }
             : n,
@@ -111,6 +131,10 @@ export function TabletWorkspace() {
   useAutoSave({
     title,
     body,
+    sermonDate,
+    preacher,
+    location,
+    scripture,
     save,
     onError: (e) => {
       console.warn("autosave failed", e);
@@ -150,13 +174,17 @@ export function TabletWorkspace() {
         ...fresh,
         body,
         title,
+        sermonDate,
+        preacher,
+        location,
+        scripture,
         citedRefs: extractCitedRefs(body),
       });
     } catch (e) {
       console.warn("export failed", e);
       setSaveErr("공유 실패");
     }
-  }, [selectedId, body, title]);
+  }, [selectedId, body, title, sermonDate, preacher, location, scripture]);
 
   const activeNote = useMemo(
     () => notes.find((n) => n.id === selectedId) ?? null,
@@ -267,22 +295,17 @@ export function TabletWorkspace() {
         )}
         {selectedId ? (
           <>
-            <TextInput
-              style={[
-                styles.titleInput,
-                {
-                  color: colors.ink,
-                  fontFamily: fontStack,
-                  fontSize: scaled(24, fontScale),
-                  lineHeight: scaled(32, fontScale),
-                },
-              ]}
-              value={title ?? ""}
-              onChangeText={(t) => setTitle(t.length === 0 ? null : t)}
-              placeholder="제목"
-              placeholderTextColor={colors.ink3}
-              accessibilityLabel="노트 제목"
-              maxLength={120}
+            <SermonMetaHeader
+              title={title}
+              sermonDate={sermonDate}
+              preacher={preacher}
+              location={location}
+              scripture={scripture}
+              onChangeTitle={setTitle}
+              onChangeSermonDate={setSermonDate}
+              onChangePreacher={setPreacher}
+              onChangeLocation={setLocation}
+              onChangeScripture={setScripture}
             />
             <NoteEditor body={body} onChangeBody={setBody} />
           </>
@@ -366,12 +389,6 @@ const styles = StyleSheet.create({
   crumbBtnText: { fontSize: 15 },
   centerActions: { flexDirection: "row", gap: 4 },
   errBanner: { paddingHorizontal: 20, paddingVertical: 8 },
-  titleInput: {
-    paddingHorizontal: 28,
-    paddingTop: 16,
-    paddingBottom: 8,
-    fontWeight: "700",
-  },
   emptyState: {
     flex: 1,
     alignItems: "center",
