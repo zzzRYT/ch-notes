@@ -8,12 +8,11 @@ import {
 } from 'react-native';
 import { useTheme, scaled } from '@/theme/ThemeProvider';
 import {
-  detectRefAtCursor,
+  detectTriggeredRef,
   splitAtRef,
   type DetectedRef,
 } from './useAutocomplete';
 
-const TRIGGER_RE = /[\s\n]$/;
 const COMMIT_DEBOUNCE_MS = 800;
 
 export type ActiveInputState = {
@@ -95,23 +94,22 @@ function ParagraphInputImpl({
 
   const handleChangeText = useCallback(
     (next: string): void => {
-      const grew = next.length > text.length;
-      const lastChar = next.slice(-1);
-      if (grew && TRIGGER_RE.test(lastChar)) {
-        const detected = detectRefAtCursor(next, next.length - 1);
-        if (detected) {
-          const before = next.slice(0, next.length - 1);
-          const { head } = splitAtRef(before, detected);
-          cancelDebounce();
-          lastCommittedRef.current = head;
-          setText(head);
-          textRef.current = head;
-          cursorRef.current = head.length;
-          selectionStartRef.current = head.length;
-          onActiveChange(null);
-          onTrigger(idx, before, detected);
-          return;
-        }
+      // Diff against the previous value so a citation triggers wherever the
+      // caret is — including mid-paragraph with text still below it — not only
+      // when the reference sits at the very end of the field.
+      const triggered = detectTriggeredRef(textRef.current, next);
+      if (triggered) {
+        const { detected, textWithoutTrigger } = triggered;
+        const { head } = splitAtRef(textWithoutTrigger, detected);
+        cancelDebounce();
+        lastCommittedRef.current = head;
+        setText(head);
+        textRef.current = head;
+        cursorRef.current = head.length;
+        selectionStartRef.current = head.length;
+        onActiveChange(null);
+        onTrigger(idx, textWithoutTrigger, detected);
+        return;
       }
       setText(next);
       textRef.current = next;
@@ -120,7 +118,7 @@ function ParagraphInputImpl({
       }
       scheduleCommit(next);
     },
-    [idx, onTrigger, onActiveChange, scheduleCommit, text.length],
+    [idx, onTrigger, onActiveChange, scheduleCommit],
   );
 
   const handleSelectionChange = useCallback(

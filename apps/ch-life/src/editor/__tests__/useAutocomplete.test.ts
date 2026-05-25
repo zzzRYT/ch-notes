@@ -1,4 +1,8 @@
-import { detectRefAtCursor, splitAtRef } from "../useAutocomplete";
+import {
+  detectRefAtCursor,
+  detectTriggeredRef,
+  splitAtRef,
+} from "../useAutocomplete";
 
 describe("detectRefAtCursor", () => {
   it("커서 직전의 '골 3:20' 감지", () => {
@@ -73,6 +77,107 @@ describe("detectRefAtCursor", () => {
   it("커서 앞에 trailing 공백 있으면 패턴 불일치 → null", () => {
     // 공백이 끼면 \d$ 조건 깨짐, 안 뜨는 게 정상
     expect(detectRefAtCursor("골 3:20 입니다", 7)).toBeNull();
+  });
+});
+
+describe("detectTriggeredRef", () => {
+  it("문단 중간에서 인용해도 트리거 (아래에 글이 남아있음)", () => {
+    // "안녕하세요\n창 1:1\n누구세요?" 의 가운데 줄에서 space 입력
+    const prev = "안녕하세요\n창 1:1\n누구세요?";
+    const next = "안녕하세요\n창 1:1 \n누구세요?";
+    const triggered = detectTriggeredRef(prev, next);
+    expect(triggered).toEqual({
+      detected: { ref: "창 1:1", start: 6, end: 11 },
+      textWithoutTrigger: "안녕하세요\n창 1:1\n누구세요?",
+    });
+    // 인용 뒤 텍스트(아래 줄)는 tail 로 보존된다
+    expect(splitAtRef(triggered!.textWithoutTrigger, triggered!.detected)).toEqual({
+      head: "안녕하세요",
+      tail: "\n누구세요?",
+    });
+  });
+
+  it("문단 중간 범위 인용도 트리거되고 tail 보존", () => {
+    const prev = "앞\n창 1:1-3\n뒤";
+    const next = "앞\n창 1:1-3 \n뒤";
+    const triggered = detectTriggeredRef(prev, next);
+    expect(triggered).toEqual({
+      detected: { ref: "창 1:1-3", start: 2, end: 9 },
+      textWithoutTrigger: "앞\n창 1:1-3\n뒤",
+    });
+    expect(splitAtRef(triggered!.textWithoutTrigger, triggered!.detected)).toEqual({
+      head: "앞",
+      tail: "\n뒤",
+    });
+  });
+
+  it("문장 중간 ref 뒤에 공백을 넣으면 앞뒤 문장을 나눈다", () => {
+    const prev = "안녕하세요 창1:1누구세요";
+    const next = "안녕하세요 창1:1 누구세요";
+    const triggered = detectTriggeredRef(prev, next);
+    expect(triggered).toEqual({
+      detected: { ref: "창1:1", start: 6, end: 10 },
+      textWithoutTrigger: "안녕하세요 창1:1누구세요",
+    });
+    expect(splitAtRef(triggered!.textWithoutTrigger, triggered!.detected)).toEqual({
+      head: "안녕하세요",
+      tail: "누구세요",
+    });
+  });
+
+  it("한 번의 변경으로 문장 중간 ref 형태가 만들어져도 트리거", () => {
+    const triggered = detectTriggeredRef("", "안녕하세요 창1:1 누구세요");
+    expect(triggered).toEqual({
+      detected: { ref: "창1:1", start: 6, end: 10 },
+      textWithoutTrigger: "안녕하세요 창1:1누구세요",
+    });
+    expect(splitAtRef(triggered!.textWithoutTrigger, triggered!.detected)).toEqual({
+      head: "안녕하세요",
+      tail: "누구세요",
+    });
+  });
+
+  it("문단 끝에서 입력하는 기존 동작도 유지", () => {
+    const triggered = detectTriggeredRef("창 1:1", "창 1:1 ");
+    expect(triggered).toEqual({
+      detected: { ref: "창 1:1", start: 0, end: 5 },
+      textWithoutTrigger: "창 1:1",
+    });
+  });
+
+  it("엔터(개행)로도 트리거 — 문단 끝", () => {
+    const triggered = detectTriggeredRef("창 1:1", "창 1:1\n");
+    expect(triggered).toEqual({
+      detected: { ref: "창 1:1", start: 0, end: 5 },
+      textWithoutTrigger: "창 1:1",
+    });
+  });
+
+  it("엔터(개행)로 트리거 — 아래 줄과 붙은 개행도 ref 끝을 정확히 잡음", () => {
+    // 가운데 줄에서 엔터: 새 \n 이 다음 줄 앞의 기존 \n 과 인접해 위치가 모호
+    const prev = "안녕하세요\n창 1:1\n누구세요?";
+    const next = "안녕하세요\n창 1:1\n\n누구세요?";
+    const triggered = detectTriggeredRef(prev, next);
+    expect(triggered).toEqual({
+      detected: { ref: "창 1:1", start: 6, end: 11 },
+      textWithoutTrigger: "안녕하세요\n창 1:1\n누구세요?",
+    });
+    expect(splitAtRef(triggered!.textWithoutTrigger, triggered!.detected)).toEqual({
+      head: "안녕하세요",
+      tail: "\n누구세요?",
+    });
+  });
+
+  it("공백이 아닌 글자 입력은 트리거 아님", () => {
+    expect(detectTriggeredRef("창 1:", "창 1:1")).toBeNull();
+  });
+
+  it("삭제(길이 감소)는 트리거 아님", () => {
+    expect(detectTriggeredRef("창 1:1 ", "창 1:1")).toBeNull();
+  });
+
+  it("공백을 쳤지만 유효한 ref 가 아니면 트리거 아님", () => {
+    expect(detectTriggeredRef("안녕", "안녕 ")).toBeNull();
   });
 });
 
