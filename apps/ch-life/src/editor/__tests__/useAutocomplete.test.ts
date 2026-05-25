@@ -42,4 +42,24 @@ describe("detectRefAtCursor", () => {
     // 공백이 끼면 \d$ 조건 깨짐, 안 뜨는 게 정상
     expect(detectRefAtCursor("골 3:20 입니다", 7)).toBeNull();
   });
+
+  it("범위 '창 1:1-3' 감지 — 절 범위 포함", () => {
+    expect(detectRefAtCursor("본문 창 1:1-3", 10)).toEqual({
+      ref: "창 1:1-3",
+      start: 3,
+      end: 10,
+    });
+  });
+
+  it("범위 '창1:1-3' (공백 없음) 감지", () => {
+    expect(detectRefAtCursor("창1:1-3", 6)).toEqual({
+      ref: "창1:1-3",
+      start: 0,
+      end: 6,
+    });
+  });
+
+  it("데드 범위 (끝 절이 시작보다 작음)는 null", () => {
+    expect(detectRefAtCursor("창 1:3-1", 8)).toBeNull();
+  });
 });

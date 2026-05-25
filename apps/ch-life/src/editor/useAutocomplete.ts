@@ -1,7 +1,7 @@
 import { lookupVerses } from "@/parser/verse-lookup";
 
 const TAIL_PATTERN =
-  /([가-힣]{1,8}|[A-Za-z]{2,20})\s?\d{1,3}:\d{1,3}$/;
+  /([가-힣]{1,8}|[A-Za-z]{2,20})\s?\d{1,3}:\d{1,3}(?:-\d{1,3})?$/;
 
 export type DetectedRef = {
   ref: string;
