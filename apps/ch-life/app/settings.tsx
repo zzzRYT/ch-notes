@@ -12,6 +12,8 @@ import { useRouter } from "expo-router";
 import { useAppStore } from "@/state/app-store";
 import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
 import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
+import { AppHeader } from "@/chrome/AppHeader";
+import { HeaderBack } from "@/chrome/HeaderControls";
 import type {
   AccentChoice,
   BlockStyle,
@@ -146,188 +148,194 @@ export default function SettingsScreen() {
   );
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.bg }}
-      contentContainerStyle={styles.root}
-    >
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          테마 (variation)
-        </Text>
-        <View style={styles.col}>
-          {VARIATION_OPTIONS.map((o) => {
-            const selected = settings.variation === o.value;
-            return (
-              <Pressable
-                key={o.value}
-                onPress={() => setSettings({ variation: o.value })}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                accessibilityLabel={`${o.label} — ${o.hint}`}
-                style={[
-                  styles.variationRow,
-                  {
-                    backgroundColor: selected ? colors.accentSoft : colors.paper,
-                    borderColor: selected ? colors.accent : colors.rule,
-                  },
-                ]}
-              >
-                <View style={styles.variationLabels}>
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      <AppHeader
+        left={<HeaderBack onPress={() => router.back()} />}
+        title="설정"
+        showRule
+      />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.root}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            테마 (variation)
+          </Text>
+          <View style={styles.col}>
+            {VARIATION_OPTIONS.map((o) => {
+              const selected = settings.variation === o.value;
+              return (
+                <Pressable
+                  key={o.value}
+                  onPress={() => setSettings({ variation: o.value })}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`${o.label} — ${o.hint}`}
+                  style={[
+                    styles.variationRow,
+                    {
+                      backgroundColor: selected ? colors.accentSoft : colors.paper,
+                      borderColor: selected ? colors.accent : colors.rule,
+                    },
+                  ]}
+                >
+                  <View style={styles.variationLabels}>
+                    <Text
+                      style={[
+                        styles.variationLabel,
+                        { color: colors.ink },
+                      ]}
+                    >
+                      {o.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.variationHint,
+                        { color: colors.ink3 },
+                      ]}
+                    >
+                      {o.hint}
+                    </Text>
+                  </View>
+                  {selected && (
+                    <Text style={{ color: colors.accent, fontWeight: "600" }}>
+                      ✓
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            글꼴 크기
+          </Text>
+          <View style={styles.row}>
+            {FONT_OPTIONS.map((o) =>
+              renderChip(o.label, settings.fontScale === o.value, () =>
+                setSettings({ fontScale: o.value }),
+              ),
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            폰트
+          </Text>
+          <View style={styles.row}>
+            {FONT_FAMILY_OPTIONS.map((o) =>
+              renderChip(o.label, settings.fontFamily === o.value, () =>
+                setSettings({ fontFamily: o.value }),
+              ),
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            성경 블록 스타일
+          </Text>
+          <View style={styles.row}>
+            {BLOCK_STYLE_OPTIONS.map((o) =>
+              renderChip(o.label, settings.blockStyle === o.value, () =>
+                setSettings({ blockStyle: o.value }),
+              ),
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            강조 색상
+          </Text>
+          <View style={styles.row}>
+            {ACCENT_SWATCHES.map((o) => {
+              const selected = settings.accentChoice === o.value;
+              return (
+                <Pressable
+                  key={o.value}
+                  onPress={() => setSettings({ accentChoice: o.value })}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={o.label}
+                  style={[
+                    styles.accentChip,
+                    {
+                      backgroundColor: selected ? colors.ink : colors.chipBg,
+                    },
+                  ]}
+                >
+                  {o.swatch && (
+                    <View
+                      style={[styles.swatchDot, { backgroundColor: o.swatch }]}
+                    />
+                  )}
                   <Text
                     style={[
-                      styles.variationLabel,
-                      { color: colors.ink },
+                      styles.chipText,
+                      {
+                        color: selected ? colors.paper : colors.ink2,
+                        fontWeight: selected ? "600" : "400",
+                      },
                     ]}
                   >
                     {o.label}
                   </Text>
-                  <Text
-                    style={[
-                      styles.variationHint,
-                      { color: colors.ink3 },
-                    ]}
-                  >
-                    {o.hint}
-                  </Text>
-                </View>
-                {selected && (
-                  <Text style={{ color: colors.accent, fontWeight: "600" }}>
-                    ✓
-                  </Text>
-                )}
-              </Pressable>
-            );
-          })}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          글꼴 크기
-        </Text>
-        <View style={styles.row}>
-          {FONT_OPTIONS.map((o) =>
-            renderChip(o.label, settings.fontScale === o.value, () =>
-              setSettings({ fontScale: o.value }),
-            ),
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          폰트
-        </Text>
-        <View style={styles.row}>
-          {FONT_FAMILY_OPTIONS.map((o) =>
-            renderChip(o.label, settings.fontFamily === o.value, () =>
-              setSettings({ fontFamily: o.value }),
-            ),
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          성경 블록 스타일
-        </Text>
-        <View style={styles.row}>
-          {BLOCK_STYLE_OPTIONS.map((o) =>
-            renderChip(o.label, settings.blockStyle === o.value, () =>
-              setSettings({ blockStyle: o.value }),
-            ),
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          강조 색상
-        </Text>
-        <View style={styles.row}>
-          {ACCENT_SWATCHES.map((o) => {
-            const selected = settings.accentChoice === o.value;
-            return (
-              <Pressable
-                key={o.value}
-                onPress={() => setSettings({ accentChoice: o.value })}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                accessibilityLabel={o.label}
-                style={[
-                  styles.accentChip,
-                  {
-                    backgroundColor: selected ? colors.ink : colors.chipBg,
-                  },
-                ]}
-              >
-                {o.swatch && (
-                  <View
-                    style={[styles.swatchDot, { backgroundColor: o.swatch }]}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.chipText,
-                    {
-                      color: selected ? colors.paper : colors.ink2,
-                      fontWeight: selected ? "600" : "400",
-                    },
-                  ]}
-                >
-                  {o.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          가져오기 / 내보내기
-        </Text>
-        <Pressable
-          style={[
-            styles.btn,
-            { backgroundColor: colors.ink },
-            busy && styles.btnBusy,
-          ]}
-          onPress={handleImport}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="마크다운 노트 가져오기"
-        >
-          <Text style={[styles.btnText, { color: colors.paper }]}>
-            {busy ? "가져오는 중…" : "마크다운 파일 가져오기"}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            가져오기 / 내보내기
           </Text>
-        </Pressable>
-        <Text style={[styles.hint, { color: colors.ink3 }]}>
-          내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
-        </Text>
-        {lastMsg && <Text style={{ color: colors.ink }}>{lastMsg}</Text>}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
-        <Text style={{ color: colors.ink }}>버전 {version}</Text>
-        <Pressable
-          onPress={() => router.push("/licenses")}
-          accessibilityRole="button"
-          accessibilityLabel="출처 및 라이선스"
-          style={[styles.navRow, { borderTopColor: colors.rule }]}
-        >
-          <Text style={[styles.navRowLabel, { color: colors.ink }]}>
-            출처 및 라이선스
+          <Pressable
+            style={[
+              styles.btn,
+              { backgroundColor: colors.ink },
+              busy && styles.btnBusy,
+            ]}
+            onPress={handleImport}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel="마크다운 노트 가져오기"
+          >
+            <Text style={[styles.btnText, { color: colors.paper }]}>
+              {busy ? "가져오는 중…" : "마크다운 파일 가져오기"}
+            </Text>
+          </Pressable>
+          <Text style={[styles.hint, { color: colors.ink3 }]}>
+            내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
           </Text>
-          <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>›</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+          {lastMsg && <Text style={{ color: colors.ink }}>{lastMsg}</Text>}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
+          <Text style={{ color: colors.ink }}>버전 {version}</Text>
+          <Pressable
+            onPress={() => router.push("/licenses")}
+            accessibilityRole="button"
+            accessibilityLabel="출처 및 라이선스"
+            style={[styles.navRow, { borderTopColor: colors.rule }]}
+          >
+            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+              출처 및 라이선스
+            </Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>›</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   root: { padding: 16, gap: 8, paddingBottom: 80 },
   section: { gap: 12, marginBottom: 20 },
   sectionTitle: {

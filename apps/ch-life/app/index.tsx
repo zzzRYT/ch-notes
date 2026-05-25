@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   SectionList,
@@ -8,12 +8,14 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { Stack, useRouter, useFocusEffect } from "expo-router";
-import { Settings } from "lucide-react-native";
+import { useRouter, useFocusEffect } from "expo-router";
+import { Search, Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
+import { AppHeader } from "@/chrome/AppHeader";
+import { HeaderBrand, HeaderIconButton } from "@/chrome/HeaderControls";
 import { TabletWorkspace } from "@/workspace/TabletWorkspace";
 import type { Note } from "@/domain/types";
 
@@ -37,33 +39,14 @@ function toSections(groups: ReadonlyArray<NoteGroup>): Section[] {
 
 export default function NotesList() {
   const { width } = useWindowDimensions();
-  const router = useRouter();
-  const { colors } = useTheme();
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable
-              onPress={() => router.push("/settings")}
-              accessibilityRole="button"
-              accessibilityLabel="설정"
-              hitSlop={8}
-              style={styles.headerBtn}
-            >
-              <Settings size={24} color={colors.ink} strokeWidth={2} />
-            </Pressable>
-          ),
-        }}
-      />
-      {width >= TABLET_BREAKPOINT ? <TabletWorkspace /> : <PhoneNotesList />}
-    </>
-  );
+  // Tablet keeps its own panel chrome; phone gets the custom AppHeader.
+  return width >= TABLET_BREAKPOINT ? <TabletWorkspace /> : <PhoneNotesList />;
 }
 
 function PhoneNotesList() {
   const router = useRouter();
   const { colors, fontScale } = useTheme();
+  const searchRef = useRef<TextInput>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[] | null>(null);
@@ -123,6 +106,23 @@ function PhoneNotesList() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
+      <AppHeader
+        left={<HeaderBrand label="설교 노트" />}
+        right={
+          <>
+            <HeaderIconButton
+              icon={Search}
+              label="노트 검색"
+              onPress={() => searchRef.current?.focus()}
+            />
+            <HeaderIconButton
+              icon={Settings}
+              label="설정"
+              onPress={() => router.push("/settings")}
+            />
+          </>
+        }
+      />
       <SectionList
         sections={sections}
         keyExtractor={(n) => n.id}
@@ -130,16 +130,6 @@ function PhoneNotesList() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View>
-            <View style={styles.eyebrowRow}>
-              <Text
-                style={[
-                  styles.eyebrowText,
-                  { color: colors.ink3, fontSize: scaled(13, fontScale) },
-                ]}
-              >
-                설교 노트
-              </Text>
-            </View>
             <View style={styles.listHead}>
               <Text
                 style={[
@@ -162,6 +152,7 @@ function PhoneNotesList() {
               style={[styles.searchBar, { backgroundColor: colors.chipBg }]}
             >
               <TextInput
+                ref={searchRef}
                 style={[styles.searchInput, { color: colors.ink }]}
                 value={query}
                 onChangeText={setQuery}
@@ -255,18 +246,9 @@ function PhoneNotesList() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   listContent: { paddingBottom: 120 },
-  eyebrowRow: {
-    paddingHorizontal: 22,
-    paddingTop: 10,
-    paddingBottom: 0,
-  },
-  eyebrowText: {
-    fontWeight: "500",
-    letterSpacing: -0.1,
-  },
   listHead: {
     paddingHorizontal: 22,
-    paddingTop: 4,
+    paddingTop: 12,
     paddingBottom: 12,
   },
   listTitle: {
@@ -333,10 +315,4 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fabText: { fontSize: 28, lineHeight: 32, fontWeight: "300" },
-  headerBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    minHeight: 44,
-    justifyContent: "center",
-  },
 });

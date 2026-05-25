@@ -8,13 +8,17 @@ import {
   View,
 } from "react-native";
 import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import { useTheme } from "@/theme/ThemeProvider";
+import { AppHeader } from "@/chrome/AppHeader";
+import { HeaderBack } from "@/chrome/HeaderControls";
 
 const BIBLE_SOURCE_URL = "https://www.openbible.uk";
 const BIBLE_LICENSE_URL =
   "https://creativecommons.org/licenses/by-sa/4.0/deed.ko";
 
 export default function LicensesScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
 
   const openUrl = async (url: string) => {
@@ -27,49 +31,55 @@ export default function LicensesScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.bg }}
-      contentContainerStyle={styles.root}
-    >
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-          성경 본문
-        </Text>
-        <Text style={[styles.body, { color: colors.ink }]}>
-          이 앱의 성경 본문은{" "}
-          <Text style={styles.bold}>Open Bible 한국어판</Text>을 사용하며,
-          원문에서 본문을 추출·편집하여 수록했습니다.
-        </Text>
-        <Pressable
-          onPress={() => openUrl(BIBLE_SOURCE_URL)}
-          accessibilityRole="link"
-          accessibilityLabel="Open Bible 웹사이트 열기"
-          style={styles.linkRow}
-        >
-          <Text style={[styles.link, { color: colors.accent }]}>
-            openbible.uk
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+      <AppHeader
+        left={<HeaderBack onPress={() => router.back()} />}
+        title="출처 및 라이선스"
+        showRule
+      />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.root}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            성경 본문
           </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => openUrl(BIBLE_LICENSE_URL)}
-          accessibilityRole="link"
-          accessibilityLabel="CC BY-SA 4.0 라이선스 전문 열기"
-          style={styles.linkRow}
-        >
-          <Text style={[styles.link, { color: colors.accent }]}>
-            CC BY-SA 4.0 라이선스
+          <Text style={[styles.body, { color: colors.ink }]}>
+            이 앱의 성경 본문은{" "}
+            <Text style={styles.bold}>Open Bible 한국어판</Text>을 사용하며,
+            원문에서 본문을 추출·편집하여 수록했습니다.
           </Text>
-        </Pressable>
-        <Text style={[styles.hint, { color: colors.ink3 }]}>
-          본문은 CC BY-SA 4.0 조건에 따라 자유롭게 이용·공유할 수 있으며, 본문을
-          수정한 2차적 저작물도 동일한 라이선스로 배포됩니다.
-        </Text>
-      </View>
-    </ScrollView>
+          <Pressable
+            onPress={() => openUrl(BIBLE_SOURCE_URL)}
+            accessibilityRole="link"
+            accessibilityLabel="Open Bible 웹사이트 열기"
+            style={styles.linkRow}
+          >
+            <Text style={[styles.link, { color: colors.accent }]}>
+              openbible.uk
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => openUrl(BIBLE_LICENSE_URL)}
+            accessibilityRole="link"
+            accessibilityLabel="CC BY-SA 4.0 라이선스 전문 열기"
+            style={styles.linkRow}
+          >
+            <Text style={[styles.link, { color: colors.accent }]}>
+              CC BY-SA 4.0 라이선스
+            </Text>
+          </Pressable>
+          <Text style={[styles.hint, { color: colors.ink3 }]}>
+            본문은 CC BY-SA 4.0 조건에 따라 자유롭게 이용·공유할 수 있으며, 본문을
+            수정한 2차적 저작물도 동일한 라이선스로 배포됩니다.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   root: { padding: 16, gap: 8, paddingBottom: 80 },
   section: { gap: 12, marginBottom: 20 },
   sectionTitle: {
