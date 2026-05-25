@@ -94,3 +94,17 @@ export function resolveBookCode(input: string): BookCode | null {
   if (!input) return null;
   return ALIAS_MAP.get(normalize(input)) ?? null;
 }
+
+// The first alias of each entry is the canonical Korean book name.
+const DISPLAY_NAME_MAP: ReadonlyMap<BookCode, string> = (() => {
+  const m = new Map<BookCode, string>();
+  for (const { aliases, code } of ALIAS_TABLE) {
+    const canonical = aliases[0];
+    if (canonical) m.set(code, canonical);
+  }
+  return m;
+})();
+
+export function bookDisplayName(code: BookCode): string {
+  return DISPLAY_NAME_MAP.get(code) ?? code;
+}

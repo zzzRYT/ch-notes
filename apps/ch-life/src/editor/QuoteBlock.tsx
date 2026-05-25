@@ -8,23 +8,25 @@ import {
 } from "react-native";
 import type { BlockNode, Verse } from "@/domain/types";
 import { useTheme, scaled, type Theme } from "@/theme/ThemeProvider";
+import { formatRef } from "@/parser/format-ref";
 
 type Props = Extract<BlockNode, { type: "quote" }>;
 
 export function QuoteBlock(props: Props) {
   const theme = useTheme();
+  const refLabel = formatRef(props.ref);
   switch (theme.blockStyle) {
     case "quote":
-      return <QuoteVariant {...props} theme={theme} />;
+      return <QuoteVariant {...props} theme={theme} refLabel={refLabel} />;
     case "collapse":
-      return <CollapseVariant {...props} theme={theme} />;
+      return <CollapseVariant {...props} theme={theme} refLabel={refLabel} />;
     case "card":
     default:
-      return <CardVariant {...props} theme={theme} />;
+      return <CardVariant {...props} theme={theme} refLabel={refLabel} />;
   }
 }
 
-type VariantProps = Props & { theme: Theme };
+type VariantProps = Props & { theme: Theme; refLabel: string };
 
 function HeaderLabel({
   refLabel,
@@ -117,7 +119,7 @@ function Body({
   );
 }
 
-function CardVariant({ ref, verses, status, theme }: VariantProps) {
+function CardVariant({ verses, status, theme, refLabel }: VariantProps) {
   const { colors } = theme;
   const borderColor = status === "error" ? colors.errBar : colors.rule;
   return (
@@ -127,32 +129,32 @@ function CardVariant({ ref, verses, status, theme }: VariantProps) {
         { backgroundColor: colors.paper, borderColor },
       ]}
       accessibilityRole="text"
-      accessibilityLabel={`인용 ${ref}`}
+      accessibilityLabel={`인용 ${refLabel}`}
     >
-      <HeaderLabel refLabel={ref} theme={theme} />
+      <HeaderLabel refLabel={refLabel} theme={theme} />
       <Body verses={verses} status={status} theme={theme} />
     </View>
   );
 }
 
-function QuoteVariant({ ref, verses, status, theme }: VariantProps) {
+function QuoteVariant({ verses, status, theme, refLabel }: VariantProps) {
   const { colors } = theme;
   return (
     <View
       style={[styles.quoteWrap, { backgroundColor: colors.accentSoft }]}
       accessibilityRole="text"
-      accessibilityLabel={`인용 ${ref}`}
+      accessibilityLabel={`인용 ${refLabel}`}
     >
       <View style={[styles.quoteBar, { backgroundColor: colors.accent }]} />
       <View style={styles.quoteBody}>
-        <HeaderLabel refLabel={ref} theme={theme} prefixDot={false} />
+        <HeaderLabel refLabel={refLabel} theme={theme} prefixDot={false} />
         <Body verses={verses} status={status} theme={theme} />
       </View>
     </View>
   );
 }
 
-function CollapseVariant({ ref, verses, status, theme }: VariantProps) {
+function CollapseVariant({ verses, status, theme, refLabel }: VariantProps) {
   const [open, setOpen] = useState(true);
   const { colors, fontScale } = theme;
   return (
@@ -162,12 +164,12 @@ function CollapseVariant({ ref, verses, status, theme }: VariantProps) {
         { borderColor: colors.rule, backgroundColor: colors.bg },
       ]}
       accessibilityRole="text"
-      accessibilityLabel={`인용 ${ref}`}
+      accessibilityLabel={`인용 ${refLabel}`}
     >
       <Pressable
         onPress={() => setOpen((v) => !v)}
         accessibilityRole="button"
-        accessibilityLabel={`${ref} ${open ? "접기" : "펼치기"}`}
+        accessibilityLabel={`${refLabel} ${open ? "접기" : "펼치기"}`}
         accessibilityState={{ expanded: open }}
         style={styles.collapseHead}
       >
@@ -188,7 +190,7 @@ function CollapseVariant({ ref, verses, status, theme }: VariantProps) {
             },
           ]}
         >
-          {ref}
+          {refLabel}
         </Text>
       </Pressable>
       {open && (
