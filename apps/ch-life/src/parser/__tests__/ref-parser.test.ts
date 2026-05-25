@@ -46,6 +46,33 @@ describe("parseRef", () => {
     });
   });
 
+  it("'창세기 1:1~3' (물결표 범위)", () => {
+    expect(parseRef("창세기 1:1~3")).toEqual({
+      book: "Gen",
+      chapter: 1,
+      verse: 1,
+      end: 3,
+    });
+  });
+
+  it("'창 1:1~3' (약어 + 물결표 범위)", () => {
+    expect(parseRef("창 1:1~3")).toEqual({
+      book: "Gen",
+      chapter: 1,
+      verse: 1,
+      end: 3,
+    });
+  });
+
+  it("'골 3:20～22' (전각 물결표 범위)", () => {
+    expect(parseRef("골 3:20～22")).toEqual({
+      book: "Col",
+      chapter: 3,
+      verse: 20,
+      end: 22,
+    });
+  });
+
   it("데드 패턴 'abc'", () => {
     expect(parseRef("abc")).toBeNull();
   });

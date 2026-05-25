@@ -165,19 +165,24 @@ export default function NoteEditorScreen() {
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
-      <SermonMetaHeader
-        title={title}
-        sermonDate={sermonDate}
-        preacher={preacher}
-        location={location}
-        scripture={scripture}
-        onChangeTitle={handleChangeTitle}
-        onChangeSermonDate={setSermonDate}
-        onChangePreacher={setPreacher}
-        onChangeLocation={setLocation}
-        onChangeScripture={setScripture}
+      <NoteEditor
+        body={body}
+        onChangeBody={setBody}
+        header={
+          <SermonMetaHeader
+            title={title}
+            sermonDate={sermonDate}
+            preacher={preacher}
+            location={location}
+            scripture={scripture}
+            onChangeTitle={handleChangeTitle}
+            onChangeSermonDate={setSermonDate}
+            onChangePreacher={setPreacher}
+            onChangeLocation={setLocation}
+            onChangeScripture={setScripture}
+          />
+        }
       />
-      <NoteEditor body={body} onChangeBody={setBody} />
       <EditorKeyboardToolbar onOpenBrowser={() => setBrowserOpen(true)} />
       <BibleBrowser
         visible={browserOpen}
