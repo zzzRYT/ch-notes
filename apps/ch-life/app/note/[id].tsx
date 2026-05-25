@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { Keyboard, Text, View, StyleSheet } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Share } from "lucide-react-native";
 import { NoteEditor } from "@/editor/NoteEditor";
 import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
 import { useAutoSave } from "@/editor/useAutoSave";
@@ -12,11 +13,14 @@ import { useAppStore } from "@/state/app-store";
 import { exportNote } from "@/share/export-note";
 import { extractCitedRefs } from "@/editor/cited-refs";
 import { useTheme } from "@/theme/ThemeProvider";
+import { AppHeader } from "@/chrome/AppHeader";
+import { HeaderBack, HeaderIconButton, HeaderTextButton } from "@/chrome/HeaderControls";
 import type { BlockNode } from "@/domain/types";
 
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { colors } = useTheme();
   const [title, setTitle] = useState<string | null>(null);
   const [sermonDate, setSermonDate] = useState<string | null>(null);
@@ -140,26 +144,19 @@ export default function NoteEditorScreen() {
   if (!ready) return null;
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <View style={[styles.toolbar, { borderBottomColor: colors.rule }]}>
-        <Pressable
-          onPress={handleExport}
-          accessibilityRole="button"
-          accessibilityLabel="노트 공유"
-          hitSlop={12}
-          style={styles.toolbarBtn}
-        >
-          <Text style={[styles.toolbarIcon, { color: colors.ink2 }]}>↑</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setBrowserOpen((b) => !b)}
-          accessibilityRole="button"
-          accessibilityLabel="성경 브라우저 열기"
-          hitSlop={12}
-          style={styles.toolbarBtn}
-        >
-          <Text style={[styles.toolbarIcon, { color: colors.ink2 }]}>📖</Text>
-        </Pressable>
-      </View>
+      <AppHeader
+        left={<HeaderBack label="노트" onPress={() => router.back()} />}
+        right={
+          <>
+            <HeaderIconButton
+              icon={Share}
+              label="노트 공유"
+              onPress={handleExport}
+            />
+            <HeaderTextButton label="완료" onPress={() => Keyboard.dismiss()} />
+          </>
+        }
+      />
       {saveErr && (
         <View style={[styles.errBanner, { backgroundColor: colors.errBg }]}>
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
@@ -190,19 +187,5 @@ export default function NoteEditorScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  toolbar: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  toolbarBtn: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  toolbarIcon: { fontSize: 20 },
   errBanner: { padding: 8 },
 });
