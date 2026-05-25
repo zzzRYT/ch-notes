@@ -14,6 +14,7 @@ import {
   noteTitleOrFallback,
 } from "@/list/group-notes";
 import type { Note } from "@/domain/types";
+import { formatRef } from "@/parser/format-ref";
 
 type Props = {
   notes: ReadonlyArray<Note>;
@@ -155,7 +156,7 @@ export function NoteListSidebar({
                             { color: colors.accent, fontSize: scaled(11, fontScale) },
                           ]}
                         >
-                          {n.citedRefs[0]}
+                          {formatRef(n.citedRefs[0])}
                         </Text>
                       </>
                     )}
