@@ -21,10 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        with:
-          version: 10.15.0
+      # Install pnpm via corepack (bundled with Node) instead of
+      # pnpm/action-setup, whose action archive intermittently 404s from
+      # codeload on the runners and blocks every job at "Set up job". corepack
+      # downloads no external action. --activate sets the global default so
+      # `pnpm` resolves from the repo root too, where setup-node's cache step
+      # runs `pnpm store path` (there is no root package.json to read).
+      - name: Install pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
 
       - name: Setup Node
         uses: actions/setup-node@v4
