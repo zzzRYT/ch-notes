@@ -1,15 +1,23 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import type { BlockNode } from '@/domain/types';
 import { QuoteBlock } from './QuoteBlock';
 import { ParagraphInput, type ActiveInputState } from './ParagraphInput';
-import { detectRefAtCursor, type DetectedRef } from './useAutocomplete';
+import {
+  detectRefAtCursor,
+  splitAtRef,
+  type DetectedRef,
+} from './useAutocomplete';
 import { lookupVerses } from '@/parser/verse-lookup';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
   body: BlockNode[];
   onChangeBody: (next: BlockNode[]) => void;
+  // Rendered at the top of the scroll content so it scrolls away with the
+  // body instead of staying pinned above it.
+  header?: React.ReactNode;
 };
 
 function splitParagraphWithQuote(
@@ -22,11 +30,10 @@ function splitParagraphWithQuote(
   if (!verses) return null;
   const next = source.slice();
   const current = next[idx];
-  const head =
+  const { head, tail } =
     current?.type === 'paragraph'
-      ? before.slice(0, ref.start).replace(/\s+$/, '')
-      : '';
-  const tail = current?.type === 'paragraph' ? before.slice(ref.end) : '';
+      ? splitAtRef(before, ref)
+      : { head: '', tail: '' };
   next[idx] = { type: 'paragraph', text: head };
   next.splice(
     idx + 1,
@@ -37,9 +44,12 @@ function splitParagraphWithQuote(
   return next;
 }
 
-export function NoteEditor({ body, onChangeBody }: Props) {
+export function NoteEditor({ body, onChangeBody, header }: Props) {
   const { colors } = useTheme();
   const [active, setActive] = useState<ActiveInputState | null>(null);
+  // Index of the paragraph that should focus itself on its next mount — set
+  // when a quote is inserted so the caret lands in the paragraph below it.
+  const [focusOnMountIdx, setFocusOnMountIdx] = useState<number | null>(null);
 
   // Keep a live ref to body so ParagraphInput callbacks can stay stable
   // across renders. ParagraphInput is memoized — if we depended on `body`
@@ -47,6 +57,14 @@ export function NoteEditor({ body, onChangeBody }: Props) {
   // callback and bust the memo on every sibling block.
   const bodyRef = useRef<BlockNode[]>(body);
   bodyRef.current = body;
+
+  // The focus-on-mount only fires once (mount-only effect in ParagraphInput),
+  // so after the post-quote paragraph has grabbed focus we clear the target —
+  // otherwise an unrelated remount at the same index (e.g. after a
+  // backspace-merge) could steal focus later.
+  useEffect(() => {
+    if (focusOnMountIdx !== null) setFocusOnMountIdx(null);
+  }, [focusOnMountIdx]);
 
   const handleCommit = useCallback(
     (idx: number, text: string): void => {
@@ -63,16 +81,16 @@ export function NoteEditor({ body, onChangeBody }: Props) {
 
   const handleTrigger = useCallback(
     (idx: number, textBefore: string, detected: DetectedRef): void => {
-      const cur = bodyRef.current;
-      const staged = cur.slice();
-      staged[idx] = { type: 'paragraph', text: textBefore };
       const updated = splitParagraphWithQuote(
-        staged,
+        bodyRef.current,
         idx,
         textBefore,
         detected,
       );
-      if (updated) onChangeBody(updated);
+      if (!updated) return;
+      setActive(null);
+      setFocusOnMountIdx(idx + 2);
+      onChangeBody(updated);
     },
     [onChangeBody],
   );
@@ -84,10 +102,6 @@ export function NoteEditor({ body, onChangeBody }: Props) {
     [],
   );
 
-  // Backspace at column 0 of a paragraph that directly follows a quote
-  // removes the quote. When there is also a paragraph before the quote,
-  // the two surrounding paragraphs are merged so the deletion undoes the
-  // earlier split caused by quote insertion.
   const handleBackspaceAtStart = useCallback(
     (idx: number, tailText: string): void => {
       const cur = bodyRef.current;
@@ -118,29 +132,34 @@ export function NoteEditor({ body, onChangeBody }: Props) {
 
   return (
     <View style={styles.root}>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={{ backgroundColor: colors.bg }}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={KEYBOARD_BOTTOM_OFFSET}
       >
-        {body.map((block, idx) => {
-          if (block.type === 'quote') {
-            return <QuoteBlock key={`q-${idx}`} {...block} />;
-          }
-          return (
-            <ParagraphInput
-              key={`p-${idx}`}
-              idx={idx}
-              initialText={block.text}
-              isFirst={idx === 0}
-              onCommit={handleCommit}
-              onTrigger={handleTrigger}
-              onActiveChange={handleActiveChange}
-              onBackspaceAtStart={handleBackspaceAtStart}
-            />
-          );
-        })}
-      </ScrollView>
+        {header}
+        <View style={styles.body}>
+          {body.map((block, idx) => {
+            if (block.type === 'quote') {
+              return <QuoteBlock key={`q-${idx}`} {...block} />;
+            }
+            return (
+              <ParagraphInput
+                key={`p-${idx}`}
+                idx={idx}
+                initialText={block.text}
+                isFirst={idx === 0}
+                focusOnMount={focusOnMountIdx === idx}
+                onCommit={handleCommit}
+                onTrigger={handleTrigger}
+                onActiveChange={handleActiveChange}
+                onBackspaceAtStart={handleBackspaceAtStart}
+              />
+            );
+          })}
+        </View>
+      </KeyboardAwareScrollView>
       {liveHint && (
         <View style={styles.hintWrap} pointerEvents="none">
           <View style={[styles.hint, { backgroundColor: colors.accentSoft }]}>
@@ -163,9 +182,12 @@ export function NoteEditor({ body, onChangeBody }: Props) {
   );
 }
 
+const KEYBOARD_BOTTOM_OFFSET = 56;
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { paddingHorizontal: 24, paddingBottom: 80, gap: 4 },
+  content: { paddingBottom: 80 },
+  body: { paddingHorizontal: 24, paddingTop: 12, gap: 4 },
   hintWrap: {
     position: 'absolute',
     left: 0,

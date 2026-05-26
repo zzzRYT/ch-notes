@@ -1,21 +1,18 @@
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   TextInput,
   StyleSheet,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
   type TextInputSelectionChangeEventData,
-} from "react-native";
-import { useTheme, scaled } from "@/theme/ThemeProvider";
-import { detectRefAtCursor, type DetectedRef } from "./useAutocomplete";
+} from 'react-native';
+import { useTheme, scaled } from '@/theme/ThemeProvider';
+import {
+  detectTriggeredRef,
+  splitAtRef,
+  type DetectedRef,
+} from './useAutocomplete';
 
-const TRIGGER_RE = /[\s\n]$/;
 const COMMIT_DEBOUNCE_MS = 800;
 
 export type ActiveInputState = {
@@ -28,6 +25,7 @@ type Props = {
   idx: number;
   initialText: string;
   isFirst: boolean;
+  focusOnMount?: boolean;
   onCommit: (idx: number, text: string) => void;
   onTrigger: (idx: number, textBefore: string, detected: DetectedRef) => void;
   onActiveChange: (state: ActiveInputState | null) => void;
@@ -38,6 +36,7 @@ function ParagraphInputImpl({
   idx,
   initialText,
   isFirst,
+  focusOnMount = false,
   onCommit,
   onTrigger,
   onActiveChange,
@@ -51,10 +50,14 @@ function ParagraphInputImpl({
   const focusedRef = useRef<boolean>(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCommittedRef = useRef<string>(initialText);
+  const inputRef = useRef<TextInput>(null);
 
-  // Sync local buffer when the paragraph text changes from the outside
-  // (e.g. note load, external splice). Skip while focused to avoid
-  // disrupting Android IME composition.
+  useEffect(() => {
+    if (!focusOnMount) return;
+    const raf = requestAnimationFrame(() => inputRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   useEffect(() => {
     if (focusedRef.current) return;
     if (initialText === text) return;
@@ -63,8 +66,6 @@ function ParagraphInputImpl({
     lastCommittedRef.current = initialText;
   }, [initialText, text]);
 
-  // Flush any pending debounce on unmount so a paragraph that gets
-  // spliced out still persists the latest text.
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -93,20 +94,22 @@ function ParagraphInputImpl({
 
   const handleChangeText = useCallback(
     (next: string): void => {
-      const grew = next.length > text.length;
-      const lastChar = next.slice(-1);
-      if (grew && TRIGGER_RE.test(lastChar)) {
-        const detected = detectRefAtCursor(next, next.length - 1);
-        if (detected) {
-          const before = next.slice(0, next.length - 1);
-          cancelDebounce();
-          lastCommittedRef.current = before;
-          setText(before);
-          textRef.current = before;
-          onActiveChange(null);
-          onTrigger(idx, before, detected);
-          return;
-        }
+      // Diff against the previous value so a citation triggers wherever the
+      // caret is — including mid-paragraph with text still below it — not only
+      // when the reference sits at the very end of the field.
+      const triggered = detectTriggeredRef(textRef.current, next);
+      if (triggered) {
+        const { detected, textWithoutTrigger } = triggered;
+        const { head } = splitAtRef(textWithoutTrigger, detected);
+        cancelDebounce();
+        lastCommittedRef.current = head;
+        setText(head);
+        textRef.current = head;
+        cursorRef.current = head.length;
+        selectionStartRef.current = head.length;
+        onActiveChange(null);
+        onTrigger(idx, textWithoutTrigger, detected);
+        return;
       }
       setText(next);
       textRef.current = next;
@@ -115,7 +118,7 @@ function ParagraphInputImpl({
       }
       scheduleCommit(next);
     },
-    [idx, onTrigger, onActiveChange, scheduleCommit, text.length],
+    [idx, onTrigger, onActiveChange, scheduleCommit],
   );
 
   const handleSelectionChange = useCallback(
@@ -132,10 +135,8 @@ function ParagraphInputImpl({
 
   const handleKeyPress = useCallback(
     (e: NativeSyntheticEvent<TextInputKeyPressEventData>): void => {
-      if (e.nativeEvent.key !== "Backspace") return;
+      if (e.nativeEvent.key !== 'Backspace') return;
       if (selectionStartRef.current !== 0 || cursorRef.current !== 0) return;
-      // Flush any pending debounced commit so the parent has the latest text
-      // before it reshapes the block list.
       const current = textRef.current;
       cancelDebounce();
       if (current !== lastCommittedRef.current) {
@@ -173,6 +174,7 @@ function ParagraphInputImpl({
           lineHeight: scaled(26, fontScale),
         },
       ]}
+      ref={inputRef}
       value={text}
       multiline
       onFocus={handleFocus}
@@ -181,9 +183,7 @@ function ParagraphInputImpl({
       onChangeText={handleChangeText}
       onKeyPress={handleKeyPress}
       placeholder={
-        isFirst
-          ? "예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다"
-          : ""
+        isFirst ? '예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다' : ''
       }
       placeholderTextColor={colors.ink3}
       autoCorrect={false}
@@ -199,6 +199,6 @@ const styles = StyleSheet.create({
   paragraph: {
     minHeight: 30,
     paddingVertical: 0,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
 });

@@ -2,8 +2,8 @@ import { ExpoConfig } from "expo/config";
 
 const config: ExpoConfig = {
   name: "ch-life",
-  slug: "ch-life",
-  owner: "leejaejin_0403",
+  slug: "ch-note",
+  owner: "zzzryt",
   version: "0.1.0",
   orientation: "default",
   icon: "./assets/icon.png",
@@ -11,7 +11,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   updates: {
-    url: "https://u.expo.dev/be4c4c47-3ef3-4438-a005-821a6078892a",
+    url: "https://u.expo.dev/813691d9-f5ff-48d6-93c7-47432b44b2ce",
   },
   runtimeVersion: {
     policy: "appVersion",
@@ -43,7 +43,7 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: true },
   extra: {
     eas: {
-      projectId: "be4c4c47-3ef3-4438-a005-821a6078892a",
+      projectId: "813691d9-f5ff-48d6-93c7-47432b44b2ce",
     },
   },
 };
