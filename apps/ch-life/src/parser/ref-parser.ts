@@ -7,8 +7,11 @@ export type ParsedRef = {
   end: number | null;
 };
 
+// The range separator accepts hyphen plus the tilde/dash variants Korean
+// keyboards and CJK text commonly produce (`-`, `~`, en-dash, wave dash,
+// fullwidth tilde). Surrounding whitespace is tolerated for pasted refs.
 const PATTERN =
-  /^([가-힣]{1,8}|[A-Za-z][A-Za-z\s]{0,20})\s*(\d{1,3}):(\d{1,3})(?:-(\d{1,3}))?$/;
+  /^([가-힣]{1,8}|[A-Za-z][A-Za-z\s]{0,20})\s*(\d{1,3}):(\d{1,3})(?:\s*[-~–〜～]\s*(\d{1,3}))?$/;
 
 export function parseRef(input: string): ParsedRef | null {
   const trimmed = input.trim();
