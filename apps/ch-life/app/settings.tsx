@@ -292,6 +292,19 @@ export default function SettingsScreen() {
               ↗
             </Text>
           </Pressable>
+          <Pressable
+            onPress={openPrivacyPolicy}
+            accessibilityRole="link"
+            accessibilityLabel="개인정보 처리방침 (웹페이지 열기)"
+            style={[styles.navRow, { borderTopColor: colors.rule }]}
+          >
+            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+              개인정보 처리방침
+            </Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
+              ↗
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
