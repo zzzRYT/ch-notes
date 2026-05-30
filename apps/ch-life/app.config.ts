@@ -35,7 +35,7 @@ const config: ExpoConfig = {
     package: "com.leejaejin.chlife",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#257AB4",
+      backgroundColor: "#FDF9F4",
     },
   },
   web: {
