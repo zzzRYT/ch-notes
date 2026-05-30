@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -14,6 +15,7 @@ import { useAutoSave } from "@/editor/useAutoSave";
 import { extractCitedRefs } from "@/editor/cited-refs";
 import { lookupVerses } from "@/parser/verse-lookup";
 import { exportNote } from "@/share/export-note";
+import { useNoteImport } from "@/share/use-note-import";
 import { noteTitleOrFallback } from "@/list/group-notes";
 import type { BlockNode, Note } from "@/domain/types";
 import { NoteListSidebar } from "./NoteListSidebar";
@@ -32,6 +34,7 @@ function dayLabel(ts: number): string {
 
 export function TabletWorkspace() {
   const { colors, fontScale, fontStack } = useTheme();
+  const { runImport } = useNoteImport();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [title, setTitle] = useState<string | null>(null);
@@ -164,6 +167,18 @@ export function TabletWorkspace() {
     setSelectedId(id);
   }, []);
 
+  const handleImport = useCallback(async () => {
+    const { summary, message } = await runImport();
+    if (summary && summary.imported > 0) {
+      const repo = await openNoteRepo();
+      setNotes(await repo.listRecent({ limit: 200 }));
+    }
+    const acted = summary
+      ? summary.imported > 0 || summary.skipped > 0
+      : Boolean(message);
+    if (acted) Alert.alert("가져오기", message);
+  }, [runImport]);
+
   const handleExport = useCallback(async () => {
     if (!selectedId) return;
     try {
@@ -208,6 +223,7 @@ export function TabletWorkspace() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onCreate={createNote}
+            onImport={handleImport}
             onCollapse={() => setLeftOpen(false)}
           />
         </View>

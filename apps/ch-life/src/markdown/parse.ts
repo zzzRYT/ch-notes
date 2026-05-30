@@ -2,6 +2,32 @@ import matter from "gray-matter";
 import type { BlockNode, Note, Verse } from "@/domain/types";
 import { parseRef } from "@/parser/ref-parser";
 
+function toStringOrNull(v: unknown): string | null {
+  return typeof v === "string" && v.trim().length > 0 ? v : null;
+}
+
+// YAML parses an unquoted `2026-05-30` as a Date, not a string. Normalize both
+// shapes back to a `YYYY-MM-DD` calendar string (UTC parts to avoid TZ drift).
+function toDateString(v: unknown): string | null {
+  if (typeof v === "string") return v.trim().length > 0 ? v : null;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    const yyyy = v.getUTCFullYear();
+    const mm = String(v.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(v.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return null;
+}
+
+function toTimestamp(v: unknown): number | null {
+  if (typeof v === "string") {
+    const t = Date.parse(v);
+    return Number.isNaN(t) ? null : t;
+  }
+  if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
+  return null;
+}
+
 function makeId(): string {
   const t = Date.now().toString(36).padStart(10, "0");
   const r = Math.random().toString(36).slice(2, 12).padStart(10, "0");
@@ -14,10 +40,8 @@ export function markdownToNote(md: string): Note | null {
   const blocks = parseBody(parsed.content);
 
   const now = Date.now();
-  const createdAt =
-    typeof fm.createdAt === "string" ? Date.parse(fm.createdAt) : now;
-  const updatedAt =
-    typeof fm.updatedAt === "string" ? Date.parse(fm.updatedAt) : now;
+  const createdAt = toTimestamp(fm.createdAt) ?? now;
+  const updatedAt = toTimestamp(fm.updatedAt) ?? now;
   const title = typeof fm.title === "string" ? fm.title : null;
   const id = typeof fm.id === "string" && fm.id ? fm.id : makeId();
   const citedRefs = Array.isArray(fm.citedRefs)
@@ -25,10 +49,10 @@ export function markdownToNote(md: string): Note | null {
         (x): x is string => typeof x === "string",
       )
     : extractRefsFromBlocks(blocks);
-  const sermonDate = typeof fm.sermonDate === "string" ? fm.sermonDate : null;
-  const preacher = typeof fm.preacher === "string" ? fm.preacher : null;
-  const location = typeof fm.location === "string" ? fm.location : null;
-  const scripture = typeof fm.scripture === "string" ? fm.scripture : null;
+  const sermonDate = toDateString(fm.sermonDate);
+  const preacher = toStringOrNull(fm.preacher);
+  const location = toStringOrNull(fm.location);
+  const scripture = toStringOrNull(fm.scripture);
 
   return { id, title, body: blocks, createdAt, updatedAt, citedRefs, sermonDate, preacher, location, scripture };
 }

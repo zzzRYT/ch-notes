@@ -44,6 +44,7 @@ function makeId(): string {
 export function makeNoteRepo(db: DbAdapter) {
   return {
     async create(input: {
+      id?: string;
       title?: string | null;
       body: BlockNode[];
       citedRefs: string[];
@@ -52,7 +53,7 @@ export function makeNoteRepo(db: DbAdapter) {
       location?: string | null;
       scripture?: string | null;
     }): Promise<string> {
-      const id = makeId();
+      const id = input.id ?? makeId();
       const now = Date.now();
       await db.runAsync(
         `INSERT INTO notes(id, title, body_json, created_at, updated_at, cited_refs, sermon_date, preacher, location, scripture)

@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,7 +9,6 @@ import {
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useAppStore } from "@/state/app-store";
-import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
 import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
 import { AppHeader } from "@/chrome/AppHeader";
 import { HeaderBack } from "@/chrome/HeaderControls";
@@ -18,28 +16,8 @@ import type {
   AccentChoice,
   BlockStyle,
   FontFamily,
-  Note,
   Settings,
 } from "@/domain/types";
-
-function promptPolicy(existing: Note): Promise<ConflictPolicy> {
-  return new Promise((resolve) => {
-    const label = existing.title ?? existing.id;
-    Alert.alert(
-      "이미 존재하는 노트",
-      `"${label}" 와 동일한 id의 노트가 있습니다.`,
-      [
-        { text: "건너뛰기", style: "cancel", onPress: () => resolve("skip") },
-        { text: "새 id로 추가", onPress: () => resolve("new-id") },
-        {
-          text: "덮어쓰기",
-          style: "destructive",
-          onPress: () => resolve("overwrite"),
-        },
-      ],
-    );
-  });
-}
 
 const FONT_OPTIONS: ReadonlyArray<{
   label: string;
@@ -88,29 +66,6 @@ export default function SettingsScreen() {
   const { colors } = useTheme();
   const settings = useAppStore((s) => s.settings);
   const setSettings = useAppStore((s) => s.setSettings);
-  const [busy, setBusy] = useState(false);
-  const [lastMsg, setLastMsg] = useState<string | null>(null);
-
-  const handleImport = async () => {
-    if (busy) return;
-    setBusy(true);
-    setLastMsg(null);
-    try {
-      const r = await pickAndImport(promptPolicy);
-      setLastMsg(
-        r.imported > 0
-          ? `${r.imported}개 가져옴`
-          : r.skipped > 0
-            ? "건너뜀"
-            : "취소됨",
-      );
-    } catch (e) {
-      console.warn("import failed", e);
-      setLastMsg("가져오기 실패");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const version = Constants.expoConfig?.version ?? "?";
   const router = useRouter();
@@ -290,27 +245,11 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            가져오기 / 내보내기
+            내보내기
           </Text>
-          <Pressable
-            style={[
-              styles.btn,
-              { backgroundColor: colors.ink },
-              busy && styles.btnBusy,
-            ]}
-            onPress={handleImport}
-            disabled={busy}
-            accessibilityRole="button"
-            accessibilityLabel="마크다운 노트 가져오기"
-          >
-            <Text style={[styles.btnText, { color: colors.paper }]}>
-              {busy ? "가져오는 중…" : "마크다운 파일 가져오기"}
-            </Text>
-          </Pressable>
           <Text style={[styles.hint, { color: colors.ink3 }]}>
             내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
           </Text>
-          {lastMsg && <Text style={{ color: colors.ink }}>{lastMsg}</Text>}
         </View>
 
         <View style={styles.section}>
@@ -381,16 +320,6 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
   },
-  btn: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    minHeight: 48,
-    justifyContent: "center",
-  },
-  btnBusy: { opacity: 0.5 },
-  btnText: { fontSize: 16, fontWeight: "600" },
   hint: { fontSize: 13, lineHeight: 19 },
   navRow: {
     flexDirection: "row",
