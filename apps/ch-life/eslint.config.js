@@ -10,6 +10,8 @@ module.exports = defineConfig([
       "android/*",
       "ios/*",
       "scripts/*",
+      "editor-web/*",
+      "src/editor/generated/*",
     ],
   },
 ]);

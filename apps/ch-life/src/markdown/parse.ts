@@ -33,47 +33,98 @@ export function markdownToNote(md: string): Note | null {
   return { id, title, body: blocks, createdAt, updatedAt, citedRefs, sermonDate, preacher, location, scripture };
 }
 
+// A scripture quote's first `>` line carries the "**ref** (KRV)" header, which
+// is how we tell it apart from a plain user blockquote on import.
+const VERSE_HEADER = /^\*\*(.+)\*\*\s*\(KRV\)\s*$/;
+const HEADING = /^(#{1,3})\s+(.*)$/;
+const TODO = /^[-*]\s+\[([ xX])\]\s+(.*)$/;
+const BULLET = /^[-*]\s+(.*)$/;
+
+function quoteOrBlockquote(group: string[]): BlockNode {
+  const header = group[0] ?? "";
+  const headerMatch = VERSE_HEADER.exec(header);
+  if (headerMatch) {
+    const ref = headerMatch[1]!.trim();
+    const verseTexts = group.slice(1).filter((s) => s.trim().length > 0);
+    const parsedRef = parseRef(ref);
+    const verses: Verse[] = parsedRef
+      ? verseTexts.map((t, idx) => ({
+          book: parsedRef.book,
+          chapter: parsedRef.chapter,
+          verse: parsedRef.verse + idx,
+          text: t,
+        }))
+      : [];
+    return { type: "quote", ref, verses, status: "loaded" };
+  }
+  return { type: "blockquote", text: group.join("\n") };
+}
+
 function parseBody(content: string): BlockNode[] {
   const lines = content.split("\n");
   const blocks: BlockNode[] = [];
   let i = 0;
   while (i < lines.length) {
     const line = lines[i] ?? "";
+
     if (line.startsWith(">")) {
       const group: string[] = [];
       while (i < lines.length && (lines[i] ?? "").startsWith(">")) {
-        const stripped = (lines[i] ?? "").replace(/^>\s?/, "");
-        group.push(stripped);
+        group.push((lines[i] ?? "").replace(/^>\s?/, ""));
         i += 1;
       }
-      const header = group[0] ?? "";
-      const refMatch = /\*\*([^*]+)\*\*/.exec(header);
-      const ref = (refMatch?.[1] ?? header).trim();
-      const verseTexts = group.slice(1).filter((s) => s.trim().length > 0);
-      const parsedRef = parseRef(ref);
-      const verses: Verse[] = parsedRef
-        ? verseTexts.map((t, idx) => ({
-            book: parsedRef.book,
-            chapter: parsedRef.chapter,
-            verse: parsedRef.verse + idx,
-            text: t,
-          }))
-        : [];
-      blocks.push({ type: "quote", ref, verses, status: "loaded" });
-    } else if (line.trim().length === 0) {
-      i += 1;
-    } else {
-      const para: string[] = [];
-      while (
-        i < lines.length &&
-        !(lines[i] ?? "").startsWith(">") &&
-        (lines[i] ?? "").trim().length > 0
-      ) {
-        para.push(lines[i] ?? "");
-        i += 1;
-      }
-      blocks.push({ type: "paragraph", text: para.join("\n") });
+      blocks.push(quoteOrBlockquote(group));
+      continue;
     }
+
+    if (line.trim().length === 0) {
+      i += 1;
+      continue;
+    }
+
+    const heading = HEADING.exec(line);
+    if (heading) {
+      const level = Math.min(heading[1]!.length, 3) as 1 | 2 | 3;
+      blocks.push({ type: "heading", level, text: heading[2]! });
+      i += 1;
+      continue;
+    }
+
+    const todo = TODO.exec(line);
+    if (todo) {
+      blocks.push({
+        type: "todo",
+        checked: todo[1]!.toLowerCase() === "x",
+        text: todo[2]!,
+      });
+      i += 1;
+      continue;
+    }
+
+    const bullet = BULLET.exec(line);
+    if (bullet) {
+      blocks.push({ type: "bullet", text: bullet[1]! });
+      i += 1;
+      continue;
+    }
+
+    // Plain text: gather consecutive non-structural lines into one paragraph so
+    // soft line breaks inside a paragraph survive.
+    const para: string[] = [];
+    while (i < lines.length) {
+      const cur = lines[i] ?? "";
+      if (
+        cur.startsWith(">") ||
+        cur.trim().length === 0 ||
+        HEADING.test(cur) ||
+        BULLET.test(cur)
+      ) {
+        break;
+      }
+      para.push(cur);
+      i += 1;
+    }
+    blocks.push({ type: "paragraph", text: para.join("\n") });
   }
   return blocks;
 }

@@ -5,14 +5,31 @@ export type Verse = {
   text: string;
 };
 
+// Inline emphasis stored inside a block's `text` as lightweight markdown:
+//   bold      → **text**
+//   italic    → _text_
+//   underline → ++text++
+// Storing marks in the text keeps `text: string` on every block, so the
+// share/markdown export, FTS body_text, list preview, and cited-ref extraction
+// only need to strip the delimiters rather than understand a span model.
+export type InlineMark = "bold" | "italic" | "underline";
+
 export type BlockNode =
   | { type: "paragraph"; text: string }
+  | { type: "heading"; level: 1 | 2 | 3; text: string }
+  | { type: "bullet"; text: string }
+  | { type: "todo"; checked: boolean; text: string }
+  | { type: "blockquote"; text: string }
   | {
       type: "quote";
       ref: string;
       verses: Verse[];
       status: "loading" | "loaded" | "error";
     };
+
+// Block types whose content is a single rich-text string (everything except the
+// scripture `quote`, which carries structured verse data instead).
+export type TextBlock = Extract<BlockNode, { text: string }>;
 
 export type Note = {
   id: string;
