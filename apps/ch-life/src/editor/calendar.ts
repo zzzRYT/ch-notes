@@ -29,6 +29,13 @@ export function formatKoreanDate(ymd: string): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
+// "2026.05.30" 형태의 간결한 숫자 표기.
+export function formatShortDate(ymd: string): string {
+  const d = parseYmd(ymd);
+  if (!d) return ymd;
+  return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
+}
+
 // 일요일 시작 6주(42칸) 격자. 각 칸은 YYYY-MM-DD 또는 패딩 null.
 export function buildMonthGrid(year: number, month0: number): (string | null)[] {
   const first = new Date(year, month0, 1);
@@ -54,4 +61,33 @@ export function addMonths(
 
 export function todayYmd(): string {
   return formatYmd(new Date());
+}
+
+function partsToYmd(year: number, month: number, day: number): string | null {
+  if (![year, month, day].every(Number.isInteger)) return null;
+  const fullYear = year < 100 ? 2000 + year : year;
+  const ymd = `${String(fullYear).padStart(4, "0")}-${pad2(month)}-${pad2(day)}`;
+  return parseYmd(ymd) ? ymd : null;
+}
+
+// 키보드로 타이핑한 날짜를 ISO(YYYY-MM-DD)로 정규화한다. 구분자(. - / 공백)를
+// 섞어 쓸 수 있고, 연도를 생략하면 refYear로 채운다. 해석 불가하면 null.
+export function parseFlexibleDate(input: string, refYear: number): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const compact = /^(\d{4})(\d{2})(\d{2})$/.exec(trimmed);
+  if (compact) {
+    return partsToYmd(Number(compact[1]), Number(compact[2]), Number(compact[3]));
+  }
+
+  const parts = trimmed.split(/[.\-/\s]+/).filter(Boolean);
+  if (parts.some((p) => !/^\d+$/.test(p))) return null;
+  if (parts.length === 3) {
+    return partsToYmd(Number(parts[0]), Number(parts[1]), Number(parts[2]));
+  }
+  if (parts.length === 2) {
+    return partsToYmd(refYear, Number(parts[0]), Number(parts[1]));
+  }
+  return null;
 }

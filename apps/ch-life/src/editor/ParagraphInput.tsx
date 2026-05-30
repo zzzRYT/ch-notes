@@ -1,4 +1,12 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -21,6 +29,12 @@ export type ActiveInputState = {
   cursor: number;
 };
 
+// Imperative handle so a parent (e.g. the meta-header → body focus handoff)
+// can move the caret into an already-mounted paragraph without touch.
+export type ParagraphInputHandle = {
+  focus: () => void;
+};
+
 type Props = {
   idx: number;
   initialText: string;
@@ -32,16 +46,20 @@ type Props = {
   onBackspaceAtStart: (idx: number, currentText: string) => void;
 };
 
-function ParagraphInputImpl({
-  idx,
-  initialText,
-  isFirst,
-  focusOnMount = false,
-  onCommit,
-  onTrigger,
-  onActiveChange,
-  onBackspaceAtStart,
-}: Props) {
+const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
+  function ParagraphInputImpl(
+    {
+      idx,
+      initialText,
+      isFirst,
+      focusOnMount = false,
+      onCommit,
+      onTrigger,
+      onActiveChange,
+      onBackspaceAtStart,
+    },
+    ref,
+  ) {
   const { colors, fontScale, fontStack } = useTheme();
   const [text, setText] = useState<string>(initialText);
   const textRef = useRef<string>(initialText);
@@ -51,6 +69,8 @@ function ParagraphInputImpl({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCommittedRef = useRef<string>(initialText);
   const inputRef = useRef<TextInput>(null);
+
+  useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }), []);
 
   useEffect(() => {
     if (!focusOnMount) return;
@@ -191,7 +211,8 @@ function ParagraphInputImpl({
       spellCheck={false}
     />
   );
-}
+  },
+);
 
 export const ParagraphInput = memo(ParagraphInputImpl);
 
