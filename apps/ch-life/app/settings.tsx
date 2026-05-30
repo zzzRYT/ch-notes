@@ -1,51 +1,55 @@
-import React from "react";
+import React from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import Constants from "expo-constants";
-import { useRouter } from "expo-router";
-import { useAppStore } from "@/state/app-store";
-import { useTheme, VARIATION_OPTIONS } from "@/theme/ThemeProvider";
-import { AppHeader } from "@/chrome/AppHeader";
-import { HeaderBack } from "@/chrome/HeaderControls";
+} from 'react-native';
+import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
+import { useRouter } from 'expo-router';
+import { useAppStore } from '@/state/app-store';
+import { useTheme, VARIATION_OPTIONS } from '@/theme/ThemeProvider';
+import { AppHeader } from '@/chrome/AppHeader';
+import { HeaderBack } from '@/chrome/HeaderControls';
 import type {
   AccentChoice,
   BlockStyle,
   FontFamily,
   Settings,
-} from "@/domain/types";
+} from '@/domain/types';
+
+const PRIVACY_POLICY_URL = 'https://zzzryt.github.io/ch-notes/';
 
 const FONT_OPTIONS: ReadonlyArray<{
   label: string;
-  value: Settings["fontScale"];
+  value: Settings['fontScale'];
 }> = [
-  { label: "보통", value: 1.0 },
-  { label: "크게", value: 1.2 },
-  { label: "더 크게", value: 1.4 },
-  { label: "아주 크게", value: 1.6 },
+  { label: '보통', value: 1.0 },
+  { label: '크게', value: 1.2 },
+  { label: '더 크게', value: 1.4 },
+  { label: '아주 크게', value: 1.6 },
 ];
 
 const FONT_FAMILY_OPTIONS: ReadonlyArray<{
   label: string;
   value: FontFamily;
 }> = [
-  { label: "Sans", value: "sans" },
-  { label: "Serif", value: "serif" },
-  { label: "Mono", value: "mono" },
+  { label: 'Sans', value: 'sans' },
+  { label: 'Serif', value: 'serif' },
+  { label: 'Mono', value: 'mono' },
 ];
 
 const BLOCK_STYLE_OPTIONS: ReadonlyArray<{
   label: string;
   value: BlockStyle;
 }> = [
-  { label: "변형별 기본값", value: "default" },
-  { label: "카드", value: "card" },
-  { label: "인용바", value: "quote" },
-  { label: "접힘", value: "collapse" },
+  { label: '변형별 기본값', value: 'default' },
+  { label: '카드', value: 'card' },
+  { label: '인용바', value: 'quote' },
+  { label: '접힘', value: 'collapse' },
 ];
 
 const ACCENT_SWATCHES: ReadonlyArray<{
@@ -53,13 +57,13 @@ const ACCENT_SWATCHES: ReadonlyArray<{
   value: AccentChoice;
   swatch: string | null;
 }> = [
-  { label: "변형별 기본 색상", value: "default", swatch: null },
-  { label: "파랑", value: "#1e6fd9", swatch: "#1e6fd9" },
-  { label: "갈색 (종이톤)", value: "#b15c2e", swatch: "#b15c2e" },
-  { label: "녹색 (말씀)", value: "#1f8a5b", swatch: "#1f8a5b" },
-  { label: "호박 (다크)", value: "#f5b35e", swatch: "#f5b35e" },
-  { label: "보라", value: "#7a5af0", swatch: "#7a5af0" },
-  { label: "슬레이트 (포커스)", value: "#6b7280", swatch: "#6b7280" },
+  { label: '변형별 기본 색상', value: 'default', swatch: null },
+  { label: '파랑', value: '#1e6fd9', swatch: '#1e6fd9' },
+  { label: '갈색 (종이톤)', value: '#b15c2e', swatch: '#b15c2e' },
+  { label: '녹색 (말씀)', value: '#1f8a5b', swatch: '#1f8a5b' },
+  { label: '호박 (다크)', value: '#f5b35e', swatch: '#f5b35e' },
+  { label: '보라', value: '#7a5af0', swatch: '#7a5af0' },
+  { label: '슬레이트 (포커스)', value: '#6b7280', swatch: '#6b7280' },
 ];
 
 export default function SettingsScreen() {
@@ -67,8 +71,17 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const setSettings = useAppStore((s) => s.setSettings);
 
-  const version = Constants.expoConfig?.version ?? "?";
+  const version = Constants.expoConfig?.version ?? '?';
   const router = useRouter();
+
+  const openPrivacyPolicy = async () => {
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+    } catch (e) {
+      console.warn('failed to open privacy policy', e);
+      Alert.alert('링크를 열 수 없습니다', PRIVACY_POLICY_URL);
+    }
+  };
 
   const renderChip = (
     label: string,
@@ -93,7 +106,7 @@ export default function SettingsScreen() {
           styles.chipText,
           {
             color: selected ? colors.paper : colors.ink2,
-            fontWeight: selected ? "600" : "400",
+            fontWeight: selected ? '600' : '400',
           },
         ]}
       >
@@ -127,31 +140,27 @@ export default function SettingsScreen() {
                   style={[
                     styles.variationRow,
                     {
-                      backgroundColor: selected ? colors.accentSoft : colors.paper,
+                      backgroundColor: selected
+                        ? colors.accentSoft
+                        : colors.paper,
                       borderColor: selected ? colors.accent : colors.rule,
                     },
                   ]}
                 >
                   <View style={styles.variationLabels}>
                     <Text
-                      style={[
-                        styles.variationLabel,
-                        { color: colors.ink },
-                      ]}
+                      style={[styles.variationLabel, { color: colors.ink }]}
                     >
                       {o.label}
                     </Text>
                     <Text
-                      style={[
-                        styles.variationHint,
-                        { color: colors.ink3 },
-                      ]}
+                      style={[styles.variationHint, { color: colors.ink3 }]}
                     >
                       {o.hint}
                     </Text>
                   </View>
                   {selected && (
-                    <Text style={{ color: colors.accent, fontWeight: "600" }}>
+                    <Text style={{ color: colors.accent, fontWeight: '600' }}>
                       ✓
                     </Text>
                   )}
@@ -231,7 +240,7 @@ export default function SettingsScreen() {
                       styles.chipText,
                       {
                         color: selected ? colors.paper : colors.ink2,
-                        fontWeight: selected ? "600" : "400",
+                        fontWeight: selected ? '600' : '400',
                       },
                     ]}
                   >
@@ -253,10 +262,12 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>정보</Text>
+          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+            정보
+          </Text>
           <Text style={{ color: colors.ink }}>버전 {version}</Text>
           <Pressable
-            onPress={() => router.push("/licenses")}
+            onPress={() => router.push('/licenses')}
             accessibilityRole="button"
             accessibilityLabel="출처 및 라이선스"
             style={[styles.navRow, { borderTopColor: colors.rule }]}
@@ -264,7 +275,22 @@ export default function SettingsScreen() {
             <Text style={[styles.navRowLabel, { color: colors.ink }]}>
               출처 및 라이선스
             </Text>
-            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>›</Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
+              ›
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={openPrivacyPolicy}
+            accessibilityRole="link"
+            accessibilityLabel="개인정보 처리방침 (웹페이지 열기)"
+            style={[styles.navRow, { borderTopColor: colors.rule }]}
+          >
+            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+              개인정보 처리방침
+            </Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
+              ↗
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -279,16 +305,16 @@ const styles = StyleSheet.create({
   section: { gap: 12, marginBottom: 20 },
   sectionTitle: {
     fontSize: 11,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     letterSpacing: 0.6,
-    fontWeight: "600",
+    fontWeight: '600',
   },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   col: { gap: 8 },
   variationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 10,
@@ -296,19 +322,19 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   variationLabels: { gap: 2 },
-  variationLabel: { fontSize: 15, fontWeight: "600" },
+  variationLabel: { fontSize: 15, fontWeight: '600' },
   variationHint: { fontSize: 12 },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 999,
     minHeight: 44,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   chipText: { fontSize: 14 },
   accentChip: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -322,9 +348,9 @@ const styles = StyleSheet.create({
   },
   hint: { fontSize: 13, lineHeight: 19 },
   navRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 12,
     marginTop: 4,
     minHeight: 48,
