@@ -19,7 +19,7 @@ const config: ExpoConfig = {
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#257AB4",
+    backgroundColor: "#FDF9F4",
   },
   ios: {
     bundleIdentifier: "com.leejaejin.chlife",
