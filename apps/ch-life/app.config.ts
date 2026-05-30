@@ -1,10 +1,10 @@
 import { ExpoConfig } from "expo/config";
 
 const config: ExpoConfig = {
-  name: "ch-life",
+  name: "씀씀",
   slug: "ch-note",
   owner: "zzzryt",
-  version: "0.1.0",
+  version: "1.0.0",
   orientation: "default",
   icon: "./assets/icon.png",
   scheme: "chlife",
@@ -19,7 +19,7 @@ const config: ExpoConfig = {
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#257AB4",
+    backgroundColor: "#FDF9F4",
   },
   ios: {
     bundleIdentifier: "com.leejaejin.chlife",
@@ -27,13 +27,15 @@ const config: ExpoConfig = {
     infoPlist: {
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
+      // HTTPS 외 자체 암호화 미사용 → 수출규정 면제. 매 빌드 질문 방지.
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
     package: "com.leejaejin.chlife",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#257AB4",
+      backgroundColor: "#FDF9F4",
     },
   },
   web: {

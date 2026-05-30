@@ -16,5 +16,14 @@
       "channel": "production"
     }
   },
-  "submit": { "production": {} }
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./credentials/play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "completed",
+        "changesNotSentForReview": false
+      }
+    }
+  }
 }
