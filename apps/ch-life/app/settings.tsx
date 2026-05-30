@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import Constants from "expo-constants";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useAppStore } from "@/state/app-store";
 import { pickAndImport, type ConflictPolicy } from "@/share/import-note";
@@ -21,6 +22,8 @@ import type {
   Note,
   Settings,
 } from "@/domain/types";
+
+const PRIVACY_POLICY_URL = "https://zzzryt.github.io/ch-notes/";
 
 function promptPolicy(existing: Note): Promise<ConflictPolicy> {
   return new Promise((resolve) => {
@@ -114,6 +117,15 @@ export default function SettingsScreen() {
 
   const version = Constants.expoConfig?.version ?? "?";
   const router = useRouter();
+
+  const openPrivacyPolicy = async () => {
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL);
+    } catch (e) {
+      console.warn("failed to open privacy policy", e);
+      Alert.alert("링크를 열 수 없습니다", PRIVACY_POLICY_URL);
+    }
+  };
 
   const renderChip = (
     label: string,
@@ -326,6 +338,17 @@ export default function SettingsScreen() {
               출처 및 라이선스
             </Text>
             <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>›</Text>
+          </Pressable>
+          <Pressable
+            onPress={openPrivacyPolicy}
+            accessibilityRole="link"
+            accessibilityLabel="개인정보 처리방침 (웹페이지 열기)"
+            style={[styles.navRow, { borderTopColor: colors.rule }]}
+          >
+            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+              개인정보 처리방침
+            </Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>↗</Text>
           </Pressable>
         </View>
       </ScrollView>
