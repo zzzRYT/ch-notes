@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Text, View, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Share } from "lucide-react-native";
-import { NoteEditor } from "@/editor/NoteEditor";
+import { RichNoteEditor, type NoteEditorHandle } from "@/editor/RichNoteEditor";
 import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
 import { useAutoSave } from "@/editor/useAutoSave";
-import { EditorKeyboardToolbar } from "@/editor/EditorKeyboardToolbar";
 import { BibleBrowser } from "@/browser/BibleBrowser";
 import { lookupVerses } from "@/parser/verse-lookup";
 import { openNoteRepo } from "@/db/expo-adapter";
@@ -33,6 +32,7 @@ export default function NoteEditorScreen() {
   const [ready, setReady] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
+  const editorRef = useRef<NoteEditorHandle>(null);
 
   const handleExport = useCallback(async () => {
     if (!id) return;
@@ -162,9 +162,11 @@ export default function NoteEditorScreen() {
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
-      <NoteEditor
+      <RichNoteEditor
+        ref={editorRef}
         body={body}
         onChangeBody={setBody}
+        onOpenBrowser={() => setBrowserOpen(true)}
         header={
           <SermonMetaHeader
             title={title}
@@ -177,10 +179,10 @@ export default function NoteEditorScreen() {
             onChangePreacher={setPreacher}
             onChangeLocation={setLocation}
             onChangeScripture={setScripture}
+            onSubmitLast={() => editorRef.current?.focusFirstParagraph()}
           />
         }
       />
-      <EditorKeyboardToolbar onOpenBrowser={() => setBrowserOpen(true)} />
       <BibleBrowser
         visible={browserOpen}
         onClose={() => setBrowserOpen(false)}

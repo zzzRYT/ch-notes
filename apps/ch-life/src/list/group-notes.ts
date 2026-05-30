@@ -1,4 +1,5 @@
 import type { Note } from "@/domain/types";
+import { stripInlineMarks } from "@/editor/richdoc/inlineMarks";
 
 const DOW = ["주일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
@@ -63,12 +64,13 @@ export function formatTime(ts: number): string {
 
 export function notePreview(note: Note, max: number = 120): string {
   for (const block of note.body) {
-    if (block.type === "paragraph") {
-      const t = block.text.trim();
-      if (t.length === 0) continue;
-      const flat = t.replace(/\s+/g, " ");
-      return flat.length > max ? `${flat.slice(0, max)}…` : flat;
-    }
+    // Scripture quotes carry verse data, not a plain text field — skip them and
+    // preview the first non-empty authored text block instead.
+    if (block.type === "quote") continue;
+    const t = stripInlineMarks(block.text).trim();
+    if (t.length === 0) continue;
+    const flat = t.replace(/\s+/g, " ");
+    return flat.length > max ? `${flat.slice(0, max)}…` : flat;
   }
   return "";
 }

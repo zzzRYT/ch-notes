@@ -33,6 +33,8 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
   const goMonth = (delta: number) =>
     setView((v) => addMonths(v.year, v.month0, delta));
 
+  const today = todayYmd();
+
   return (
     <Modal
       visible={visible}
@@ -87,6 +89,7 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
               if (!ymd) return <View key={`pad-${i}`} style={styles.cell} />;
               const day = Number(ymd.slice(8, 10));
               const selected = ymd === value;
+              const isToday = ymd === today;
               return (
                 <Pressable
                   key={ymd}
@@ -95,21 +98,34 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
                     onClose();
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={`${day}일`}
-                  style={[
-                    styles.cell,
-                    selected && { backgroundColor: colors.accent, borderRadius: 999 },
-                  ]}
+                  accessibilityLabel={isToday ? `${day}일 오늘` : `${day}일`}
+                  style={styles.cell}
                 >
-                  <Text
-                    style={{
-                      color: selected ? colors.accentText : colors.ink,
-                      fontSize: scaled(15, fontScale),
-                      fontWeight: selected ? "700" : "400",
-                    }}
+                  <View
+                    style={[
+                      styles.cellInner,
+                      isToday &&
+                        !selected && {
+                          borderWidth: 1.5,
+                          borderColor: colors.accent,
+                        },
+                      selected && { backgroundColor: colors.accent },
+                    ]}
                   >
-                    {day}
-                  </Text>
+                    <Text
+                      style={{
+                        color: selected
+                          ? colors.accentText
+                          : isToday
+                            ? colors.accent
+                            : colors.ink,
+                        fontSize: scaled(15, fontScale),
+                        fontWeight: selected || isToday ? "700" : "400",
+                      }}
+                    >
+                      {day}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}
@@ -132,7 +148,8 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
   );
 }
 
-const CELL = 44;
+const COLS = 7;
+const COL_WIDTH = `${100 / COLS}%` as const;
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -163,11 +180,24 @@ const styles = StyleSheet.create({
   },
   navText: { fontSize: 24 },
   weekRow: { flexDirection: "row" },
-  weekday: { width: CELL, textAlign: "center", fontSize: 12, paddingVertical: 4 },
+  weekday: {
+    width: COL_WIDTH,
+    textAlign: "center",
+    fontSize: 12,
+    paddingVertical: 4,
+  },
   grid: { flexDirection: "row", flexWrap: "wrap" },
   cell: {
-    width: CELL,
-    height: CELL,
+    width: COL_WIDTH,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 2,
+  },
+  cellInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
   },

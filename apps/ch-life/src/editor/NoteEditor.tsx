@@ -1,14 +1,26 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import type { BlockNode } from '@/domain/types';
 import { QuoteBlock } from './QuoteBlock';
-import { ParagraphInput, type ActiveInputState } from './ParagraphInput';
+import {
+  ParagraphInput,
+  type ActiveInputState,
+  type ParagraphInputHandle,
+} from './ParagraphInput';
 import {
   detectRefAtCursor,
   splitAtRef,
   type DetectedRef,
 } from './useAutocomplete';
+import { firstParagraphIndex } from './field-nav';
 import { lookupVerses } from '@/parser/verse-lookup';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -18,6 +30,12 @@ type Props = {
   // Rendered at the top of the scroll content so it scrolls away with the
   // body instead of staying pinned above it.
   header?: React.ReactNode;
+};
+
+// Imperative handle so the meta header's last field can hand focus off into
+// the body without the user tapping a paragraph.
+export type NoteEditorHandle = {
+  focusFirstParagraph: () => void;
 };
 
 function splitParagraphWithQuote(
@@ -44,9 +62,21 @@ function splitParagraphWithQuote(
   return next;
 }
 
-export function NoteEditor({ body, onChangeBody, header }: Props) {
+export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEditor(
+  { body, onChangeBody, header },
+  ref,
+) {
   const { colors } = useTheme();
   const [active, setActive] = useState<ActiveInputState | null>(null);
+  // Ref to the first paragraph block so we can focus it on the meta→body handoff.
+  const firstParaRef = useRef<ParagraphInputHandle>(null);
+  const firstParaIdx = firstParagraphIndex(body);
+
+  useImperativeHandle(
+    ref,
+    () => ({ focusFirstParagraph: () => firstParaRef.current?.focus() }),
+    [],
+  );
   // Index of the paragraph that should focus itself on its next mount — set
   // when a quote is inserted so the caret lands in the paragraph below it.
   const [focusOnMountIdx, setFocusOnMountIdx] = useState<number | null>(null);
@@ -147,6 +177,7 @@ export function NoteEditor({ body, onChangeBody, header }: Props) {
             return (
               <ParagraphInput
                 key={`p-${idx}`}
+                ref={idx === firstParaIdx ? firstParaRef : undefined}
                 idx={idx}
                 initialText={block.text}
                 isFirst={idx === 0}
@@ -180,7 +211,7 @@ export function NoteEditor({ body, onChangeBody, header }: Props) {
       )}
     </View>
   );
-}
+});
 
 const KEYBOARD_BOTTOM_OFFSET = 56;
 

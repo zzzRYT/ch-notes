@@ -1,7 +1,38 @@
 import matter from "gray-matter";
-import type { Note } from "@/domain/types";
+import type { BlockNode, Note } from "@/domain/types";
 
 export const SCHEMA_VERSION = 1;
+
+function prefixLines(text: string, prefix: string): string {
+  return text
+    .split("\n")
+    .map((line) => `${prefix}${line}`)
+    .join("\n");
+}
+
+// One BlockNode → its Markdown representation. Inline emphasis already lives in
+// the block text as markdown (**bold**, _italic_, ++underline++), so it passes
+// through untouched. Scripture quotes keep their distinctive `(KRV)` header so
+// the parser can tell them apart from plain blockquotes on import.
+export function blockToMarkdown(b: BlockNode): string {
+  switch (b.type) {
+    case "paragraph":
+      return b.text;
+    case "heading":
+      return `${"#".repeat(b.level)} ${b.text}`;
+    case "bullet":
+      return `- ${b.text}`;
+    case "todo":
+      return `- [${b.checked ? "x" : " "}] ${b.text}`;
+    case "blockquote":
+      return prefixLines(b.text, "> ");
+    case "quote":
+      return [
+        `> **${b.ref}** (KRV)`,
+        ...b.verses.map((v) => `> ${v.text}`),
+      ].join("\n");
+  }
+}
 
 type Frontmatter = {
   id: string;
@@ -17,15 +48,7 @@ type Frontmatter = {
 };
 
 export function noteToMarkdown(note: Note): string {
-  const body = note.body
-    .map((b) => {
-      if (b.type === "paragraph") return b.text;
-      return [
-        `> **${b.ref}** (KRV)`,
-        ...b.verses.map((v) => `> ${v.text}`),
-      ].join("\n");
-    })
-    .join("\n\n");
+  const body = note.body.map(blockToMarkdown).join("\n\n");
 
   const data: Frontmatter = {
     id: note.id,
