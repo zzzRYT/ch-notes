@@ -27,6 +27,8 @@ const config: ExpoConfig = {
     infoPlist: {
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
+      // HTTPS 외 자체 암호화 미사용 → 수출규정 면제. 매 빌드 질문 방지.
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
