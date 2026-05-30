@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Download } from "lucide-react-native";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
 import {
   groupNotesByDay,
@@ -21,6 +22,7 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onCreate: () => void;
+  onImport: () => void;
   onCollapse: () => void;
 };
 
@@ -29,6 +31,7 @@ export function NoteListSidebar({
   selectedId,
   onSelect,
   onCreate,
+  onImport,
   onCollapse,
 }: Props) {
   const { colors, fontScale } = useTheme();
@@ -67,6 +70,15 @@ export function NoteListSidebar({
             <Text style={[styles.iconBtnText, { color: colors.accent }]}>
               ＋
             </Text>
+          </Pressable>
+          <Pressable
+            onPress={onImport}
+            accessibilityRole="button"
+            accessibilityLabel="마크다운 노트 가져오기"
+            hitSlop={10}
+            style={styles.iconBtn}
+          >
+            <Download size={16} color={colors.ink2} strokeWidth={1.8} />
           </Pressable>
           <Pressable
             onPress={onCollapse}

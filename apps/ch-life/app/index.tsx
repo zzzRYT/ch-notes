@@ -6,16 +6,18 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  Alert,
   useWindowDimensions,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { Search, Settings } from "lucide-react-native";
+import { Download, Search, Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
 import { AppHeader } from "@/chrome/AppHeader";
 import { HeaderBrand, HeaderIconButton } from "@/chrome/HeaderControls";
+import { useNoteImport } from "@/share/use-note-import";
 import { TabletWorkspace } from "@/workspace/TabletWorkspace";
 import type { Note } from "@/domain/types";
 
@@ -47,6 +49,7 @@ function PhoneNotesList() {
   const router = useRouter();
   const { colors, fontScale } = useTheme();
   const searchRef = useRef<TextInput>(null);
+  const { runImport } = useNoteImport();
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[] | null>(null);
@@ -55,6 +58,16 @@ function PhoneNotesList() {
     const repo = await openNoteRepo();
     setNotes(await repo.listRecent({ limit: 200 }));
   }, []);
+
+  const handleImport = useCallback(async () => {
+    const { summary, message } = await runImport();
+    if (summary && summary.imported > 0) await reload();
+    // Surface feedback only when a file was actually picked (skip silent cancels).
+    const acted = summary
+      ? summary.imported > 0 || summary.skipped > 0
+      : Boolean(message);
+    if (acted) Alert.alert("가져오기", message);
+  }, [runImport, reload]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,6 +127,11 @@ function PhoneNotesList() {
               icon={Search}
               label="노트 검색"
               onPress={() => searchRef.current?.focus()}
+            />
+            <HeaderIconButton
+              icon={Download}
+              label="마크다운 노트 가져오기"
+              onPress={handleImport}
             />
             <HeaderIconButton
               icon={Settings}

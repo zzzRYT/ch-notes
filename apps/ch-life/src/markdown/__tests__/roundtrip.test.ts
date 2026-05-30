@@ -76,6 +76,19 @@ describe("markdown roundtrip", () => {
     }
   });
 
+  it("따옴표 없는 날짜(외부 파일)도 sermonDate 문자열로 받음", () => {
+    // YAML은 인용부호 없는 2026-05-30을 Date 객체로 파싱한다.
+    const md =
+      `---\nid: X\nschemaVersion: 1\n` +
+      `sermonDate: 2026-05-30\npreacher: 홍길동 목사\n` +
+      `location: 본당\nscripture: 요한복음 3:16\n---\n\n본문\n`;
+    const back = markdownToNote(md);
+    expect(back?.sermonDate).toBe("2026-05-30");
+    expect(back?.preacher).toBe("홍길동 목사");
+    expect(back?.location).toBe("본당");
+    expect(back?.scripture).toBe("요한복음 3:16");
+  });
+
   it("citedRefs 누락 시 인용블록에서 자동 추출", () => {
     const md =
       `---\nid: X\nschemaVersion: 1\n---\n\n` +

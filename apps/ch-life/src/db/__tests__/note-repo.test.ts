@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { makeNoteRepo, type DbAdapter } from "../note-repo";
+import { markdownToNote } from "@/markdown/parse";
 
 const SCHEMA = fs.readFileSync(
   path.resolve(__dirname, "../schema.sql"),
@@ -38,6 +39,36 @@ describe("note-repo", () => {
     expect(note?.title).toBe("주일설교");
     expect(note?.body[0]).toEqual({ type: "paragraph", text: "안녕" });
     expect(note?.citedRefs).toEqual([]);
+  });
+
+  it("import 경로: 파싱한 노트의 메타가 create 후 보존된다", async () => {
+    const repo = setup();
+    const md =
+      `---\nid: SHARED1\ntitle: 주일설교\n` +
+      `sermonDate: '2026-05-30'\npreacher: 홍길동 목사\n` +
+      `location: 본당\nscripture: 요한복음 3:16\nschemaVersion: 1\n---\n\n본문\n`;
+    const parsed = markdownToNote(md);
+    expect(parsed).not.toBeNull();
+    // import-note.ts의 insert 경로와 동일하게 저장 (파일 id 보존)
+    const id = await repo.create({
+      id: parsed!.id,
+      title: parsed!.title,
+      body: parsed!.body,
+      citedRefs: parsed!.citedRefs,
+      sermonDate: parsed!.sermonDate,
+      preacher: parsed!.preacher,
+      location: parsed!.location,
+      scripture: parsed!.scripture,
+    });
+    // 파일의 id가 보존돼야 재import 시 충돌로 감지된다.
+    expect(id).toBe("SHARED1");
+    expect(await repo.findById("SHARED1")).not.toBeNull();
+    const saved = await repo.findById(id);
+    expect(saved?.title).toBe("주일설교");
+    expect(saved?.sermonDate).toBe("2026-05-30");
+    expect(saved?.preacher).toBe("홍길동 목사");
+    expect(saved?.location).toBe("본당");
+    expect(saved?.scripture).toBe("요한복음 3:16");
   });
 
   it("createdAt 내림차순 정렬 (업데이트해도 순서 변하지 않음)", async () => {
