@@ -1,5 +1,5 @@
 import type { Note } from "@/domain/types";
-import { stripInlineMarks } from "@/editor/richdoc/inlineMarks";
+import { stripInlineMarks } from "@/editor/inlineMarks";
 
 const DOW = ["주일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
