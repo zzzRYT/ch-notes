@@ -94,13 +94,18 @@ A의 모든 것 + 설교 녹음 + 타임스탬프 노트. 노트 탭 시 그 시
 
 ### 자동완성 UX 디테일
 
-**중요한 기술적 제약:** RN의 stock `TextInput`은 인라인 ghost text(부분 회색·오버레이·decoration)를 지원하지 않는다. 따라서 V1은 **리치 에디터 라이브러리(`@10play/tentap-editor` 1순위)** 위에서 인용 블록과 자동완성 데코레이션을 구현한다. 에디터 라이브러리 결정은 **Week 0 PoC 항목**(아래 Next Steps 참조).
+> **구현 갱신(2026-05-31):** 초기엔 리치 에디터 라이브러리(`@10play/tentap-editor`, WebView 기반)를
+> 검토했으나, 노트마다 WebView+ProseMirror를 띄우는 무게와 어르신·구형 안드로이드 타깃을 고려해
+> **채택하지 않았다.** 실제 구현은 **네이티브 RN 블록 에디터**다: 본문을 블록 배열(`BlockNode[]`)로
+> 두고, 문단은 `TextInput`(`ParagraphInput`), 성경 인용은 별도 카드(`QuoteBlock`)로 렌더한다.
+> 인라인 ghost text 데코레이션은 쓰지 않는다 — 대신 ref 패턴 뒤 **space**를 누르면 문단을
+> head/인용/tail로 쪼개 인용 블록을 즉시 삽입한다.
 
 - **트리거:** 단어 경계(줄 시작, 공백, 문장부호 뒤) + `[책 토큰][선택적 공백][숫자]:[숫자]` 패턴. 예: `골3:20`, `골 3:20`, `요한복음 3:16`. **단어 경계 안일 때만** — `그는골3:20말했다`는 트리거 안 함(중간 패턴 무시). 동일 줄 내 여러 ref 허용 (`골3:20 그리고 엡5:21`).
-- **자동완성 표시:** 에디터의 위젯(decoration) API로 ref 패턴 직후 회색 미리보기 위젯 부착. 미리보기 = "골로새서 3:20 자녀들아 ..." 약 30자.
-- **확정:** Tab → ref + 본문이 인용 블록으로 변환. (Enter는 줄바꿈으로 보존.)
-- **거부:** Esc 또는 패턴이 더 이상 유효하지 않은 키 입력 → 미리보기 제거.
-- **데드 ref (예: `골 99:99`):** 미리보기 자리에 빨간 작은 텍스트 "구절 없음". Tab 눌러도 변환 안 함.
+- **자동완성 표시:** 입력 중 화면 하단에 감지된 ref를 보여주는 **떠 있는 힌트 칩**(ref + `space` 안내). (당초의 인라인 회색 미리보기 위젯 대신.)
+- **확정:** ref 직후 **space** → ref + 본문이 인용 블록으로 변환(문단이 head/인용/tail로 분할).
+- **거부:** 패턴이 유효하지 않으면 힌트 칩이 사라짐. (유효 구절일 때만 칩 표시.)
+- **데드 ref (예: `골 99:99`):** 룩업 실패 시 트리거 자체가 일어나지 않음(힌트 칩도 안 뜸).
 - **책명 매핑:** 한국어 정식·축약·영어 (골/골로/골로새서/Col/Colossians). **데이터 출처 단일화: openbibleinfo `Bible-Passage-Reference-Parser-Languages`의 한국어 데이터를 1차로 가져오고, 누락분만 직접 보완.** P3와 일치.
 
 ### 키보드 단축키 (1급 시민)
@@ -122,7 +127,7 @@ A의 모든 것 + 설교 녹음 + 타임스탬프 노트. 노트 탭 시 그 시
 type Note = {
   id: string; // ulid
   title: string;
-  body: string; // 리치 에디터의 직렬화 형식 (tentap = HTML 또는 ProseMirror JSON)
+  body: BlockNode[]; // 블록 배열 (paragraph/heading/bullet/todo/blockquote/quote). DB엔 body_json TEXT로 저장
   createdAt: number;
   updatedAt: number;
   citedRefs: string[]; // ["Col 3:20", "John 3:16"] — 검색·인덱싱용
@@ -158,14 +163,14 @@ type ExportEnvelope = {
 
 **Import 정책:** ID 충돌 시 사용자에게 묻기(덮어쓰기/새 ID로 추가/건너뛰기). 스키마 버전이 다르면 import 거부 + 사용자 메시지.
 
-**에디터 본문 포맷:** 사용자에게 "마크다운"이라는 단어를 노출하지 않는다. 리치 에디터의 WYSIWYG UI(헤더 버튼·인용 버튼·리스트 버튼)만 보여준다. 내부 직렬화 형식은 에디터 라이브러리가 정함(tentap 채택 시 HTML).
+**에디터 본문 포맷:** 사용자에게 "마크다운"이라는 단어를 노출하지 않는다. 내부 모델은 `BlockNode[]`이며 DB엔 `body_json` TEXT로 저장한다. 공유(내보내기/가져오기) 포맷은 **Markdown + YAML frontmatter**(gray-matter)로, 블록 ↔ 마크다운 직렬화/파서를 통해 변환한다. 인라인 강조는 텍스트 안에 경량 마크다운(`**굵게**`/`_기울임_`/`++밑줄++`)으로 저장.
 
 ### 기술 스택 (요약)
 
 - **앱:** Expo SDK 51+ (RN 0.74+), Expo Router (file-based)
 - **저장:** Expo SQLite (notes + verses) + `react-native-mmkv` (settings)
 - **상태:** Zustand
-- **에디터:** `@10play/tentap-editor` 1순위 (Tiptap/ProseMirror 위에 RN 래퍼; decoration API로 자동완성 위젯 부착 가능). Week 0 PoC에서 미리보기 위젯 1개 붙이기 검증. 실패 시 fallback = pell + suffix-ghost-text 패턴.
+- **에디터:** **자체 네이티브 RN 블록 에디터** (RN `TextInput` 기반, 블록별 렌더 + 성경 인용 카드). 리치 에디터 라이브러리(tentap/pell, WebView 기반)는 무게 때문에 미채택. WebView·ProseMirror 의존성 없음.
 - **ref 파서:** `bible-passage-reference-parser` (npm, MIT) + openbibleinfo의 `Bible-Passage-Reference-Parser-Languages` 한국어 데이터.
 - **성경 데이터:** **Week 0 라이선스 검증 통과한 소스에서** 개역한글 1961 JSON → 빌드 스크립트로 `assets/bible-krv.json`. 1순위: bible.mearie.org, 2순위: getbible.net Korean, 3순위: Wikisource KRV.
 - **키보드:** `react-native-key-command` 또는 Expo SDK 내장 키보드 이벤트 (Week 0에 SDK 51+ 호환성 확인).
@@ -220,7 +225,7 @@ V1 출시 = TestFlight + Internal Testing 본인 디바이스 + 1명 테스터 �
 
 선행 결정:
 
-- 에디터 라이브러리 1주 안에 PoC로 결정 (tentap vs pell vs 자체 구현)
+- 에디터 라이브러리 1주 안에 PoC로 결정 (tentap vs pell vs 자체 구현) — **결정됨: 자체 네이티브 블록 에디터 (라이브러리·WebView 미사용).**
 
 관련 작업 없음. 빈 디렉토리에서 시작.
 
@@ -232,7 +237,7 @@ V1은 **Week 0 (de-risk) + Week 1-5 (build)**. Week 0은 코드 짜기 전에 �
 
 이 세 항목 중 하나라도 막히면 P2/P3 재검토 트리거.
 
-A. **에디터 PoC.** `@10play/tentap-editor` 빈 앱에 붙이고, 자동완성 미리보기 위젯(decoration) 1개 부착 시도. 성공 = "ref 패턴 입력 시 회색 미리보기 옆에 표시됨" 동영상 1개. 실패 = pell + suffix-ghost-text 패턴으로 fallback 결정.
+A. **에디터 PoC.** ~~`@10play/tentap-editor` 빈 앱에 붙이고, 자동완성 미리보기 위젯(decoration) 1개 부착 시도.~~ → **결론(구현 갱신): tentap/WebView 미채택. 자체 네이티브 블록 에디터로 구현** — 문단 `TextInput` + 성경 인용 카드, ref 뒤 space로 인용 블록 즉시 삽입.
 B. **개역한글 JSON 라이선스 검증.** bible.mearie.org / getbible.net 둘 다 사이트 ToS·라이선스 명시 확인. 명시된 게 없으면 운영자 메일 또는 Wikisource KRV(공공도메인 명시)로 갈아탐. **결과를 디자인 doc에 한 줄 추가.**
 C. **개발자 계정 등록.** Apple Developer($99/년) + Google Play($25 1회). Apple은 가입 후 인증 1-3일 걸릴 수 있음. EAS Build에서 빈 앱 → TestFlight·Internal Testing까지 한 번 통과시키기. 첫 빌드는 보통 인증서·프로비저닝 문제로 한 번 실패함 — 이 학습 시간을 V1 일정에서 격리.
 

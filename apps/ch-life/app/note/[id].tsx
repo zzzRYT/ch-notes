@@ -1,21 +1,30 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Text, View, StyleSheet } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Share } from "lucide-react-native";
-import { RichNoteEditor, type NoteEditorHandle } from "@/editor/RichNoteEditor";
-import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
-import { useAutoSave } from "@/editor/useAutoSave";
-import { BibleBrowser } from "@/browser/BibleBrowser";
-import { lookupVerses } from "@/parser/verse-lookup";
-import { openNoteRepo } from "@/db/expo-adapter";
-import { useAppStore } from "@/state/app-store";
-import { exportNote } from "@/share/export-note";
-import { extractCitedRefs } from "@/editor/cited-refs";
-import { useTheme } from "@/theme/ThemeProvider";
-import { AppHeader } from "@/chrome/AppHeader";
-import { HeaderBack, HeaderIconButton, HeaderTextButton } from "@/chrome/HeaderControls";
-import type { BlockNode } from "@/domain/types";
-
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Keyboard, Text, View, StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Share } from 'lucide-react-native';
+import { SermonMetaHeader } from '@/editor/SermonMetaHeader';
+import { useAutoSave } from '@/editor/useAutoSave';
+import { BibleBrowser } from '@/browser/BibleBrowser';
+import { lookupVerses } from '@/parser/verse-lookup';
+import { openNoteRepo } from '@/db/expo-adapter';
+import { useAppStore } from '@/state/app-store';
+import { exportNote } from '@/share/export-note';
+import { extractCitedRefs } from '@/editor/cited-refs';
+import { useTheme } from '@/theme/ThemeProvider';
+import { AppHeader } from '@/chrome/AppHeader';
+import {
+  HeaderBack,
+  HeaderIconButton,
+  HeaderTextButton,
+} from '@/chrome/HeaderControls';
+import type { BlockNode } from '@/domain/types';
+import { NoteEditor, type NoteEditorHandle } from '@/editor/NoteEditor';
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,7 +36,7 @@ export default function NoteEditorScreen() {
   const [location, setLocation] = useState<string | null>(null);
   const [scripture, setScripture] = useState<string | null>(null);
   const [body, setBody] = useState<BlockNode[]>([
-    { type: "paragraph", text: "" },
+    { type: 'paragraph', text: '' },
   ]);
   const [ready, setReady] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
@@ -51,8 +60,8 @@ export default function NoteEditorScreen() {
         citedRefs: extractCitedRefs(body),
       });
     } catch (e) {
-      console.warn("export failed", e);
-      setSaveErr("공유 실패");
+      console.warn('export failed', e);
+      setSaveErr('공유 실패');
     }
   }, [id, body, title, sermonDate, preacher, location, scripture]);
 
@@ -65,8 +74,8 @@ export default function NoteEditorScreen() {
     if (!verses) return;
     setBody((b) => [
       ...b,
-      { type: "quote", ref, verses, status: "loaded" },
-      { type: "paragraph", text: "" },
+      { type: 'quote', ref, verses, status: 'loaded' },
+      { type: 'paragraph', text: '' },
     ]);
   }, []);
 
@@ -100,12 +109,12 @@ export default function NoteEditorScreen() {
         setLocation(note.location);
         setScripture(note.scripture);
         setBody(
-          note.body.length ? note.body : [{ type: "paragraph", text: "" }],
+          note.body.length ? note.body : [{ type: 'paragraph', text: '' }],
         );
       }
       setReady(true);
     })().catch((e) => {
-      console.warn("load failed", e);
+      console.warn('load failed', e);
       setReady(true);
     });
     return () => {
@@ -133,13 +142,22 @@ export default function NoteEditorScreen() {
 
   const onError = useMemo(
     () => (e: unknown) => {
-      console.warn("autosave failed", e);
-      setSaveErr("저장 실패. 다시 시도 중...");
+      console.warn('autosave failed', e);
+      setSaveErr('저장 실패. 다시 시도 중...');
     },
     [],
   );
 
-  useAutoSave({ title, body, sermonDate, preacher, location, scripture, save, onError });
+  useAutoSave({
+    title,
+    body,
+    sermonDate,
+    preacher,
+    location,
+    scripture,
+    save,
+    onError,
+  });
 
   if (!ready) return null;
   return (
@@ -162,11 +180,10 @@ export default function NoteEditorScreen() {
           <Text style={{ color: colors.errText }}>{saveErr}</Text>
         </View>
       )}
-      <RichNoteEditor
+      <NoteEditor
         ref={editorRef}
         body={body}
         onChangeBody={setBody}
-        onOpenBrowser={() => setBrowserOpen(true)}
         header={
           <SermonMetaHeader
             title={title}
