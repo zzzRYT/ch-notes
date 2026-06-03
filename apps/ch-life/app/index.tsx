@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Download, Search, Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
@@ -48,6 +49,7 @@ export default function NotesList() {
 function PhoneNotesList() {
   const router = useRouter();
   const { colors, fontScale } = useTheme();
+  const insets = useSafeAreaInsets();
   const searchRef = useRef<TextInput>(null);
   const { runImport } = useNoteImport();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -145,7 +147,10 @@ function PhoneNotesList() {
         sections={sections}
         keyExtractor={(n) => n.id}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: 120 + insets.bottom },
+        ]}
         ListHeaderComponent={
           <View>
             <View style={styles.listHead}>
@@ -250,7 +255,10 @@ function PhoneNotesList() {
         }
       />
       <Pressable
-        style={[styles.fab, { backgroundColor: colors.ink }]}
+        style={[
+          styles.fab,
+          { backgroundColor: colors.ink, bottom: 24 + insets.bottom },
+        ]}
         onPress={createNote}
         accessibilityRole="button"
         accessibilityLabel="새 노트"
@@ -320,7 +328,6 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 18,
-    bottom: 36,
     width: 56,
     height: 56,
     borderRadius: 28,

@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BlockNode } from '@/domain/types';
 import { QuoteBlock } from './QuoteBlock';
 import {
@@ -67,6 +68,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
   ref,
 ) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [active, setActive] = useState<ActiveInputState | null>(null);
   // Ref to the first paragraph block so we can focus it on the meta→body handoff.
   const firstParaRef = useRef<ParagraphInputHandle>(null);
@@ -192,7 +194,10 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
         </View>
       </KeyboardAwareScrollView>
       {liveHint && (
-        <View style={styles.hintWrap} pointerEvents="none">
+        <View
+          style={[styles.hintWrap, { bottom: 25 + insets.bottom }]}
+          pointerEvents="none"
+        >
           <View style={[styles.hint, { backgroundColor: colors.accentSoft }]}>
             <View
               style={[styles.hintDot, { backgroundColor: colors.accent }]}
@@ -223,7 +228,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 25,
     alignItems: 'center',
   },
   hint: {
