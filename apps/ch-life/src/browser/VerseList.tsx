@@ -14,16 +14,25 @@ import { chapterCount, findBookMeta } from "./books-meta";
 type BibleData = Record<string, Record<string, Record<string, string>>>;
 const DATA: BibleData = bible as BibleData;
 
+export type InsertMode = "currentNote" | "newNote";
+
 type Props = {
   book: BookCode;
   chapter: number;
+  insertMode?: InsertMode;
   onInsert: (ref: string) => void;
   onChangeChapter: (chapter: number) => void;
 };
 
 type VerseRow = { num: number; text: string };
 
-export function VerseList({ book, chapter, onInsert, onChangeChapter }: Props) {
+export function VerseList({
+  book,
+  chapter,
+  insertMode = "currentNote",
+  onInsert,
+  onChangeChapter,
+}: Props) {
   const meta = findBookMeta(book);
   const nameKo = meta?.nameKo ?? book;
   const verses = useMemo<VerseRow[]>(() => {
@@ -81,7 +90,7 @@ export function VerseList({ book, chapter, onInsert, onChangeChapter }: Props) {
               <Pressable
                 onPress={() => onInsert(`${nameKo} ${chapter}:${item.num}`)}
                 accessibilityRole="button"
-                accessibilityLabel={`${nameKo} ${chapter}:${item.num} 인용`}
+                accessibilityLabel={`${nameKo} ${chapter}:${item.num} ${insertMode === "newNote" ? "새 노트에 담기" : "노트에 인용"}`}
                 hitSlop={8}
                 style={styles.insertBtn}
               >
