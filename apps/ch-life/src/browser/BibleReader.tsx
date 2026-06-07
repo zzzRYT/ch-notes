@@ -25,7 +25,8 @@ export type BrowserLevel =
   | { kind: "verses"; book: BookCode; chapter: number };
 
 type Props = {
-  onInsertVerse: (ref: string) => void;
+  /** Omitted in read-only mode (`insertMode="none"`). */
+  onInsertVerse?: (ref: string) => void;
   insertMode?: InsertMode;
   initialRef?: string | null;
   onPositionChange?: (book: BookCode, chapter: number) => void;
@@ -167,7 +168,7 @@ export function BibleReader({
           book={level.book}
           chapter={level.chapter}
           insertMode={insertMode}
-          onInsert={(ref) => onInsertVerse(ref)}
+          onInsert={onInsertVerse}
           onChangeChapter={(chapter) =>
             setLevel({ kind: "verses", book: level.book, chapter })
           }

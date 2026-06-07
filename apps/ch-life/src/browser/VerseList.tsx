@@ -14,13 +14,14 @@ import { chapterCount, findBookMeta } from "./books-meta";
 type BibleData = Record<string, Record<string, Record<string, string>>>;
 const DATA: BibleData = bible as BibleData;
 
-export type InsertMode = "currentNote" | "newNote";
+export type InsertMode = "currentNote" | "newNote" | "none";
 
 type Props = {
   book: BookCode;
   chapter: number;
   insertMode?: InsertMode;
-  onInsert: (ref: string) => void;
+  /** Omitted in read-only mode (`insertMode="none"`); the insert button isn't rendered then. */
+  onInsert?: (ref: string) => void;
   onChangeChapter: (chapter: number) => void;
 };
 
@@ -87,15 +88,17 @@ export function VerseList({
             <View style={styles.row}>
               <Text style={styles.num}>{item.num}</Text>
               <Text style={styles.text}>{item.text}</Text>
-              <Pressable
-                onPress={() => onInsert(`${nameKo} ${chapter}:${item.num}`)}
-                accessibilityRole="button"
-                accessibilityLabel={`${nameKo} ${chapter}:${item.num} ${insertMode === "newNote" ? "새 노트에 담기" : "노트에 인용"}`}
-                hitSlop={8}
-                style={styles.insertBtn}
-              >
-                <Text style={styles.insertBtnText}>＋</Text>
-              </Pressable>
+              {insertMode !== "none" && (
+                <Pressable
+                  onPress={() => onInsert?.(`${nameKo} ${chapter}:${item.num}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${nameKo} ${chapter}:${item.num} ${insertMode === "newNote" ? "새 노트에 담기" : "노트에 인용"}`}
+                  hitSlop={8}
+                  style={styles.insertBtn}
+                >
+                  <Text style={styles.insertBtnText}>＋</Text>
+                </Pressable>
+              )}
             </View>
           )}
         />
