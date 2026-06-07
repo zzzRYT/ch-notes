@@ -22,21 +22,16 @@ export function BibleBrowser({
   const { mode } = useResponsiveLayout();
   const { initialRef, onPositionChange } = useBiblePosition();
   const [headerTitle, setHeaderTitle] = useState("성경");
-  const [canGoBack, setCanGoBack] = useState(false);
 
-  const handleTitleChange = (title: string, back: boolean) => {
+  const handleTitleChange = (title: string) => {
     setHeaderTitle(title);
-    setCanGoBack(back);
   };
 
   const body = (
     <View style={styles.body}>
       <View style={styles.header}>
-        {canGoBack ? (
-          <View style={styles.headerBtn} />
-        ) : (
-          <View style={styles.headerBtn} />
-        )}
+        {/* 좌측 스페이서 — 우측 닫기 버튼과 균형을 맞춰 제목을 중앙 정렬. 뒤로가기는 BibleReader 본문 안에 있음. */}
+        <View style={styles.headerBtn} />
         <Text style={styles.headerTitle} numberOfLines={1}>
           {headerTitle}
         </Text>
