@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -19,7 +20,7 @@ import { useNoteImport } from "@/share/use-note-import";
 import { noteTitleOrFallback } from "@/list/group-notes";
 import type { BlockNode, Note } from "@/domain/types";
 import { NoteListSidebar } from "./NoteListSidebar";
-import { BibleLookupPanel } from "./BibleLookupPanel";
+import { BiblePanel } from "./BiblePanel";
 import { PanelRail } from "./PanelRail";
 
 function monthLabel(ts: number): string {
@@ -34,6 +35,7 @@ function dayLabel(ts: number): string {
 
 export function TabletWorkspace() {
   const { colors, fontScale, fontStack } = useTheme();
+  const router = useRouter();
   const { runImport } = useNoteImport();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -224,6 +226,7 @@ export function TabletWorkspace() {
             onSelect={setSelectedId}
             onCreate={createNote}
             onImport={handleImport}
+            onSettings={() => router.push("/settings")}
             onCollapse={() => setLeftOpen(false)}
           />
         </View>
@@ -351,7 +354,7 @@ export function TabletWorkspace() {
             { borderLeftColor: colors.rule },
           ]}
         >
-          <BibleLookupPanel
+          <BiblePanel
             citedRefs={citedRefs}
             onInsert={insertRef}
             onCollapse={() => setRightOpen(false)}

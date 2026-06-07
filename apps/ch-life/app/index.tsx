@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Download, Search, Settings } from "lucide-react-native";
+import { BookOpen, Download, Search, Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
@@ -125,6 +125,11 @@ function PhoneNotesList() {
         left={<HeaderBrand label="설교 노트" />}
         right={
           <>
+            <HeaderIconButton
+              icon={BookOpen}
+              label="성경 읽기"
+              onPress={() => router.push("/bible")}
+            />
             <HeaderIconButton
               icon={Search}
               label="노트 검색"

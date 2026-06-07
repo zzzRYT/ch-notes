@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Keyboard, Text, View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Share } from 'lucide-react-native';
+import { BookOpen, Share } from 'lucide-react-native';
 import { SermonMetaHeader } from '@/editor/SermonMetaHeader';
 import { useAutoSave } from '@/editor/useAutoSave';
 import { BibleBrowser } from '@/browser/BibleBrowser';
@@ -166,6 +166,11 @@ export default function NoteEditorScreen() {
         left={<HeaderBack label="노트" onPress={() => router.back()} />}
         right={
           <>
+            <HeaderIconButton
+              icon={BookOpen}
+              label="성경 읽기"
+              onPress={() => setBrowserOpen(true)}
+            />
             <HeaderIconButton
               icon={Share}
               label="노트 공유"

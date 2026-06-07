@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Download } from "lucide-react-native";
+import { Download, Settings } from "lucide-react-native";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
 import {
   groupNotesByDay,
@@ -23,6 +23,7 @@ type Props = {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onImport: () => void;
+  onSettings: () => void;
   onCollapse: () => void;
 };
 
@@ -32,6 +33,7 @@ export function NoteListSidebar({
   onSelect,
   onCreate,
   onImport,
+  onSettings,
   onCollapse,
 }: Props) {
   const { colors, fontScale } = useTheme();
@@ -79,6 +81,15 @@ export function NoteListSidebar({
             style={styles.iconBtn}
           >
             <Download size={16} color={colors.ink2} strokeWidth={1.8} />
+          </Pressable>
+          <Pressable
+            onPress={onSettings}
+            accessibilityRole="button"
+            accessibilityLabel="설정"
+            hitSlop={10}
+            style={styles.iconBtn}
+          >
+            <Settings size={16} color={colors.ink2} strokeWidth={1.8} />
           </Pressable>
           <Pressable
             onPress={onCollapse}

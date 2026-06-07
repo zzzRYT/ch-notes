@@ -65,4 +65,5 @@ export type Settings = {
   fontFamily: FontFamily;
   accentChoice: AccentChoice;
   lastOpenedNoteId: string | null;
+  lastBibleRef: string | null;
 };

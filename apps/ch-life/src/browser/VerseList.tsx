@@ -14,16 +14,26 @@ import { chapterCount, findBookMeta } from "./books-meta";
 type BibleData = Record<string, Record<string, Record<string, string>>>;
 const DATA: BibleData = bible as BibleData;
 
+export type InsertMode = "currentNote" | "newNote" | "none";
+
 type Props = {
   book: BookCode;
   chapter: number;
-  onInsert: (ref: string) => void;
+  insertMode?: InsertMode;
+  /** Omitted in read-only mode (`insertMode="none"`); the insert button isn't rendered then. */
+  onInsert?: (ref: string) => void;
   onChangeChapter: (chapter: number) => void;
 };
 
 type VerseRow = { num: number; text: string };
 
-export function VerseList({ book, chapter, onInsert, onChangeChapter }: Props) {
+export function VerseList({
+  book,
+  chapter,
+  insertMode = "currentNote",
+  onInsert,
+  onChangeChapter,
+}: Props) {
   const meta = findBookMeta(book);
   const nameKo = meta?.nameKo ?? book;
   const verses = useMemo<VerseRow[]>(() => {
@@ -78,15 +88,17 @@ export function VerseList({ book, chapter, onInsert, onChangeChapter }: Props) {
             <View style={styles.row}>
               <Text style={styles.num}>{item.num}</Text>
               <Text style={styles.text}>{item.text}</Text>
-              <Pressable
-                onPress={() => onInsert(`${nameKo} ${chapter}:${item.num}`)}
-                accessibilityRole="button"
-                accessibilityLabel={`${nameKo} ${chapter}:${item.num} 인용`}
-                hitSlop={8}
-                style={styles.insertBtn}
-              >
-                <Text style={styles.insertBtnText}>＋</Text>
-              </Pressable>
+              {insertMode !== "none" && (
+                <Pressable
+                  onPress={() => onInsert?.(`${nameKo} ${chapter}:${item.num}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${nameKo} ${chapter}:${item.num} ${insertMode === "newNote" ? "새 노트에 담기" : "노트에 인용"}`}
+                  hitSlop={8}
+                  style={styles.insertBtn}
+                >
+                  <Text style={styles.insertBtnText}>＋</Text>
+                </Pressable>
+              )}
             </View>
           )}
         />

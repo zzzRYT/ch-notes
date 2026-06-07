@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: Settings = {
   fontFamily: "sans",
   accentChoice: "default",
   lastOpenedNoteId: null,
+  lastBibleRef: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({

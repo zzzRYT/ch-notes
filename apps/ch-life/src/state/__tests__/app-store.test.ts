@@ -13,6 +13,7 @@ describe("app-store", () => {
         fontFamily: "sans",
         accentChoice: "default",
         lastOpenedNoteId: null,
+        lastBibleRef: null,
       },
     });
   });
@@ -51,5 +52,14 @@ describe("app-store", () => {
 
   it("consumePendingInsert가 비었으면 null", () => {
     expect(useAppStore.getState().consumePendingInsert()).toBeNull();
+  });
+
+  it("기본 lastBibleRef는 null", () => {
+    expect(useAppStore.getState().settings.lastBibleRef).toBeNull();
+  });
+
+  it("setSettings로 lastBibleRef 갱신", () => {
+    useAppStore.getState().setSettings({ lastBibleRef: "Gen 1" });
+    expect(useAppStore.getState().settings.lastBibleRef).toBe("Gen 1");
   });
 });
