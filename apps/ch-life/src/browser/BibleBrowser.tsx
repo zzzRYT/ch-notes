@@ -1,8 +1,23 @@
-import React, { useState } from "react";
-import { View, Text, Modal, Pressable, StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Animated,
+  Easing,
+  useWindowDimensions,
+} from "react-native";
 import { useResponsiveLayout } from "./useResponsiveLayout";
 import { BibleReader, type BrowserLevel } from "./BibleReader";
 import { useBiblePosition } from "./useBiblePosition";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+// Bottom-sheet timing. Enter eases out (decelerates into place), exit eases in.
+const ENTER_MS = 240;
+const EXIT_MS = 190;
 
 type Props = {
   visible: boolean;
@@ -20,8 +35,36 @@ export function BibleBrowser({
   insertMode,
 }: Props) {
   const { mode } = useResponsiveLayout();
+  const { height } = useWindowDimensions();
   const { initialRef, onPositionChange } = useBiblePosition();
   const [headerTitle, setHeaderTitle] = useState("성경");
+
+  // Drive the dim and sheet from one 0→1 value so the backdrop fades over the
+  // whole screen while the sheet slides up — instead of slide dragging both as
+  // one block. `rendered` keeps the Modal mounted through the exit animation.
+  const progress = useRef(new Animated.Value(0)).current;
+  const [rendered, setRendered] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setRendered(true);
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: ENTER_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: EXIT_MS,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setRendered(false);
+      });
+    }
+  }, [visible, progress]);
 
   const handleTitleChange = (title: string) => {
     setHeaderTitle(title);
@@ -59,21 +102,24 @@ export function BibleBrowser({
     if (!visible) return null;
     return <View style={styles.sidebar}>{body}</View>;
   }
+  if (!rendered) return null;
+  const translateY = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height, 0],
+  });
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.sheetBackdrop}>
-        <Pressable
-          style={styles.backdropTap}
+        {/* Full-screen dim as its own layer — fades uniformly, independent of the sheet's slide. */}
+        <AnimatedPressable
+          style={[styles.dim, { opacity: progress }]}
           onPress={onClose}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         />
-        <View style={styles.sheet}>{body}</View>
+        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+          {body}
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -115,9 +161,11 @@ const styles = StyleSheet.create({
   sheetBackdrop: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.3)",
   },
-  backdropTap: { flex: 1 },
+  dim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
   sheet: {
     height: "70%",
     backgroundColor: "white",
