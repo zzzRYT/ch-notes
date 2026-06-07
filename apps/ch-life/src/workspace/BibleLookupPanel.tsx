@@ -16,6 +16,7 @@ type Props = {
   citedRefs: ReadonlyArray<string>;
   onInsert: (ref: string) => void;
   onCollapse: () => void;
+  hideHeader?: boolean;
 };
 
 const RECENT_REFS = [
@@ -27,7 +28,12 @@ const RECENT_REFS = [
   "엡 2:8-10",
 ];
 
-export function BibleLookupPanel({ citedRefs, onInsert, onCollapse }: Props) {
+export function BibleLookupPanel({
+  citedRefs,
+  onInsert,
+  onCollapse,
+  hideHeader,
+}: Props) {
   const { colors, fontScale } = useTheme();
   const [query, setQuery] = useState("");
   const trimmed = query.trim();
@@ -48,18 +54,20 @@ export function BibleLookupPanel({ citedRefs, onInsert, onCollapse }: Props) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.paper }]}>
-      <View style={[styles.head, { borderBottomColor: colors.rule }]}>
-        <Text style={[styles.title, { color: colors.ink }]}>성경 보기</Text>
-        <Pressable
-          onPress={onCollapse}
-          accessibilityRole="button"
-          accessibilityLabel="성경 보기 접기"
-          hitSlop={10}
-          style={styles.iconBtn}
-        >
-          <Text style={[styles.iconBtnText, { color: colors.ink2 }]}>›</Text>
-        </Pressable>
-      </View>
+      {!hideHeader && (
+        <View style={[styles.head, { borderBottomColor: colors.rule }]}>
+          <Text style={[styles.title, { color: colors.ink }]}>성경 보기</Text>
+          <Pressable
+            onPress={onCollapse}
+            accessibilityRole="button"
+            accessibilityLabel="성경 보기 접기"
+            hitSlop={10}
+            style={styles.iconBtn}
+          >
+            <Text style={[styles.iconBtnText, { color: colors.ink2 }]}>›</Text>
+          </Pressable>
+        </View>
+      )}
       <View style={[styles.searchWrap, { backgroundColor: colors.chipBg }]}>
         <Text style={[styles.searchIcon, { color: colors.ink3 }]}>⌕</Text>
         <TextInput
