@@ -111,15 +111,23 @@ function PhoneNotesList() {
 
   const insertToNewNote = useCallback(
     async (ref: string) => {
-      useAppStore.getState().requestInsertRef(ref);
-      const repo = await openNoteRepo();
-      const id = await repo.create({
-        title: null,
-        body: [{ type: "paragraph", text: "" }],
-        citedRefs: [],
-      });
-      setBibleOpen(false);
-      router.push(`/note/${id}`);
+      try {
+        const repo = await openNoteRepo();
+        const id = await repo.create({
+          title: null,
+          body: [{ type: "paragraph", text: "" }],
+          citedRefs: [],
+        });
+        // 노트 생성에 성공한 뒤에만 삽입 요청을 큐잉한다. create가 실패하면
+        // pendingInsert가 남아 다음에 여는 노트에 엉뚱하게 삽입되는 것을 방지.
+        // router.push 직전이라 에디터 마운트보다 먼저 실행되므로 경합 없음.
+        useAppStore.getState().requestInsertRef(ref);
+        setBibleOpen(false);
+        router.push(`/note/${id}`);
+      } catch (e) {
+        console.warn("insertToNewNote failed", e);
+        setBibleOpen(false);
+      }
     },
     [router],
   );
