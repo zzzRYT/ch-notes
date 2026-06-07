@@ -19,7 +19,7 @@ import { useNoteImport } from "@/share/use-note-import";
 import { noteTitleOrFallback } from "@/list/group-notes";
 import type { BlockNode, Note } from "@/domain/types";
 import { NoteListSidebar } from "./NoteListSidebar";
-import { BibleLookupPanel } from "./BibleLookupPanel";
+import { BiblePanel } from "./BiblePanel";
 import { PanelRail } from "./PanelRail";
 
 function monthLabel(ts: number): string {
@@ -351,7 +351,7 @@ export function TabletWorkspace() {
             { borderLeftColor: colors.rule },
           ]}
         >
-          <BibleLookupPanel
+          <BiblePanel
             citedRefs={citedRefs}
             onInsert={insertRef}
             onCollapse={() => setRightOpen(false)}
