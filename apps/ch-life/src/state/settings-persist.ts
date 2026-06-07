@@ -87,6 +87,7 @@ function parseSettings(x: unknown): Settings | null {
     fontFamily: readEnum(s.fontFamily, ALLOWED_FONT_FAMILY, "sans"),
     accentChoice: readEnum(s.accentChoice, ALLOWED_ACCENT, "default"),
     lastOpenedNoteId: s.lastOpenedNoteId as string | null,
+    lastBibleRef: null,
   };
 }
 
