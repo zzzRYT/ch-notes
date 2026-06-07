@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Download, Search, Settings } from "lucide-react-native";
+import { BookOpen, Download, Search, Settings } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { NoteCard } from "@/list/NoteCard";
 import { groupNotesByDay, type NoteGroup } from "@/list/group-notes";
@@ -20,6 +20,8 @@ import { AppHeader } from "@/chrome/AppHeader";
 import { HeaderBrand, HeaderIconButton } from "@/chrome/HeaderControls";
 import { useNoteImport } from "@/share/use-note-import";
 import { TabletWorkspace } from "@/workspace/TabletWorkspace";
+import { BibleBrowser } from "@/browser/BibleBrowser";
+import { useAppStore } from "@/state/app-store";
 import type { Note } from "@/domain/types";
 
 const TABLET_BREAKPOINT = 900;
@@ -105,6 +107,23 @@ function PhoneNotesList() {
     router.push(`/note/${id}`);
   }, [router]);
 
+  const [bibleOpen, setBibleOpen] = useState(false);
+
+  const insertToNewNote = useCallback(
+    async (ref: string) => {
+      useAppStore.getState().requestInsertRef(ref);
+      const repo = await openNoteRepo();
+      const id = await repo.create({
+        title: null,
+        body: [{ type: "paragraph", text: "" }],
+        citedRefs: [],
+      });
+      setBibleOpen(false);
+      router.push(`/note/${id}`);
+    },
+    [router],
+  );
+
   const data = results ?? notes;
   const isSearching = results !== null;
 
@@ -125,6 +144,11 @@ function PhoneNotesList() {
         left={<HeaderBrand label="설교 노트" />}
         right={
           <>
+            <HeaderIconButton
+              icon={BookOpen}
+              label="성경 읽기"
+              onPress={() => setBibleOpen(true)}
+            />
             <HeaderIconButton
               icon={Search}
               label="노트 검색"
@@ -265,6 +289,12 @@ function PhoneNotesList() {
       >
         <Text style={[styles.fabText, { color: colors.paper }]}>＋</Text>
       </Pressable>
+      <BibleBrowser
+        visible={bibleOpen}
+        onClose={() => setBibleOpen(false)}
+        onInsertVerse={insertToNewNote}
+        insertMode="newNote"
+      />
     </View>
   );
 }
