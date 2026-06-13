@@ -41,7 +41,20 @@ const config: ExpoConfig = {
   web: {
     favicon: "./assets/favicon.png",
   },
-  plugins: ["expo-router"],
+  plugins: [
+    "expo-router",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          // R8 코드 축소·난독화 (Play Console 앱 최적화 권장)
+          enableMinifyInReleaseBuilds: true,
+          // 미사용 리소스 제거 (minify와 함께 사용)
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
+      },
+    ],
+  ],
   experiments: { typedRoutes: true },
   extra: {
     eas: {
