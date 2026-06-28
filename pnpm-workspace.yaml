@@ -1,0 +1,9 @@
+# pnpm workspace
+#
+# Phase 1: only the new shared packages are workspace members.
+# apps/ch-life intentionally stays a STANDALONE pnpm project (its own lockfile +
+# node_modules) until Phase 4, when it will consume @ch-life/editor-core and join
+# here as `apps/*`. Folding the Expo app in early would force the Metro monorepo
+# config (watchFolders + nodeModulesPaths + hoisted linker) before we need it.
+packages:
+  - 'packages/*'
