@@ -21,6 +21,8 @@ import { HeaderBrand, HeaderIconButton } from "@/chrome/HeaderControls";
 import { useNoteImport } from "@/share/use-note-import";
 import { TabletWorkspace } from "@/workspace/TabletWorkspace";
 import type { Note } from "@/domain/types";
+import { deleteNoteWithUndo } from "@/notes/note-actions";
+import { useAppStore } from "@/state/app-store";
 
 const TABLET_BREAKPOINT = 900;
 
@@ -31,7 +33,7 @@ type Section = {
   data: Note[];
 };
 
-function toSections(groups: ReadonlyArray<NoteGroup>): Section[] {
+function toSections(groups: readonly NoteGroup[]): Section[] {
   return groups.map((g) => ({
     key: g.key,
     date: g.date,
@@ -52,14 +54,23 @@ function PhoneNotesList() {
   const insets = useSafeAreaInsets();
   const searchRef = useRef<TextInput>(null);
   const { runImport } = useNoteImport();
+  const noteRevision = useAppStore((state) => state.noteRevision);
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Note[] | null>(null);
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const repo = await openNoteRepo();
     setNotes(await repo.listRecent({ limit: 200 }));
+    setOpenSwipeId(null);
   }, []);
+
+  useEffect(() => {
+    reload().catch((error) =>
+      console.warn("revision reload failed", error),
+    );
+  }, [noteRevision, reload]);
 
   const handleImport = useCallback(async () => {
     const { summary, message } = await runImport();
@@ -93,7 +104,17 @@ function PhoneNotesList() {
       }
     }, 200);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, noteRevision]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    setOpenSwipeId(null);
+    const deleted = await deleteNoteWithUndo(id);
+    if (!deleted) return;
+    setNotes((previous) => previous.filter((note) => note.id !== id));
+    setResults((previous) =>
+      previous?.filter((note) => note.id !== id) ?? null,
+    );
+  }, []);
 
   const createNote = useCallback(async () => {
     const repo = await openNoteRepo();
@@ -231,6 +252,14 @@ function PhoneNotesList() {
             note={item}
             isFirst={index === 0}
             onPress={() => router.push(`/note/${item.id}`)}
+            swipeOpen={openSwipeId === item.id}
+            onSwipeOpen={() => setOpenSwipeId(item.id)}
+            onSwipeClose={() =>
+              setOpenSwipeId((current) =>
+                current === item.id ? null : current,
+              )
+            }
+            onDelete={() => void handleDelete(item.id)}
           />
         )}
         ListEmptyComponent={

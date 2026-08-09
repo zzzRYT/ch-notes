@@ -10,11 +10,13 @@ type IconComponent = React.ComponentType<{
   strokeWidth?: number;
 }>;
 
-type Tint = "ink" | "accent";
+type Tint = "ink" | "accent" | "error";
 
 function useTint(tint: Tint): string {
   const { colors } = useTheme();
-  return tint === "accent" ? colors.accent : colors.ink2;
+  if (tint === "accent") return colors.accent;
+  if (tint === "error") return colors.errText;
+  return colors.ink2;
 }
 
 /** Icon-only header action (search, settings, share, …). */
