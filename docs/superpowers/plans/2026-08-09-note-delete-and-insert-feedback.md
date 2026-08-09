@@ -422,7 +422,9 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
 
   useEffect(() => {
     if (!feedback || passive) return;
-    AccessibilityInfo.announceForAccessibility(feedback.message);
+    if (Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(feedback.message);
+    }
     const timer = setTimeout(
       () => clearFeedback(feedback.id),
       Math.max(0, feedback.expiresAt - Date.now()),
@@ -448,7 +450,7 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
 }
 ```
 
-Import `AccessibilityInfo` from React Native. Use absolute positioning with safe horizontal margins and `bottom: 24`. In `app/_layout.tsx`, wrap `ThemedStack` and `<ActionBannerHost />` in a flex-1 `View`. Render `<ActionBannerHost passive />` as the final child of `BibleBrowser`'s modal `body`: the root host owns expiry and the one screen-reader announcement, while the passive copy only makes the banner visible in the native modal presentation layer. Tablet scripture uses `BiblePanel` and the root host.
+Import `AccessibilityInfo` and `Platform` from React Native. Use absolute positioning with safe horizontal margins and `bottom: 24`. In `app/_layout.tsx`, wrap `ThemedStack` and `<ActionBannerHost />` in a flex-1 `View`. Render `<ActionBannerHost passive />` as the final child of `BibleBrowser`'s modal `body`: the root host owns expiry and the one screen-reader announcement, while the passive copy only makes the banner visible in the native modal presentation layer. Tablet scripture uses `BiblePanel` and the root host.
 
 - [ ] **Step 6: Typecheck the banner integration**
 
@@ -794,16 +796,14 @@ function useTint(tint: Tint): string {
 
 ```ts
 const insertVerseFromBrowser = useCallback((ref: string) => {
-  setBody((current) => {
-    const result = insertVerse(current, ref);
-    useAppStore.getState().showFeedback({
-      message: result.message,
-      tone: result.ok ? "info" : "error",
-      durationMs: 3000,
-    });
-    return result.body;
+  const result = insertVerse(body, ref);
+  setBody(result.body);
+  useAppStore.getState().showFeedback({
+    message: result.message,
+    tone: result.ok ? "info" : "error",
+    durationMs: 3000,
   });
-}, []);
+}, [body]);
 ```
 
 This same callback handles direct modal insertions and pending store insertions. `BibleBrowser` renders the shared host inside the native modal layer, so this feedback remains visible without closing the modal.
@@ -922,16 +922,14 @@ Render a `Trash2` pressable in `centerActions` when `selectedId` is non-null. Gi
 
 ```ts
 const insertRef = useCallback((ref: string) => {
-  setBody((current) => {
-    const result = insertVerse(current, ref);
-    useAppStore.getState().showFeedback({
-      message: result.message,
-      tone: result.ok ? "info" : "error",
-      durationMs: 3000,
-    });
-    return result.body;
+  const result = insertVerse(body, ref);
+  setBody(result.body);
+  useAppStore.getState().showFeedback({
+    message: result.message,
+    tone: result.ok ? "info" : "error",
+    durationMs: 3000,
   });
-}, []);
+}, [body]);
 ```
 
 - [ ] **Step 5: Run focused tests, typecheck, and lint tablet files**
