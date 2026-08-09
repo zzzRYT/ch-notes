@@ -98,6 +98,8 @@ export function SwipeToDelete({
         onPress={onDelete}
         accessibilityRole="button"
         accessibilityLabel={deleteLabel}
+        accessibilityElementsHidden={!open}
+        importantForAccessibility={open ? "yes" : "no-hide-descendants"}
         style={styles.deleteAction}
       >
         <Text style={styles.deleteText}>삭제</Text>

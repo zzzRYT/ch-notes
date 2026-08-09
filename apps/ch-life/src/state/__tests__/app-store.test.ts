@@ -130,4 +130,16 @@ describe("app-store", () => {
     expect(useAppStore.getState().feedback).toBeNull();
     expect(useAppStore.getState().deletedNote).toBeNull();
   });
+
+  it("삭제 안내를 다른 안내가 교체하면 실행 취소 스냅샷도 비운다", () => {
+    useAppStore.getState().offerDeleteUndo(makeNote("A"));
+    useAppStore.getState().showFeedback({
+      message: "요한복음 3:16을 노트에 추가했습니다",
+      tone: "info",
+      durationMs: 3000,
+    });
+
+    expect(useAppStore.getState().feedback?.action).toBeUndefined();
+    expect(useAppStore.getState().deletedNote).toBeNull();
+  });
 });

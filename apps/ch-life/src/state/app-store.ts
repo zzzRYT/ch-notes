@@ -71,7 +71,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (ref !== null) set({ pendingInsertRef: null });
     return ref;
   },
-  showFeedback: (input) => set({ feedback: makeFeedback(input) }),
+  showFeedback: (input) =>
+    set((state) => ({
+      feedback: makeFeedback(input),
+      deletedNote:
+        state.feedback?.action === "undo-delete" ? null : state.deletedNote,
+    })),
   clearFeedback: (id) =>
     set((state) => {
       if (state.feedback?.id !== id) return state;

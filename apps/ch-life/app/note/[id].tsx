@@ -45,6 +45,7 @@ export default function NoteEditorScreen() {
   const [deleting, setDeleting] = useState(false);
   const editorRef = useRef<NoteEditorHandle>(null);
   const bodyRef = useRef(body);
+  const deletingRef = useRef(false);
 
   useEffect(() => {
     bodyRef.current = body;
@@ -165,11 +166,12 @@ export default function NoteEditorScreen() {
     scripture,
     save,
     onError,
-    enabled: !deleting,
+    enabled: ready && !deleting,
   });
 
   const handleDelete = useCallback(async () => {
-    if (!id || deleting) return;
+    if (!id || deletingRef.current) return;
+    deletingRef.current = true;
     try {
       await flushAutoSave();
     } catch (error) {
@@ -179,14 +181,18 @@ export default function NoteEditorScreen() {
         tone: 'error',
         durationMs: 3000,
       });
+      deletingRef.current = false;
       return;
     }
 
     setDeleting(true);
     const deleted = await deleteNoteWithUndo(id);
     if (deleted) router.replace('/');
-    else setDeleting(false);
-  }, [id, deleting, flushAutoSave, router]);
+    else {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  }, [id, flushAutoSave, router]);
 
   if (!ready) return null;
   return (
@@ -223,7 +229,10 @@ export default function NoteEditorScreen() {
       <NoteEditor
         ref={editorRef}
         body={body}
-        onChangeBody={setBody}
+        onChangeBody={(nextBody) => {
+          bodyRef.current = nextBody;
+          setBody(nextBody);
+        }}
         header={
           <SermonMetaHeader
             title={title}

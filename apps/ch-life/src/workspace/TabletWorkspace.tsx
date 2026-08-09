@@ -59,7 +59,9 @@ export function TabletWorkspace() {
   const [rightOpen, setRightOpen] = useState(true);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loadedNoteId, setLoadedNoteId] = useState<string | null>(null);
   const bodyRef = useRef(body);
+  const deletingRef = useRef(false);
   const noteRevision = useAppStore((state) => state.noteRevision);
 
   // Reload after note deletion/restoration, selecting a restored note first.
@@ -91,6 +93,7 @@ export function TabletWorkspace() {
   // When the user switches the active note, load it fresh.
   useEffect(() => {
     if (!selectedId) return;
+    setLoadedNoteId(null);
     let cancelled = false;
     (async () => {
       const repo = await openNoteRepo();
@@ -107,6 +110,7 @@ export function TabletWorkspace() {
       setLocation(n.location);
       setScripture(n.scripture);
       useAppStore.getState().setCurrentNoteId(n.id);
+      setLoadedNoteId(n.id);
     })().catch((e) => console.warn("note load failed", e));
     return () => {
       cancelled = true;
@@ -123,6 +127,7 @@ export function TabletWorkspace() {
     setPreacher(null);
     setLocation(null);
     setScripture(null);
+    setLoadedNoteId(null);
     useAppStore.getState().setCurrentNoteId(null);
   }, [selectedId]);
 
@@ -175,7 +180,10 @@ export function TabletWorkspace() {
     scripture,
     save,
     onError: handleAutoSaveError,
-    enabled: selectedId !== null && deletingId !== selectedId,
+    enabled:
+      selectedId !== null &&
+      loadedNoteId === selectedId &&
+      deletingId !== selectedId,
   });
 
   const insertRef = useCallback((ref: string) => {
@@ -193,31 +201,35 @@ export function TabletWorkspace() {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (deletingId) return;
-      if (id === selectedId) {
-        try {
+      if (deletingRef.current) return;
+      deletingRef.current = true;
+      setDeletingId(id);
+      try {
+        if (id === selectedId) {
           await flushAutoSave();
-        } catch (error) {
+        }
+
+        const deleted = await deleteNoteWithUndo(id);
+        if (deleted) {
+          const remaining = notes.filter((note) => note.id !== id);
+          setNotes(remaining);
+          if (selectedId === id) setSelectedId(remaining[0]?.id ?? null);
+        }
+      } catch (error) {
+        if (id === selectedId) {
           console.warn("save before delete failed", error);
           useAppStore.getState().showFeedback({
             message: "저장 중 오류가 발생해 노트를 삭제하지 못했습니다",
             tone: "error",
             durationMs: 3000,
           });
-          return;
         }
+      } finally {
+        deletingRef.current = false;
+        setDeletingId(null);
       }
-
-      setDeletingId(id);
-      const deleted = await deleteNoteWithUndo(id);
-      if (deleted) {
-        const remaining = notes.filter((note) => note.id !== id);
-        setNotes(remaining);
-        if (selectedId === id) setSelectedId(remaining[0]?.id ?? null);
-      }
-      setDeletingId(null);
     },
-    [deletingId, selectedId, flushAutoSave, notes],
+    [selectedId, flushAutoSave, notes],
   );
 
   const createNote = useCallback(async () => {

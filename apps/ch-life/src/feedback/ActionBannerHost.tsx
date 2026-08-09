@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -15,6 +15,17 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
   const feedback = useAppStore((state) => state.feedback);
   const clearFeedback = useAppStore((state) => state.clearFeedback);
   const { colors } = useTheme();
+  const undoingRef = useRef(false);
+
+  const handleUndo = useCallback(async () => {
+    if (undoingRef.current) return;
+    undoingRef.current = true;
+    try {
+      await undoLatestNoteDeletion();
+    } finally {
+      undoingRef.current = false;
+    }
+  }, []);
 
   useEffect(() => {
     if (!feedback || passive) return;
@@ -42,14 +53,14 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
         style={[styles.banner, { backgroundColor }]}
       >
         <Text
-          accessibilityLiveRegion="polite"
+          accessibilityLiveRegion={passive ? "none" : "polite"}
           style={[styles.message, { color: textColor }]}
         >
           {feedback.message}
         </Text>
         {feedback.action === "undo-delete" ? (
           <Pressable
-            onPress={() => void undoLatestNoteDeletion()}
+            onPress={() => void handleUndo()}
             accessibilityRole="button"
             accessibilityLabel="노트 삭제 실행 취소"
             hitSlop={8}
