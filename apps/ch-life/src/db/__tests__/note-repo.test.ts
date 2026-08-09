@@ -103,6 +103,40 @@ describe("note-repo", () => {
     expect(await repo.findById(id)).toBeNull();
   });
 
+  it("delete가 완전한 스냅샷을 반환하고 restore가 그대로 복원한다", async () => {
+    const repo = setup();
+    const id = await repo.create({
+      title: "복원할 노트",
+      body: [{ type: "paragraph", text: "본문" }],
+      citedRefs: ["John 3:16"],
+      sermonDate: "2026-08-09",
+      preacher: "홍길동",
+      location: "본당",
+      scripture: "요한복음 3:16",
+    });
+    const before = await repo.findById(id);
+    expect(before).not.toBeNull();
+
+    const deleted = await repo.delete(id);
+    expect(deleted).toEqual(before);
+    expect(await repo.findById(id)).toBeNull();
+
+    await repo.restore(deleted!);
+    expect(await repo.findById(id)).toEqual(before);
+  });
+
+  it("없는 노트 delete는 null을 반환한다", async () => {
+    expect(await setup().delete("MISSING")).toBeNull();
+  });
+
+  it("restore는 같은 ID의 기존 노트를 덮어쓰지 않는다", async () => {
+    const repo = setup();
+    const id = await repo.create({ title: "원본", body: [], citedRefs: [] });
+    const note = await repo.findById(id);
+    await expect(repo.restore(note!)).rejects.toThrow();
+    expect((await repo.findById(id))?.title).toBe("원본");
+  });
+
   it("citedRefs JSON 직렬화 왕복", async () => {
     const repo = setup();
     const id = await repo.create({
