@@ -3,14 +3,27 @@ import { Pressable, Text, View, StyleSheet } from "react-native";
 import type { Note } from "@/domain/types";
 import { formatNoteCard } from "./format-card";
 import { useTheme, scaled } from "@/theme/ThemeProvider";
+import { SwipeToDelete } from "./SwipeToDelete";
 
 type Props = {
   note: Note;
   onPress: () => void;
   isFirst?: boolean;
+  swipeOpen?: boolean;
+  onSwipeOpen?: () => void;
+  onSwipeClose?: () => void;
+  onDelete?: () => void;
 };
 
-export function NoteCard({ note, onPress, isFirst }: Props) {
+export function NoteCard({
+  note,
+  onPress,
+  isFirst,
+  swipeOpen = false,
+  onSwipeOpen,
+  onSwipeClose,
+  onDelete,
+}: Props) {
   const { colors, fontScale, density } = useTheme();
   const compact = density === "compact";
   const { title, timeLabel, preacher, scripture } = formatNoteCard(note);
@@ -19,15 +32,24 @@ export function NoteCard({ note, onPress, isFirst }: Props) {
     .filter(Boolean)
     .join(", ");
 
-  return (
+  const card = (
     <Pressable
-      onPress={onPress}
+      onPress={swipeOpen ? onSwipeClose : onPress}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
+      accessibilityActions={
+        onDelete ? [{ name: "delete", label: `${title} 노트 삭제` }] : undefined
+      }
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === "delete") onDelete?.();
+      }}
       style={[
         styles.row,
         compact ? styles.rowCompact : styles.rowRegular,
-        { borderTopColor: isFirst ? "transparent" : colors.rule },
+        {
+          backgroundColor: colors.bg,
+          borderTopColor: isFirst ? "transparent" : colors.rule,
+        },
       ]}
     >
       <Text
@@ -57,6 +79,20 @@ export function NoteCard({ note, onPress, isFirst }: Props) {
         )}
       </View>
     </Pressable>
+  );
+
+  if (!onDelete) return card;
+
+  return (
+    <SwipeToDelete
+      open={swipeOpen}
+      onOpen={() => onSwipeOpen?.()}
+      onClose={() => onSwipeClose?.()}
+      onDelete={onDelete}
+      deleteLabel={`${title} 노트 삭제`}
+    >
+      {card}
+    </SwipeToDelete>
   );
 }
 
