@@ -12,6 +12,7 @@ import {
 import { useResponsiveLayout } from "./useResponsiveLayout";
 import { BibleReader, type BrowserLevel } from "./BibleReader";
 import { useBiblePosition } from "./useBiblePosition";
+import { ActionBannerHost } from "@/feedback/ActionBannerHost";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -95,6 +96,7 @@ export function BibleBrowser({
         onPositionChange={onPositionChange}
         onTitleChange={handleTitleChange}
       />
+      <ActionBannerHost passive />
     </View>
   );
 

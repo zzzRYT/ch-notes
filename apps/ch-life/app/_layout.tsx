@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useAppStore } from "@/state/app-store";
 import { loadSettings, saveSettings } from "@/state/settings-persist";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
+import { ActionBannerHost } from "@/feedback/ActionBannerHost";
 
 function ThemedStack() {
   const { colors } = useTheme();
@@ -48,7 +50,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <KeyboardProvider>
         <ThemeProvider>
-          <ThemedStack />
+          <View style={{ flex: 1 }}>
+            <ThemedStack />
+            <ActionBannerHost />
+          </View>
         </ThemeProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
