@@ -437,7 +437,7 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
   const textColor = feedback.tone === "error" ? colors.errText : colors.paper;
   return (
     <View pointerEvents="box-none" style={styles.host}>
-      <View pointerEvents="auto" style={[styles.banner, { backgroundColor }]}> 
+      <View pointerEvents="auto" style={[styles.banner, { backgroundColor }]}>
         <Text accessibilityLiveRegion="polite" style={[styles.message, { color: textColor }]}>{feedback.message}</Text>
         {feedback.action === "undo-delete" ? (
           <Pressable onPress={() => void undoLatestNoteDeletion()} accessibilityRole="button" accessibilityLabel="노트 삭제 실행 취소">
