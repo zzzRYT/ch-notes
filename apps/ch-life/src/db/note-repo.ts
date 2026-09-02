@@ -42,6 +42,14 @@ function makeId(): string {
 }
 
 export function makeNoteRepo(db: DbAdapter) {
+  const findById = async (id: string): Promise<Note | null> => {
+    const row = await db.getFirstAsync<Row>(
+      `SELECT * FROM notes WHERE id = ?`,
+      [id],
+    );
+    return row ? rowToNote(row) : null;
+  };
+
   return {
     async create(input: {
       id?: string;
@@ -113,13 +121,7 @@ export function makeNoteRepo(db: DbAdapter) {
       );
     },
 
-    async findById(id: string): Promise<Note | null> {
-      const row = await db.getFirstAsync<Row>(
-        `SELECT * FROM notes WHERE id = ?`,
-        [id],
-      );
-      return row ? rowToNote(row) : null;
-    },
+    findById,
 
     async listRecent(opts: { limit: number }): Promise<Note[]> {
       const rows = await db.getAllAsync<Row>(
@@ -129,8 +131,30 @@ export function makeNoteRepo(db: DbAdapter) {
       return rows.map(rowToNote);
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string): Promise<Note | null> {
+      const note = await findById(id);
+      if (!note) return null;
       await db.runAsync(`DELETE FROM notes WHERE id = ?`, [id]);
+      return note;
+    },
+
+    async restore(note: Note): Promise<void> {
+      await db.runAsync(
+        `INSERT INTO notes(id, title, body_json, created_at, updated_at, cited_refs, sermon_date, preacher, location, scripture)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          note.id,
+          note.title,
+          JSON.stringify(note.body),
+          note.createdAt,
+          note.updatedAt,
+          JSON.stringify(note.citedRefs),
+          note.sermonDate,
+          note.preacher,
+          note.location,
+          note.scripture,
+        ],
+      );
     },
 
     async searchNotes(query: string): Promise<Note[]> {

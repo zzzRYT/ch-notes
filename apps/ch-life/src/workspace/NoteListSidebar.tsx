@@ -16,11 +16,13 @@ import {
 } from "@/list/group-notes";
 import type { Note } from "@/domain/types";
 import { formatRef } from "@/parser/format-ref";
+import { SwipeToDelete } from "@/list/SwipeToDelete";
 
 type Props = {
-  notes: ReadonlyArray<Note>;
+  notes: readonly Note[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onDelete: (id: string) => void;
   onCreate: () => void;
   onImport: () => void;
   onSettings: () => void;
@@ -31,6 +33,7 @@ export function NoteListSidebar({
   notes,
   selectedId,
   onSelect,
+  onDelete,
   onCreate,
   onImport,
   onSettings,
@@ -38,6 +41,7 @@ export function NoteListSidebar({
 }: Props) {
   const { colors, fontScale } = useTheme();
   const [query, setQuery] = useState("");
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -135,56 +139,87 @@ export function NoteListSidebar({
             </Text>
             {g.notes.map((n) => {
               const active = n.id === selectedId;
+              const title = noteTitleOrFallback(n);
               return (
-                <Pressable
+                <SwipeToDelete
                   key={n.id}
-                  onPress={() => onSelect(n.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={noteTitleOrFallback(n)}
-                  style={[
-                    styles.item,
-                    {
-                      backgroundColor: active ? colors.accentSoft : "transparent",
-                    },
-                  ]}
+                  open={openSwipeId === n.id}
+                  onOpen={() => setOpenSwipeId(n.id)}
+                  onClose={() => setOpenSwipeId(null)}
+                  onDelete={() => {
+                    setOpenSwipeId(null);
+                    onDelete(n.id);
+                  }}
+                  deleteLabel={`${title} 노트 삭제`}
                 >
-                  <Text
+                  <Pressable
+                    onPress={() => {
+                      if (openSwipeId === n.id) setOpenSwipeId(null);
+                      else onSelect(n.id);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    accessibilityLabel={title}
+                    accessibilityActions={[
+                      { name: "delete", label: `${title} 노트 삭제` },
+                    ]}
+                    onAccessibilityAction={(event) => {
+                      if (event.nativeEvent.actionName === "delete") {
+                        onDelete(n.id);
+                      }
+                    }}
                     style={[
-                      styles.itemTitle,
+                      styles.item,
                       {
-                        color: colors.ink,
-                        fontSize: scaled(13, fontScale),
+                        backgroundColor: active
+                          ? colors.accentSoft
+                          : colors.paper,
                       },
                     ]}
-                    numberOfLines={1}
                   >
-                    {noteTitleOrFallback(n)}
-                  </Text>
-                  <View style={styles.itemMeta}>
                     <Text
                       style={[
-                        styles.itemMetaText,
-                        { color: colors.ink3, fontSize: scaled(11, fontScale) },
+                        styles.itemTitle,
+                        {
+                          color: colors.ink,
+                          fontSize: scaled(13, fontScale),
+                        },
                       ]}
+                      numberOfLines={1}
                     >
-                      {formatTime(n.createdAt)}
+                      {title}
                     </Text>
-                    {n.citedRefs[0] && (
-                      <>
-                        <Text style={{ color: colors.ink4 }}>·</Text>
-                        <Text
-                          style={[
-                            styles.itemPassage,
-                            { color: colors.accent, fontSize: scaled(11, fontScale) },
-                          ]}
-                        >
-                          {formatRef(n.citedRefs[0])}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                </Pressable>
+                    <View style={styles.itemMeta}>
+                      <Text
+                        style={[
+                          styles.itemMetaText,
+                          {
+                            color: colors.ink3,
+                            fontSize: scaled(11, fontScale),
+                          },
+                        ]}
+                      >
+                        {formatTime(n.createdAt)}
+                      </Text>
+                      {n.citedRefs[0] && (
+                        <>
+                          <Text style={{ color: colors.ink4 }}>·</Text>
+                          <Text
+                            style={[
+                              styles.itemPassage,
+                              {
+                                color: colors.accent,
+                                fontSize: scaled(11, fontScale),
+                              },
+                            ]}
+                          >
+                            {formatRef(n.citedRefs[0])}
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                  </Pressable>
+                </SwipeToDelete>
               );
             })}
           </View>

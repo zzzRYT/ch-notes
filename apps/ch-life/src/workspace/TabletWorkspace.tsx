@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Pressable,
@@ -7,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Trash2 } from "lucide-react-native";
 import { openNoteRepo } from "@/db/expo-adapter";
 import { useAppStore } from "@/state/app-store";
 import { useTheme } from "@/theme/ThemeProvider";
@@ -14,7 +21,8 @@ import { NoteEditor } from "@/editor/NoteEditor";
 import { SermonMetaHeader } from "@/editor/SermonMetaHeader";
 import { useAutoSave } from "@/editor/useAutoSave";
 import { extractCitedRefs } from "@/editor/cited-refs";
-import { lookupVerses } from "@/parser/verse-lookup";
+import { insertVerse } from "@/editor/insert-verse";
+import { deleteNoteWithUndo } from "@/notes/note-actions";
 import { exportNote } from "@/share/export-note";
 import { useNoteImport } from "@/share/use-note-import";
 import { noteTitleOrFallback } from "@/list/group-notes";
@@ -34,7 +42,7 @@ function dayLabel(ts: number): string {
 }
 
 export function TabletWorkspace() {
-  const { colors, fontScale, fontStack } = useTheme();
+  const { colors } = useTheme();
   const router = useRouter();
   const { runImport } = useNoteImport();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -50,8 +58,13 @@ export function TabletWorkspace() {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loadedNoteId, setLoadedNoteId] = useState<string | null>(null);
+  const bodyRef = useRef(body);
+  const deletingRef = useRef(false);
+  const noteRevision = useAppStore((state) => state.noteRevision);
 
-  // Initial load — fetch notes, pick first as active.
+  // Reload after note deletion/restoration, selecting a restored note first.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -59,43 +72,63 @@ export function TabletWorkspace() {
       const list = await repo.listRecent({ limit: 200 });
       if (cancelled) return;
       setNotes(list);
-      const first = list[0];
-      if (first) {
-        setSelectedId(first.id);
-        setTitle(first.title);
-        setBody(
-          first.body.length ? first.body : [{ type: "paragraph", text: "" }],
-        );
-        setSermonDate(first.sermonDate);
-        setPreacher(first.preacher);
-        setLocation(first.location);
-        setScripture(first.scripture);
-      }
+      const restoredId = useAppStore.getState().lastRestoredNoteId;
+      setSelectedId((current) => {
+        if (restoredId && list.some((note) => note.id === restoredId)) {
+          return restoredId;
+        }
+        if (current && list.some((note) => note.id === current)) return current;
+        return list[0]?.id ?? null;
+      });
     })().catch((e) => console.warn("workspace load failed", e));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [noteRevision]);
+
+  useEffect(() => {
+    bodyRef.current = body;
+  }, [body]);
 
   // When the user switches the active note, load it fresh.
   useEffect(() => {
     if (!selectedId) return;
+    setLoadedNoteId(null);
     let cancelled = false;
     (async () => {
       const repo = await openNoteRepo();
       const n = await repo.findById(selectedId);
       if (cancelled || !n) return;
       setTitle(n.title);
-      setBody(n.body.length ? n.body : [{ type: "paragraph", text: "" }]);
+      const nextBody = n.body.length
+        ? n.body
+        : [{ type: "paragraph", text: "" } satisfies BlockNode];
+      bodyRef.current = nextBody;
+      setBody(nextBody);
       setSermonDate(n.sermonDate);
       setPreacher(n.preacher);
       setLocation(n.location);
       setScripture(n.scripture);
       useAppStore.getState().setCurrentNoteId(n.id);
+      setLoadedNoteId(n.id);
     })().catch((e) => console.warn("note load failed", e));
     return () => {
       cancelled = true;
     };
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (selectedId) return;
+    const emptyBody: BlockNode[] = [{ type: "paragraph", text: "" }];
+    bodyRef.current = emptyBody;
+    setTitle(null);
+    setBody(emptyBody);
+    setSermonDate(null);
+    setPreacher(null);
+    setLocation(null);
+    setScripture(null);
+    setLoadedNoteId(null);
+    useAppStore.getState().setCurrentNoteId(null);
   }, [selectedId]);
 
   const save = useCallback(
@@ -133,7 +166,12 @@ export function TabletWorkspace() {
     [selectedId],
   );
 
-  useAutoSave({
+  const handleAutoSaveError = useCallback((error: unknown) => {
+    console.warn("autosave failed", error);
+    setSaveErr("저장 실패");
+  }, []);
+
+  const { flush: flushAutoSave } = useAutoSave({
     title,
     body,
     sermonDate,
@@ -141,21 +179,58 @@ export function TabletWorkspace() {
     location,
     scripture,
     save,
-    onError: (e) => {
-      console.warn("autosave failed", e);
-      setSaveErr("저장 실패");
-    },
+    onError: handleAutoSaveError,
+    enabled:
+      selectedId !== null &&
+      loadedNoteId === selectedId &&
+      deletingId !== selectedId,
   });
 
   const insertRef = useCallback((ref: string) => {
-    const verses = lookupVerses(ref);
-    if (!verses) return;
-    setBody((b) => [
-      ...b,
-      { type: "quote", ref, verses, status: "loaded" },
-      { type: "paragraph", text: "" },
-    ]);
+    const result = insertVerse(bodyRef.current, ref);
+    if (result.ok) {
+      bodyRef.current = result.body;
+      setBody(result.body);
+    }
+    useAppStore.getState().showFeedback({
+      message: result.message,
+      tone: result.ok ? "info" : "error",
+      durationMs: 3000,
+    });
   }, []);
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (deletingRef.current) return;
+      deletingRef.current = true;
+      setDeletingId(id);
+      try {
+        if (id === selectedId) {
+          await flushAutoSave();
+        }
+
+        const deleted = await deleteNoteWithUndo(id);
+        if (deleted) {
+          const remaining = notes.filter((note) => note.id !== id);
+          setNotes(remaining);
+          if (selectedId === id) setSelectedId(remaining[0]?.id ?? null);
+        }
+      } catch (error) {
+        if (id === selectedId) {
+          console.warn("save before delete failed", error);
+          useAppStore.getState().showFeedback({
+            message: "저장 중 오류가 발생해 노트를 삭제하지 못했습니다",
+            tone: "error",
+            durationMs: 3000,
+          });
+        }
+      } finally {
+        deletingRef.current = false;
+        setDeletingId(null);
+      }
+    },
+    [selectedId, flushAutoSave, notes],
+  );
 
   const createNote = useCallback(async () => {
     const repo = await openNoteRepo();
@@ -224,6 +299,7 @@ export function TabletWorkspace() {
             notes={notes}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            onDelete={(id) => void handleDelete(id)}
             onCreate={createNote}
             onImport={handleImport}
             onSettings={() => router.push("/settings")}
@@ -279,6 +355,17 @@ export function TabletWorkspace() {
             </Text>
           </View>
           <View style={styles.centerActions}>
+            {selectedId && (
+              <Pressable
+                onPress={() => void handleDelete(selectedId)}
+                disabled={deletingId !== null}
+                accessibilityRole="button"
+                accessibilityLabel="현재 노트 삭제"
+                style={styles.deleteBtn}
+              >
+                <Trash2 size={17} color={colors.errText} strokeWidth={1.8} />
+              </Pressable>
+            )}
             <Pressable
               onPress={handleExport}
               accessibilityRole="button"
@@ -326,7 +413,13 @@ export function TabletWorkspace() {
               onChangeLocation={setLocation}
               onChangeScripture={setScripture}
             />
-            <NoteEditor body={body} onChangeBody={setBody} />
+            <NoteEditor
+              body={body}
+              onChangeBody={(nextBody) => {
+                bodyRef.current = nextBody;
+                setBody(nextBody);
+              }}
+            />
           </>
         ) : (
           <View style={styles.emptyState}>
@@ -406,6 +499,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   crumbBtnText: { fontSize: 15 },
+  deleteBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+  },
   centerActions: { flexDirection: "row", gap: 4 },
   errBanner: { paddingHorizontal: 20, paddingVertical: 8 },
   emptyState: {

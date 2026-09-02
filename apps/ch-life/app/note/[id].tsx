@@ -7,11 +7,10 @@ import React, {
 } from 'react';
 import { Keyboard, Text, View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BookOpen, Share } from 'lucide-react-native';
+import { BookOpen, Share, Trash2 } from 'lucide-react-native';
 import { SermonMetaHeader } from '@/editor/SermonMetaHeader';
 import { useAutoSave } from '@/editor/useAutoSave';
 import { BibleBrowser } from '@/browser/BibleBrowser';
-import { lookupVerses } from '@/parser/verse-lookup';
 import { openNoteRepo } from '@/db/expo-adapter';
 import { useAppStore } from '@/state/app-store';
 import { exportNote } from '@/share/export-note';
@@ -25,6 +24,8 @@ import {
 } from '@/chrome/HeaderControls';
 import type { BlockNode } from '@/domain/types';
 import { NoteEditor, type NoteEditorHandle } from '@/editor/NoteEditor';
+import { insertVerse } from '@/editor/insert-verse';
+import { deleteNoteWithUndo } from '@/notes/note-actions';
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -41,7 +42,14 @@ export default function NoteEditorScreen() {
   const [ready, setReady] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [browserOpen, setBrowserOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const editorRef = useRef<NoteEditorHandle>(null);
+  const bodyRef = useRef(body);
+  const deletingRef = useRef(false);
+
+  useEffect(() => {
+    bodyRef.current = body;
+  }, [body]);
 
   const handleExport = useCallback(async () => {
     if (!id) return;
@@ -70,13 +78,14 @@ export default function NoteEditorScreen() {
   }, []);
 
   const insertVerseFromBrowser = useCallback((ref: string) => {
-    const verses = lookupVerses(ref);
-    if (!verses) return;
-    setBody((b) => [
-      ...b,
-      { type: 'quote', ref, verses, status: 'loaded' },
-      { type: 'paragraph', text: '' },
-    ]);
+    const result = insertVerse(bodyRef.current, ref);
+    bodyRef.current = result.body;
+    setBody(result.body);
+    useAppStore.getState().showFeedback({
+      message: result.message,
+      tone: result.ok ? 'info' : 'error',
+      durationMs: 3000,
+    });
   }, []);
 
   useEffect(() => {
@@ -148,7 +157,7 @@ export default function NoteEditorScreen() {
     [],
   );
 
-  useAutoSave({
+  const { flush: flushAutoSave } = useAutoSave({
     title,
     body,
     sermonDate,
@@ -157,7 +166,33 @@ export default function NoteEditorScreen() {
     scripture,
     save,
     onError,
+    enabled: ready && !deleting,
   });
+
+  const handleDelete = useCallback(async () => {
+    if (!id || deletingRef.current) return;
+    deletingRef.current = true;
+    try {
+      await flushAutoSave();
+    } catch (error) {
+      console.warn('pre-delete save failed', error);
+      useAppStore.getState().showFeedback({
+        message: '노트를 삭제하지 못했습니다',
+        tone: 'error',
+        durationMs: 3000,
+      });
+      deletingRef.current = false;
+      return;
+    }
+
+    setDeleting(true);
+    const deleted = await deleteNoteWithUndo(id);
+    if (deleted) router.replace('/');
+    else {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  }, [id, flushAutoSave, router]);
 
   if (!ready) return null;
   return (
@@ -176,6 +211,12 @@ export default function NoteEditorScreen() {
               label="노트 공유"
               onPress={handleExport}
             />
+            <HeaderIconButton
+              icon={Trash2}
+              label="현재 노트 삭제"
+              tint="error"
+              onPress={handleDelete}
+            />
             <HeaderTextButton label="완료" onPress={() => Keyboard.dismiss()} />
           </>
         }
@@ -188,7 +229,10 @@ export default function NoteEditorScreen() {
       <NoteEditor
         ref={editorRef}
         body={body}
-        onChangeBody={setBody}
+        onChangeBody={(nextBody) => {
+          bodyRef.current = nextBody;
+          setBody(nextBody);
+        }}
         header={
           <SermonMetaHeader
             title={title}

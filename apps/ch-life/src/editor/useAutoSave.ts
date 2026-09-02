@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { BlockNode } from "@/domain/types";
 import { extractCitedRefs } from "./cited-refs";
 
@@ -14,6 +14,11 @@ type SaveState = {
 type SavePayload = SaveState & { citedRefs: string[] };
 
 type SaveFn = (patch: SavePayload) => Promise<void>;
+
+export type AutoSaveHandle = {
+  flush: () => Promise<void>;
+  cancel: () => void;
+};
 
 export function buildSavePayload(state: SaveState): SavePayload {
   return {
@@ -37,7 +42,8 @@ export function useAutoSave(opts: {
   save: SaveFn;
   delayMs?: number;
   onError?: (e: unknown) => void;
-}): void {
+  enabled?: boolean;
+}): AutoSaveHandle {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     title,
@@ -49,11 +55,52 @@ export function useAutoSave(opts: {
     save,
     delayMs = 500,
     onError,
+    enabled = true,
   } = opts;
 
-  useEffect(() => {
+  const cancel = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }, []);
+
+  const handleError = useCallback(
+    (error: unknown) => {
+      if (onError) onError(error);
+      else console.warn("autosave failed", error);
+    },
+    [onError],
+  );
+
+  const flush = useCallback(async () => {
+    cancel();
+    if (!enabled) return;
+    await save(
+      buildSavePayload({
+        title,
+        body,
+        sermonDate,
+        preacher,
+        location,
+        scripture,
+      }),
+    );
+  }, [
+    enabled,
+    save,
+    title,
+    body,
+    sermonDate,
+    preacher,
+    location,
+    scripture,
+    cancel,
+  ]);
+
+  useEffect(() => {
+    cancel();
+    if (!enabled) return;
     timerRef.current = setTimeout(() => {
+      timerRef.current = null;
       save(
         buildSavePayload({
           title,
@@ -63,13 +110,22 @@ export function useAutoSave(opts: {
           location,
           scripture,
         }),
-      ).catch((e) => {
-        if (onError) onError(e);
-        else console.warn("autosave failed", e);
-      });
+      ).catch(handleError);
     }, delayMs);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [title, body, sermonDate, preacher, location, scripture, save, delayMs, onError]);
+    return cancel;
+  }, [
+    enabled,
+    title,
+    body,
+    sermonDate,
+    preacher,
+    location,
+    scripture,
+    save,
+    delayMs,
+    handleError,
+    cancel,
+  ]);
+
+  return { flush, cancel };
 }
