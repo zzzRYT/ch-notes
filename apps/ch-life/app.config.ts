@@ -4,7 +4,7 @@ const config: ExpoConfig = {
   name: "씀씀",
   slug: "ch-note",
   owner: "zzzryt",
-  version: "1.0.0",
+  version: "1.0.1",
   orientation: "default",
   icon: "./assets/icon.png",
   scheme: "chlife",
