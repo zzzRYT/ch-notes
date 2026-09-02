@@ -106,11 +106,32 @@ describe("app-store", () => {
   it("finishDeleteUndo가 복원 ID를 남기고 revision을 올린다", () => {
     useAppStore.getState().offerDeleteUndo(makeNote("A"));
     const before = useAppStore.getState().noteRevision;
-    useAppStore.getState().finishDeleteUndo();
+    useAppStore.getState().finishDeleteUndo("A");
     expect(useAppStore.getState().deletedNote).toBeNull();
     expect(useAppStore.getState().lastRestoredNoteId).toBe("A");
     expect(useAppStore.getState().feedback?.message).toBe("노트를 복원했습니다");
     expect(useAppStore.getState().noteRevision).toBe(before + 1);
+  });
+
+  it("이전 복원이 늦게 끝나도 최신 삭제 실행 취소를 보존한다", () => {
+    useAppStore.getState().offerDeleteUndo(makeNote("A"));
+    useAppStore.getState().offerDeleteUndo(makeNote("B"));
+
+    useAppStore.getState().finishDeleteUndo("A");
+
+    expect(useAppStore.getState().deletedNote?.id).toBe("B");
+    expect(useAppStore.getState().feedback?.action).toBe("undo-delete");
+    expect(useAppStore.getState().lastRestoredNoteId).toBe("A");
+  });
+
+  it("이전 복원 실패가 최신 삭제 실행 취소를 지우지 않는다", () => {
+    useAppStore.getState().offerDeleteUndo(makeNote("A"));
+    useAppStore.getState().offerDeleteUndo(makeNote("B"));
+
+    useAppStore.getState().failDeleteUndo("A");
+
+    expect(useAppStore.getState().deletedNote?.id).toBe("B");
+    expect(useAppStore.getState().feedback?.action).toBe("undo-delete");
   });
 
   it("stale clear는 새 피드백을 지우지 않고 undo 만료는 스냅샷을 비운다", () => {

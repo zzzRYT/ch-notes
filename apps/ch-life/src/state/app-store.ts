@@ -28,8 +28,8 @@ type AppState = {
   showFeedback: (input: FeedbackInput) => void;
   clearFeedback: (id: number) => void;
   offerDeleteUndo: (note: Note) => void;
-  finishDeleteUndo: () => void;
-  failDeleteUndo: () => void;
+  finishDeleteUndo: (restoredNoteId: string) => void;
+  failDeleteUndo: (failedNoteId: string) => void;
   setSettings: (next: Partial<Settings>) => void;
 };
 
@@ -98,25 +98,41 @@ export const useAppStore = create<AppState>((set, get) => ({
         action: "undo-delete",
       }),
     })),
-  finishDeleteUndo: () =>
-    set((state) => ({
-      deletedNote: null,
-      lastRestoredNoteId: state.deletedNote?.id ?? null,
-      noteRevision: state.noteRevision + 1,
-      feedback: makeFeedback({
-        message: "노트를 복원했습니다",
-        tone: "info",
-        durationMs: 3000,
-      }),
-    })),
-  failDeleteUndo: () =>
-    set({
-      deletedNote: null,
-      feedback: makeFeedback({
-        message: "노트를 복원하지 못했습니다",
-        tone: "error",
-        durationMs: 3000,
-      }),
+  finishDeleteUndo: (restoredNoteId) =>
+    set((state) => {
+      const restoredState = {
+        lastRestoredNoteId: restoredNoteId,
+        noteRevision: state.noteRevision + 1,
+      };
+      if (
+        state.deletedNote &&
+        state.deletedNote.id !== restoredNoteId
+      ) {
+        return restoredState;
+      }
+      return {
+        ...restoredState,
+        deletedNote: null,
+        feedback: makeFeedback({
+          message: "노트를 복원했습니다",
+          tone: "info",
+          durationMs: 3000,
+        }),
+      };
+    }),
+  failDeleteUndo: (failedNoteId) =>
+    set((state) => {
+      if (state.deletedNote && state.deletedNote.id !== failedNoteId) {
+        return state;
+      }
+      return {
+        deletedNote: null,
+        feedback: makeFeedback({
+          message: "노트를 복원하지 못했습니다",
+          tone: "error",
+          durationMs: 3000,
+        }),
+      };
     }),
   setSettings: (next) =>
     set((s) => ({ settings: { ...s.settings, ...next } })),

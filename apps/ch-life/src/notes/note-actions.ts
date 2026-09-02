@@ -5,6 +5,8 @@ import { useAppStore } from "@/state/app-store";
 type NoteActionRepo = Pick<NoteRepo, "delete" | "restore">;
 type RepoFactory = () => Promise<NoteActionRepo>;
 
+let undoInFlight: Promise<boolean> | null = null;
+
 export async function deleteNoteWithUndo(
   id: string,
   repoFactory: RepoFactory = openNoteRepo,
@@ -26,20 +28,28 @@ export async function deleteNoteWithUndo(
   }
 }
 
-export async function undoLatestNoteDeletion(
+export function undoLatestNoteDeletion(
   repoFactory: RepoFactory = openNoteRepo,
 ): Promise<boolean> {
+  if (undoInFlight) return undoInFlight;
   const note = useAppStore.getState().deletedNote;
-  if (!note) return false;
+  if (!note) return Promise.resolve(false);
 
-  try {
-    const repo = await repoFactory();
-    await repo.restore(note);
-    useAppStore.getState().finishDeleteUndo();
-    return true;
-  } catch (error) {
-    console.warn("note restore failed", error);
-    useAppStore.getState().failDeleteUndo();
-    return false;
-  }
+  const operation = (async () => {
+    try {
+      const repo = await repoFactory();
+      await repo.restore(note);
+      useAppStore.getState().finishDeleteUndo(note.id);
+      return true;
+    } catch (error) {
+      console.warn("note restore failed", error);
+      useAppStore.getState().failDeleteUndo(note.id);
+      return false;
+    }
+  })();
+  undoInFlight = operation;
+  void operation.finally(() => {
+    if (undoInFlight === operation) undoInFlight = null;
+  });
+  return operation;
 }
