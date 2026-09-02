@@ -14,6 +14,7 @@ import { useAppStore } from '@/state/app-store';
 import { useTheme, VARIATION_OPTIONS } from '@/theme/ThemeProvider';
 import { AppHeader } from '@/chrome/AppHeader';
 import { HeaderBack } from '@/chrome/HeaderControls';
+import { useContactSupport } from '@/support/use-contact-support';
 import type {
   AccentChoice,
   BlockStyle,
@@ -73,6 +74,8 @@ export default function SettingsScreen() {
 
   const version = Constants.expoConfig?.version ?? '?';
   const router = useRouter();
+  const { openContact, showAddressFallback, supportEmail } =
+    useContactSupport();
 
   const openPrivacyPolicy = async () => {
     try {
@@ -292,6 +295,40 @@ export default function SettingsScreen() {
               ↗
             </Text>
           </Pressable>
+          <Pressable
+            onPress={openContact}
+            accessibilityRole="button"
+            accessibilityLabel="문의하기 (메일 앱으로 문의 메일 작성)"
+            style={[styles.navRow, { borderTopColor: colors.rule }]}
+          >
+            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
+              문의하기
+            </Text>
+            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
+              ✉
+            </Text>
+          </Pressable>
+          {showAddressFallback && (
+            <View
+              accessibilityRole="alert"
+              style={[
+                styles.fallbackBox,
+                { backgroundColor: colors.chipBg, borderColor: colors.rule },
+              ]}
+            >
+              <Text style={[styles.hint, { color: colors.ink2 }]}>
+                메일 앱을 열지 못했습니다. 아래 주소로 보내 주세요. 주소를 길게
+                누르면 복사할 수 있습니다.
+              </Text>
+              <Text
+                selectable
+                accessibilityLabel={`문의 이메일 주소 ${supportEmail}`}
+                style={[styles.fallbackAddress, { color: colors.ink }]}
+              >
+                {supportEmail}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -358,4 +395,12 @@ const styles = StyleSheet.create({
   },
   navRowLabel: { fontSize: 15 },
   navRowChevron: { fontSize: 22 },
+  fallbackBox: {
+    gap: 6,
+    padding: 12,
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  fallbackAddress: { fontSize: 16, fontWeight: '600' },
 });
