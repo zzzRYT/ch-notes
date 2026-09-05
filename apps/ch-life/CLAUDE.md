@@ -47,9 +47,9 @@ expo-router / expo-sqlite / zustand**, 웹 + 모바일. 어르신 친화 UX.
 
 ## 배포
 
-- JS/에셋만 변경 → **EAS Update(OTA)**. 네이티브 의존성/`version` 변경 → **EAS Build**.
-- ⚠️ `runtimeVersion: appVersion` — `app.config.ts`의 `version`을 올리면 OTA가 구버전 설치본에
-  안 닿으므로 **새 네이티브 빌드 필요**. 자세한 절차는 `.claude/skills/eas-release`.
+- JS/에셋만 변경 → **Hot Updater(OTA)**. 네이티브 의존성/`version` 변경 → **EAS Build**.
+- ⚠️ `updateStrategy: appVersion` — 대상 앱 버전을 명시해 OTA를 발행한다. 버전이나 네이티브
+  계약을 바꾸면 **새 네이티브 빌드 필요**. 자세한 절차는 `.claude/skills/eas-release`.
 
 ## 워크트리
 

@@ -1,9 +1,9 @@
 ---
 name: eas-release
-description: Ship a ch-life release — decide between EAS Update (OTA) and EAS Build, and run it safely. Use when publishing an update, cutting a build, bumping the app version, or touching app.config.ts version/runtimeVersion, eas.json, or the eas-build/eas-update workflows.
+description: Ship a ch-life release — decide between Hot Updater OTA and EAS Build, and run it safely. Use when publishing an update, cutting a build, bumping the app version, or touching app.config.ts, eas.json, or the build/update workflows.
 ---
 
-# 릴리스 / EAS 배포
+# 릴리스 / Hot Updater·EAS 배포
 
 먼저 **OTA로 충분한가, 새 빌드가 필요한가**를 판단한다. 잘못 고르면 사용자에게 업데이트가
 아예 안 닿는다.
@@ -12,21 +12,20 @@ description: Ship a ch-life release — decide between EAS Update (OTA) and EAS 
 
 | 변경 내용 | 경로 |
 |-----------|------|
-| JS/TS 로직, 스타일, JS 에셋만 | **EAS Update (OTA)** |
+| JS/TS 로직, 스타일, JS 에셋만 | **Hot Updater (OTA)** |
 | 네이티브 의존성 추가/변경(새 expo 모듈, native lib) | **EAS Build** |
-| `app.config.ts`의 `version` 변경 | **EAS Build** (아래 함정) |
+| `app.config.ts`의 `version` 변경 | **EAS Build** |
 | `app.config.ts` plugins/권한/네이티브 설정 변경 | **EAS Build** |
 
-⚠️ **`runtimeVersion.policy = "appVersion"`** (app.config.ts). OTA 업데이트는 **같은
-`version`을 가진 설치본에만** 적용된다. `version`을 올리면 새 런타임이 되어 기존 OTA 채널과
-분리되므로, 반드시 **새 네이티브 빌드**를 내야 사용자에게 닿는다. "버전 올리고 OTA만 쏘는" 실수 금지.
+⚠️ Hot Updater의 `updateStrategy: "appVersion"`은 OTA를 **지정한 앱 버전 설치본에만**
+보낸다. 버전을 올렸거나 네이티브 계약을 바꿨으면 반드시 새 네이티브 빌드를 먼저 낸다.
 
-## EAS Update (OTA)
+## Hot Updater (OTA)
 
-- **자동**: `main`에 머지되어 **CI(typecheck/lint/test)가 통과하면** `eas-update.yml`이
-  `preview` 브랜치로 자동 발행한다(실패한 CI는 OTA 안 나감).
-- **수동**: GitHub Actions → "EAS Update (OTA)" → Run workflow → branch `preview`|`production` 선택.
-- 채널/브랜치: `eas.json`의 `development`/`preview`/`production`.
+- **자동**: `main` CI가 통과하면 `eas-update.yml`이 Hot Updater `preview` 채널로 발행한다.
+- **수동 production**: GitHub Actions → "Hot Updater (OTA)" → `production` 선택.
+- 로컬: `pnpm exec hot-updater deploy --channel production --target-app-version <version>`.
+- `--force-update`는 사용하지 않는다. 현재 세션은 재시작하지 않는다.
 
 ## EAS Build
 
@@ -42,9 +41,12 @@ description: Ship a ch-life release — decide between EAS Update (OTA) and EAS 
 - [ ] `version` 올렸으면 → Build 필수, OTA로 끝내지 말 것.
 - [ ] pnpm은 `.npmrc`의 `node-linker=hoisted` 필수 — 없으면 `babel-preset-expo` 해석 실패로
       `expo export`/`eas update` 번들이 깨진다. (이미 설정됨, 건드리지 말 것.)
-- [ ] `EXPO_TOKEN` 시크릿이 워크플로에 필요(EAS 인증).
+- [ ] `pnpm exec hot-updater doctor --json --server-base-url "$HOT_UPDATER_BASE_URL"` 통과.
+- [ ] Hot Updater 기준선 스토어 빌드가 대상 기기에 설치됨.
+- [ ] Cloudflare·서명 secret과 공개 Worker URL이 EAS/GitHub에 등록됨.
 
 ## 참고
 
-- 설정: `app.config.ts`(version, runtimeVersion, updates.url, projectId), `eas.json`(프로필).
+- 설정: `app.config.ts`, `hot-updater.config.ts`, `eas.json`.
 - 워크플로: `.github/workflows/eas-build.yml`, `.github/workflows/eas-update.yml`.
+- 전체 절차: `docs/store/ota-deploy.md`.

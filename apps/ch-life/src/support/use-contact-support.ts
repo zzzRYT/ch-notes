@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import * as Updates from "expo-updates";
+import { HotUpdater } from "@hot-updater/react-native";
 
 import {
   buildContactDraft,
@@ -14,20 +14,20 @@ import {
 /**
  * 네이티브 쪽 값을 모은다.
  *
- * `expo-updates`의 상수들은 업데이트가 비활성이거나 임베디드 실행일 때 예외
- * 대신 null을 돌려주지만(SDK 54), 개발 빌드 조합에 따라 접근 자체가 실패하는
- * 경우를 배제할 수 없어 통째로 감싼다. 진단 정보 수집 실패가 문의 자체를
- * 막아서는 안 된다.
+ * Hot Updater 네이티브 값 접근은 Expo Go나 네이티브 연결이 빠진 개발 빌드에서
+ * 실패할 수 있어 통째로 감싼다. 진단 정보 수집 실패가 문의 자체를 막아서는
+ * 안 된다.
  */
 function readSupportEnv(): SupportEnv {
   let updateId: string | null = null;
   let channel: string | null = null;
-  let runtimeVersion: string | null = null;
+  let updateAppVersion: string | null = null;
 
   try {
-    updateId = Updates.updateId ?? null;
-    channel = Updates.channel ?? null;
-    runtimeVersion = Updates.runtimeVersion ?? null;
+    const bundleId = HotUpdater.getBundleId();
+    updateId = bundleId === HotUpdater.getMinBundleId() ? null : bundleId;
+    channel = HotUpdater.getChannel();
+    updateAppVersion = HotUpdater.getAppVersion();
   } catch {
     // 값이 없는 것과 같게 다룬다 — 진단 블록에 embedded로 찍힌다.
   }
@@ -40,14 +40,14 @@ function readSupportEnv(): SupportEnv {
     iosBuild ?? (androidBuild === null ? null : String(androidBuild));
 
   return {
-    appVersion: Constants.expoConfig?.version ?? null,
+    appVersion: updateAppVersion ?? Constants.expoConfig?.version ?? null,
     buildNumber,
     osName: Platform.OS,
     osVersion: String(Platform.Version),
     deviceName: Constants.deviceName ?? null,
     updateId,
     channel,
-    runtimeVersion,
+    updateAppVersion,
   };
 }
 

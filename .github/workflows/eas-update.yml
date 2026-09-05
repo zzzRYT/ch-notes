@@ -1,8 +1,7 @@
-name: EAS Update (OTA)
+name: Hot Updater (OTA)
 
-# Publishes an over-the-air JS/asset update. Runs automatically only after the
-# CI workflow succeeds on main, so we never ship an OTA update that failed
-# typecheck/lint/tests. Can also be triggered manually with a branch choice.
+# Publishes a signed Hot Updater bundle after CI succeeds. Manual production
+# deploys use the same checked-in workflow and explicit channel choice.
 on:
   workflow_run:
     workflows: ["CI"]
@@ -10,14 +9,14 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      branch:
-        description: "EAS Update branch to publish to"
+      channel:
+        description: "Hot Updater channel to publish to"
         type: choice
         default: preview
         options: [preview, production]
 
 concurrency:
-  group: eas-update-${{ github.ref }}
+  group: hot-updater-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -48,18 +47,38 @@ jobs:
           cache: pnpm
           cache-dependency-path: apps/ch-life/pnpm-lock.yaml
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Publish update
+      - name: Restore bundle signing key
         env:
-          EAS_BRANCH: ${{ github.event.inputs.branch || 'preview' }}
-          # Passed via env (not inline ${{ }}) to avoid shell injection from messages.
+          HOT_UPDATER_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_PRIVATE_KEY }}
+        run: |
+          mkdir -p keys
+          printf '%s' "$HOT_UPDATER_PRIVATE_KEY" > keys/private-key.pem
+          chmod 600 keys/private-key.pem
+
+      - name: Publish signed update
+        env:
+          HOT_UPDATER_CHANNEL: ${{ github.event.inputs.channel || 'preview' }}
+          HOT_UPDATER_BASE_URL: ${{ vars.HOT_UPDATER_BASE_URL }}
+          HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID }}
+          HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
+          HOT_UPDATER_CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_D1_DATABASE_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME: ${{ vars.HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME }}
+          HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
           UPDATE_MESSAGE: ${{ github.event.workflow_run.head_commit.message || github.sha }}
-        run: eas update --branch "$EAS_BRANCH" --message "$UPDATE_MESSAGE" --non-interactive
+        run: |
+          test -n "$HOT_UPDATER_BASE_URL"
+          test -n "$HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID"
+          test -n "$HOT_UPDATER_CLOUDFLARE_API_TOKEN"
+          test -n "$HOT_UPDATER_CLOUDFLARE_D1_DATABASE_ID"
+          test -n "$HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME"
+          test -n "$HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID"
+          test -n "$HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY"
+          TARGET_APP_VERSION="$(pnpm exec expo config --type public --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).version))')"
+          pnpm exec hot-updater deploy \
+            --channel "$HOT_UPDATER_CHANNEL" \
+            --target-app-version "$TARGET_APP_VERSION" \
+            --message "$UPDATE_MESSAGE"

@@ -1,5 +1,14 @@
 import { ExpoConfig } from "expo/config";
 
+const hotUpdaterChannel = process.env.HOT_UPDATER_CHANNEL ?? "production";
+const hotUpdaterBaseUrl = process.env.HOT_UPDATER_BASE_URL ?? null;
+
+if (process.env.EAS_BUILD_PROFILE && !hotUpdaterBaseUrl) {
+  throw new Error(
+    "HOT_UPDATER_BASE_URL must be set when creating an EAS build.",
+  );
+}
+
 const config: ExpoConfig = {
   name: "씀씀",
   slug: "ch-note",
@@ -10,12 +19,6 @@ const config: ExpoConfig = {
   scheme: "chlife",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
-  updates: {
-    url: "https://u.expo.dev/813691d9-f5ff-48d6-93c7-47432b44b2ce",
-  },
-  runtimeVersion: {
-    policy: "appVersion",
-  },
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
@@ -43,6 +46,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    ["@hot-updater/react-native", { channel: hotUpdaterChannel }],
     [
       "expo-build-properties",
       {
@@ -57,6 +61,7 @@ const config: ExpoConfig = {
   ],
   experiments: { typedRoutes: true },
   extra: {
+    hotUpdaterBaseUrl,
     eas: {
       projectId: "813691d9-f5ff-48d6-93c7-47432b44b2ce",
     },

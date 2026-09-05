@@ -49,3 +49,9 @@ yarn-error.*
 # editor-web Vite build output (the single-file bundle is committed as
 # src/editor/generated/editorHtml.js via `pnpm editor:build`)
 editor-web/build/
+# hot-updater
+keys/
+.env.hotupdater
+.hot-updater/output/
+.hot-updater/logs/
+.hot-updater/output

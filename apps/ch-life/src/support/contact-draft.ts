@@ -33,12 +33,12 @@ export type SupportEnv = {
   osVersion: string | null;
   /** `Constants.deviceName` */
   deviceName: string | null;
-  /** `Updates.updateId` — 임베디드 실행이면 null */
+  /** `HotUpdater.getBundleId()` — 임베디드 실행이면 null로 정규화 */
   updateId: string | null;
-  /** `Updates.channel` — 개발 빌드면 null */
+  /** `HotUpdater.getChannel()` */
   channel: string | null;
-  /** `Updates.runtimeVersion` */
-  runtimeVersion: string | null;
+  /** `HotUpdater.getAppVersion()` — OTA 호환성 기준 */
+  updateAppVersion: string | null;
 };
 
 export type ContactDraft = {
@@ -99,7 +99,7 @@ export function formatDiagnostics(env: SupportEnv, now: Date): string {
     `앱 버전: ${formatAppVersion(env)}`,
     `업데이트: ${orEmbedded(env.updateId)}`,
     `채널: ${orEmbedded(env.channel)}`,
-    `런타임: ${orUnknown(env.runtimeVersion)}`,
+    `OTA 대상 앱 버전: ${orUnknown(env.updateAppVersion)}`,
     `기기: ${orUnknown(env.deviceName)}`,
     `운영체제: ${env.osName} ${orUnknown(env.osVersion)}`,
   ].join("\n");
