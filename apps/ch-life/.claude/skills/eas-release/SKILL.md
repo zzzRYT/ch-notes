@@ -5,6 +5,13 @@ description: Ship a ch-life release — decide between Hot Updater OTA and EAS B
 
 # 릴리스 / Hot Updater·EAS 배포
 
+정본은 `wiki/contracts/CONTRACT-RELEASE.md`(+ `POL-RELEASE-001`, `ADR-0013`)다.
+
+⚠️ **스토어의 1.0.1은 `expo-updates`로 빌드된 바이너리인데 main은 `hot-updater`로 갈아탔다**
+(`30b6a60`, PR #14). hot-updater 클라이언트는 네이티브 모듈이라 OTA로 배달할 수 없다 —
+**1.0.1 설치본에는 어떤 OTA도 닿지 않는다.** 그 사용자들에게 고침을 보내려면 새 스토어 빌드뿐이다.
+OTA 잡은 시크릿·변수 7개를 `test -n`으로 검사하므로 하나만 없어도 실패한다.
+
 먼저 **OTA로 충분한가, 새 빌드가 필요한가**를 판단한다. 잘못 고르면 사용자에게 업데이트가
 아예 안 닿는다.
 

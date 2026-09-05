@@ -11,6 +11,11 @@ ch-life의 노트 DB는 스키마가 **두 곳에 중복**되고, 마이그레�
 
 ## 체크리스트 (순서대로)
 
+0. **`wiki/contracts/CONTRACT-DB-NOTES.md`와 `ADR-0006`을 먼저 본다.** 두 스키마 파일은
+   **이미 어긋나 있다** — `index.ts`에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있다
+   (`wiki/drift.md` B1). 1·2단계를 "똑같이 맞추는" 작업으로 착각하지 말고, 지금도 그 차이가
+   그대로인지부터 확인한다. 스키마를 바꿨으면 `CONTRACT-DB-NOTES.md`의 "바꾸려면" 절도
+   같은 커밋에서 갱신한다.
 1. **`src/db/schema.sql`** — 정본 DDL. `CREATE TABLE` 정의를 갱신한다.
 2. **`src/db/index.ts`** — ⚠️ 인라인 스키마 문자열이 `schema.sql`을 **중복**한다. 동일하게 수정.
    (둘이 어긋나면 신규 설치 DB와 마이그레이션된 DB가 달라진다.)
