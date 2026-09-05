@@ -233,3 +233,63 @@ git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
 ```
 
 임시 가지는 병합되면 자동으로 지워지고, `release/1.0.2`는 그대로 남는다.
+
+---
+
+## 5. 버전과 배포
+
+이 앱은 서버가 없다. **릴리스가 곧 배포의 전부**이고, 경로를 잘못 고르면 수정이 사용자에게 아예 닿지 않는다([`POL-RELEASE-001`](policy/POL-RELEASE.md), [`ADR-0020`](decisions/ADR-0020-release-strategy.md)).
+
+### 버전 올리는 기준
+
+| 자리 | 올리는 때 |
+|---|---|
+| `1`.0.0 — major | 기능적으로 많은 것이 바뀐다 |
+| 1.`1`.0 — minor | 기능은 같지만 큰 변화가 있다 |
+| 1.0.`1` — patch | 사소한 네이티브 업데이트 |
+| 1.0.0`+3` — OTA 발행 번호 | 그 버전에 OTA를 낼 때마다 +1 |
+
+앞 세 자리는 `app.config.ts`의 `version`이고 **새 스토어 빌드가 필요하다.** 네 번째는 다르다 — `src/version.ts`의 `OTA_RELEASE` 상수이고, 설정 화면에 `1.0.2+3`으로 보인다. 스토어 버전이 올라가면 0으로 되돌린다.
+
+⚠️ **OTA 번호를 `version` 문자열에 넣지 않는다.** iOS `CFBundleShortVersionString`은 숫자와 점만 받고, hot-updater가 겨냥하는 `--target-app-version`도 그 값에서 나온다. `version`을 `1.0.2+3`으로 만들면 그 번들은 **1.0.2 설치본에 닿지 않는다.** 번호는 JS 상수로만 올린다 — 그래야 OTA로 배달된다.
+
+### 릴리스 절차
+
+스토어 제출마다 릴리스 가지를 하나 만든다.
+
+```bash
+git switch -c release/1.0.2 origin/main
+# app.config.ts version 1.0.2, src/version.ts OTA_RELEASE 0
+git commit -m "🔧 chore(release): 앱 버전 1.0.2로 올림"
+git push -u origin release/1.0.2          # CI 통과 확인
+```
+
+이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)하고, 스토어 제출이 끝나면 그 커밋에 태그를 붙인다.
+
+```bash
+git tag v1.0.2 && git push origin v1.0.2
+```
+
+마지막으로 `main`으로 역머지한다([`4절`](#4-브랜치)의 임시 가지 방식).
+
+### OTA 발행
+
+| 채널 | 언제 | 어디서 | 방식 |
+|---|---|---|---|
+| `preview` | `main` 병합 → CI 성공 | `main` | 자동 |
+| `production` | 사람이 판단할 때 | **`release/<버전>`에서만** | 수동 실행 |
+
+`production`을 `main`에서 쏘려 하면 워크플로가 거부한다 — 스토어에 올린 것과 다른 코드가 기존 설치본으로 나가는 것을 막는다.
+
+production OTA를 낸 뒤에는 `OTA_RELEASE`를 올린 그 커밋에 태그를 붙인다: `v1.0.2+3`. 되돌릴 지점이자, D1을 열지 않고도 몇 번째 번들인지 아는 유일한 수단이다.
+
+### 나가기 전에 통과해야 하는 것
+
+- CI(타입체크·린트·테스트) — 브랜치 보호와 룰셋이 병합 단계에서 막는다.
+- 배포 워크플로의 **자격증명 형식 검사** — 값이 있는지가 아니라 모양이 맞는지 본다. 틀리면 번들을 만들기 전에 멈춘다.
+- `production` 채널이면 `release/**` 가지인지.
+
+### 지금 닫혀 있는 것 (2026-09-05)
+
+- **자동 OTA는 한 번도 성공한 적이 없다.** R2 access key id에 53자짜리 값이 들어 있다(32자리 hex여야 한다). 시크릿을 고치기 전까지 `preview` 자동 발행은 실패한다([`drift.md`](drift.md) B19).
+- **스토어의 1.0.1은 `expo-updates` 바이너리다.** hot-updater는 네이티브 모듈이라 OTA로 배달할 수 없다 — **1.0.1 사용자는 어떤 OTA도 받지 못한다.** 그들에게 무언가를 보내려면 1.0.2 스토어 빌드를 내는 수밖에 없다([`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)).

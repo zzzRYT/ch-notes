@@ -6,6 +6,7 @@ policy: POL-RELEASE-001
 statement: 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다.
 implemented_by:
   - apps/ch-life/app.config.ts
+  - apps/ch-life/src/version.ts
   - apps/ch-life/eas.json
   - .github/workflows/ci.yml
   - .github/workflows/eas-update.yml
@@ -27,6 +28,7 @@ source:
 | EAS project | `813691d9-f5ff-48d6-93c7-47432b44b2ce` |
 | scheme | `chlife` |
 | OTA 런타임 | `@hot-updater/react-native` — `HotUpdater.wrap`, `updateStrategy: "appVersion"` (`app/_layout.tsx`) |
+| OTA 발행 번호 | `src/version.ts`의 `OTA_RELEASE` — 설정 화면에 `1.0.2+3`으로 표시. **`version`에는 넣지 않는다** |
 | OTA 서버 | Cloudflare R2 + D1 + Worker. `extra.hotUpdaterBaseUrl` ← `HOT_UPDATER_BASE_URL` |
 | appVersionSource | `remote` (동적 `app.config.ts` + `autoIncrement` 조합에 필요) |
 | 채널 | development / preview / production — `eas.json`의 `env.HOT_UPDATER_CHANNEL`로 주입 |
@@ -34,9 +36,12 @@ source:
 ## 두 경로
 
 ```text
-main 머지 → CI(typecheck·lint·test) 성공 → hot-updater deploy --channel preview  [자동]
-네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait        [수동]
+main 머지 → CI(typecheck·lint·test) 성공 → hot-updater deploy --channel preview      [자동]
+release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --channel production  [수동]
+네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait          [수동]
 ```
+
+`production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0020`](../decisions/ADR-0020-release-strategy.md)).
 
 ⚠️ **자동 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
 
@@ -46,7 +51,7 @@ CI가 실패하면 OTA는 발행되지 않는다. OTA는 **CI를 통과한 정�
 
 1. **`updateStrategy: "appVersion"`** — `version`을 올리면 기존 설치본과 번들이 분리된다. 버전을 올리고 OTA만 쏘면 아무에게도 닿지 않는다. 반드시 새 빌드를 낸다.
 2. **pnpm `node-linker=hoisted`** — `.npmrc`의 이 설정이 없으면 `babel-preset-expo` 해석이 실패해 번들이 깨진다. 건드리지 않는다.
-3. **OTA 워크플로가 요구하는 값이 7개다** — `HOT_UPDATER_PRIVATE_KEY`, `HOT_UPDATER_BASE_URL`, Cloudflare 계정·API 토큰·D1·R2 버킷·R2 키 2종. 워크플로가 `test -n`으로 전부 검사하므로 **하나라도 없으면 OTA 잡이 실패한다.**
+3. **OTA 워크플로가 요구하는 값이 7개다** — `HOT_UPDATER_PRIVATE_KEY`, `HOT_UPDATER_BASE_URL`, Cloudflare 계정·API 토큰·D1·R2 버킷·R2 키 2종. 워크플로는 **존재가 아니라 형식**을 검사한다(계정 ID·R2 access key id는 32자리 hex, secret은 64자리 hex, D1은 UUID). 모양이 틀리면 번들을 만들기 전에 멈춘다. 형식이 맞는 **틀린 값**은 여전히 업로드 단계에서 죽는다.
 4. **루트 `pnpm-workspace.yaml`이 앱 설치를 가로챈다** — 워크스페이스는 `packages/*`만 멤버로 두는데도 pnpm v10은 상위로 올라가 워크스페이스를 대신 설치한다(`Scope: all 2 workspace projects`). 그러면 앱 의존성이 설치되지 않아 typecheck·lint·test가 전부 깨진다. 세 워크플로 모두 **`--ignore-workspace`**로 막아 두었다. `.npmrc`의 `ignore-workspace=true`는 **먹지 않는다** — 반드시 CLI 플래그여야 한다.
 5. **`EAS_BUILD_PROFILE`이 있으면 `HOT_UPDATER_BASE_URL` 없이는 빌드가 `throw`한다**(`app.config.ts`). 설정 실수가 런타임이 아니라 빌드 시점에 터진다.
 
