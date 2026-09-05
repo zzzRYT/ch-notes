@@ -140,6 +140,20 @@
 
 워크플로의 `test -n` 가드는 값의 **존재**만 보고 형식은 보지 않으므로 이 실수를 잡지 못한다. 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 자동 경로는 **실제로는 닫혀 있다.**
 
+### B20. 알 수 없는 블록 타입은 조용히 사라지거나 앱을 깨뜨린다
+`BlockNode`는 닫힌 유니온이지만, 그 값을 읽는 네 경로 중 **모르는 `type`을 다룰 준비가 된 곳이 하나도 없다.**
+
+| 경로 | 모르는 타입을 만나면 |
+|---|---|
+| `src/editor/NoteEditor.tsx` | `quote`가 아니면 전부 `ParagraphInput`으로 보낸다 |
+| `src/editor/ParagraphInput.tsx` | `initialText.length`를 읽는다 — `text`가 없으면 크래시 |
+| `src/list/group-notes.ts` (`notePreview`) | `stripInlineMarks(block.text)` — `text`가 없으면 크래시 |
+| `src/markdown/serialize.ts` (`blockToMarkdown`) | `switch`에 `default`가 없다. `undefined`를 돌려주고 `join`이 삼킨다 — **내보내기에서 소리 없이 사라진다** |
+
+`rowToNote`의 `JSON.parse(body_json)`에도 검증이 없어 무엇이든 그대로 통과한다.
+
+지금은 새 타입을 쓰는 코드가 없으니 **현재 버그는 아니다.** 문제는 OTA다 — 번들을 되돌리면 이전 번들이 새 번들이 쓴 데이터를 읽게 되고, 그 순간 이 표가 현실이 된다([`RULE-OTA-009`](rules/release.md)). 렌더러·직렬화에 폴백을 넣기 전까지 블록 타입 추가는 OTA로 내보낼 수 없는 변경이다.
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
@@ -210,6 +224,9 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E13 | **스토어의 1.0.1은 `expo-updates` 바이너리인데 `main`은 hot-updater다 — 1.0.1 설치본은 OTA를 받지 못한다.** 의도된 상태인가? 새 스토어 빌드 계획은? 그리고 `expo-updates`를 버린 이유는 무엇인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), [`ADR-0013`](decisions/ADR-0013-release-path.md) |
 | E14 | 구절 삽입 **성공**에 배너를 띄우기로 한 것은 POL-A11Y-001의 "조용함"을 의도적으로 완화한 것인가? 삭제 배너는 undo 때문에 불가피하지만 삽입은 아니다. | [`POL-A11Y-001`](policy/POL-ACCESSIBILITY.md), G1 |
 | E15 | `feat/editor-core-pkg`(Phase 1 스캐폴드)를 `main`에 둘 것인가, Phase 4까지 브랜치에 둘 것인가? | `docs/editor-core/extraction-plan.md` |
+| E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
+| E17 | **R2의 지난 번들을 언제 지우는가?** 기기는 언제나 자기 버전의 최신 번들 하나만 요청하므로([`RULE-OTA-004`](rules/release.md)) **밀려난 번들을 지워도 오래 오프라인이던 기기가 곤란해지지 않는다.** 남는 것은 비용과 감사 추적 문제뿐이다 — 무료 한도(R2 10GB-month) 안에서는 "지우지 않는다"도 성립한다. 보존 기간을 정할 것인가? (지울 때는 R2를 직접 건드리지 말고 `hot-updater bundle delete`를 쓴다 — D1 행만 남고 객체가 없으면 그 URL을 받은 기기가 깨진다.) | [`RULE-OTA-005`](rules/release.md), `docs/store/ota-deploy.md` |
+| E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
 
 ## G. 아직 정본화되지 않은 구현
 
@@ -230,7 +247,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 
 지금은 문서와 검사 스크립트까지만 있다. 연구 문서가 말하는 "정책 → 실행 증거" 고리를 닫으려면 다음이 남아 있다.
 
-1. **`node wiki/check.mjs`를 CI에 추가** — 지금은 사람이 직접 돌려야 한다. `.github/workflows/ci.yml`의 job은 `working-directory: apps/ch-life`이므로 이 스텝만 `working-directory: .`로 되돌려야 하고, `pnpm install`은 필요 없다(순수 Node). 추가하는 커밋에서 이 항목과 [`README.md`](README.md) 5절의 "CI 연결과 PR 템플릿은 아직 하지 않았다" 문구도 같이 지운다.
+1. **`node wiki/check.mjs`를 CI에 추가** — 지금은 사람이 직접 돌려야 한다. ⚠️ **검사기는 실행 위치에 따라 결과가 달라진다** — `by-task.md`의 백틱 경로 검사가 `.worktrees/`처럼 gitignore된 디렉터리를 실재 경로로 요구해서, `main` 체크아웃에서는 통과하고 새 clone이나 워크트리에서는 실패했다(2026-09-05에 해당 토큰만 고쳤다). CI에 붙이기 전에 **깨끗한 clone에서 한 번 돌려 본다.** `.github/workflows/ci.yml`의 job은 `working-directory: apps/ch-life`이므로 이 스텝만 `working-directory: .`로 되돌려야 하고, `pnpm install`은 필요 없다(순수 Node). 추가하는 커밋에서 이 항목과 [`README.md`](README.md) 5절의 "CI 연결과 PR 템플릿은 아직 하지 않았다" 문구도 같이 지운다.
 2. **PR 템플릿** — 바뀌는 `POL/RULE/CONTRACT` ID, 새 예시, 자동 증거, 수동 QA 결과를 적게 한다.
 3. **UI 자동 증거** — `@testing-library/react-native`를 넣으면 `SHOULD` 규칙 상당수가 `MUST`로 올라간다.
 4. **회귀 fixture** — 실제로 내보낸 `.md` 파일을 테스트 자산으로 고정한다. 관측 계층이 없는 이 앱에서 유일하게 "현실"을 담은 재현 자산이다.
