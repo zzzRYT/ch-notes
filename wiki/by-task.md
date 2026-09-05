@@ -193,11 +193,11 @@
 
 ## 8. 릴리스·개발 하네스
 
-**먼저 읽는다** — POL-RELEASE-001 · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md)
+**먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~009) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md)
 
-이 영역만 `RULE`이 없다. 정책·계약·결정이 직접 규율한다.
+**번들을 발행하기 전에는 [rules/release.md](rules/release.md)를 먼저 본다.** 오프라인이 기본인 앱에 OTA를 얹었기 때문에, 다른 앱에서는 안전한 변경이 여기서는 되돌릴 수 없는 변경이 된다.
 
-**코드** `app.config.ts` · `eas.json` · `.npmrc` · `.github/workflows/{ci,eas-update,eas-build}.yml`
+**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `app/_layout.tsx` · `scripts/deploy-ota.mjs` · `.github/workflows/{ci,eas-update,eas-build}.yml`
 **스킬** `.claude/skills/eas-release/SKILL.md`(릴리스), `.claude/skills/start-feature/SKILL.md`(새 작업)
 **테스트** 없음 — CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`를 열어 보지 않는다.
 
@@ -212,7 +212,10 @@
 - `.npmrc`의 `node-linker=hoisted`가 없으면 번들이 깨진다. **CI는 이걸 못 잡는다.**
 - `appVersionSource: "remote"` ↔ 동적 `app.config.ts` ↔ `autoIncrement` 3자 결합. 깨지면 EAS 서버 단계에서야 실패한다(커밋 `769fe51`).
 - **`hot-updater`가 이제 정본이다**(`30b6a60`, PR #14). `expo-updates`는 제거됐다. ⚠️ **스토어의 1.0.1은 `expo-updates` 바이너리라 OTA가 닿지 않는다** — 1.0.1 사용자에게 뭔가 보내려면 새 스토어 빌드뿐이다. OTA 워크플로는 시크릿/변수 7개를 `test -n`으로 검사하므로 하나만 없어도 잡이 실패한다.
-- 워크트리는 `.worktrees/`에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
+- ⚠️ **번들은 한 칸만 되돌아가고 스키마는 되돌아가지 않는다.** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA로 내보내면 안 된다([RULE-OTA-008](rules/release.md), [RULE-OTA-009](rules/release.md)).
+- ⚠️ **오프라인 기기는 중간 번들을 전부 건너뛴다.** 번들이 순서대로 적용된다는 전제로 마이그레이션이나 데이터 이관을 설계하면 그 기기에서 깨진다([RULE-OTA-004](rules/release.md)).
+- 서버에서 번들을 내려도(`bundle disable`) 오프라인 기기에는 닿지 않고, 닿아도 적용은 다음 콜드 런치다. **롤백 소요 시간에 하한이 없다**([ADR-0016](decisions/ADR-0016-cold-launch-apply.md)).
+- 워크트리는 `.worktrees` 아래에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
 
 ---
 

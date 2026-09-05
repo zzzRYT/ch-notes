@@ -6,21 +6,21 @@
 
 | | 개수 |
 |---|---|
-| 사용자 정책 `POL` | 10 |
-| 도메인 규칙 `RULE` | 60 |
+| 사용자 정책 `POL` | 12 |
+| 도메인 규칙 `RULE` | 69 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 15 |
-| **합계** | **92** |
+| 결정 `ADR` | 16 |
+| **합계** | **104** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **39/60 (65%)** |
-| 나머지 21건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 50 |
-| 코드에서 추론한 항목 | 37 |
+| 자동 증거(test/ci)가 붙은 RULE | **40/69 (58%)** |
+| 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
+| 근거가 기록으로 남아 있는 항목 | 52 |
+| 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
-자동 증거 비율이 67% 언저리인 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없다**([`drift.md`](drift.md) C3). 그 규칙들은 대문자 MUST를 쓰지 않는다.
+자동 증거 비율이 60%에 못 미치는 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없고**([`drift.md`](drift.md) C3), **OTA 규칙은 실기기와 실제 발행 없이는 재현되지 않는다**. 그 규칙들은 대문자 요구를 쓸 때 반드시 `waiver`를 붙인다.
 
 ## POL — 사용자 정책
 
@@ -34,6 +34,8 @@
 | [`POL-PORT-001`](policy/POL-PORTABILITY.md) | — | — | 기록됨 | 노트 한 개는 언제든 표준 Markdown 파일로 내보낼 수 있어야 하고, 그 파일은 다른 마크다운 앱에서 열려야 하며, 다시 가져와도 내용이 보존되어야 한다. |
 | [`POL-PRIVACY-001`](policy/POL-PRIVACY.md) | MUST NOT | waiver | 기록됨 | 앱은 사용자 콘텐츠·식별 정보·사용 기록을 외부로 전송하지 않는다. 계정도 서버도 애널리틱스도 없다. |
 | [`POL-RELEASE-001`](policy/POL-RELEASE.md) | MUST | 자동 | 기록됨 | 자동 OTA 업데이트는 CI(타입체크·린트·테스트)가 통과한 커밋에서만 발행되고, 네이티브 변경은 OTA로 전달할 수 없으므로 새 빌드를 낸다. |
+| [`POL-RELEASE-002`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크에 한 번도 닿지 않아도 스토어에서 설치한 앱은 모든 기능이 동작하고, 업데이트 확인의 실패나 지연이 사용을 막지 않는다. |
+| [`POL-RELEASE-003`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 업데이트는 진행 중인 작성을 끊지 않고, 그 업데이트를 되돌리더라도 사이에 저장된 노트를 열 수 없거나 내보낼 수 없게 만들지 않는다. |
 | [`POL-SCRIPTURE-001`](policy/POL-SCRIPTURE.md) | — | — | 기록됨 | 노트를 쓰다가 성경 참조를 입력하면, 앱을 벗어나지 않고 인터넷도 없이 본문이 인용 블록으로 들어와야 한다. |
 | [`POL-SCRIPTURE-002`](policy/POL-SCRIPTURE.md) | — | — | 기록됨 | 노트를 쓰지 않을 때도 성경 자체를 책→장→절로 찾아 읽을 수 있어야 하며, 읽던 자리에서 이어 읽을 수 있어야 한다. |
 
@@ -139,6 +141,20 @@
 | [`RULE-UI-005`](rules/layout-a11y.md) | SHOULD | 수동 | 기록됨 | 인용 블록은 색 막대나 배경만이 아니라 참조 라벨을 항상 함께 표시한다. 선택 상태도 색과 함께 체크 표시나 accessibilityState로 전달한다. |
 | [`RULE-UI-006`](rules/layout-a11y.md) | SHOULD | 수동 | 코드추론 | 네이티브 스택 헤더는 앱 전체에서 숨기고, 화면마다 공통 AppHeader 컴포넌트로 직접 그린다. |
 
+### OTA 배포 — [`rules/release.md`](rules/release.md)
+
+| ID | 요구 | 증거 | 근거 | 내용 |
+|---|---|---|---|---|
+| [`RULE-OTA-001`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 스토어 빌드에 들어간 임베디드 번들은 OTA가 한 번도 도착하지 않아도 모든 기능이 동작해야 한다. 기능·자산·데이터를 OTA 번들에만 두지 않는다. |
+| [`RULE-OTA-002`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크가 없거나 OTA 서버가 응답하지 않아도 앱은 즉시 렌더되고, 확인 실패는 경고 로그 한 줄로 끝난다. 로딩 화면이나 오류 화면을 띄우지 않는다. |
+| [`RULE-OTA-003`](rules/release.md) | MUST | 수동 (waiver) | 기록됨 | reloadOnForceUpdate가 false이므로 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 화면을 갈아치우지 않고 다음 콜드 런치까지 기다린다. |
+| [`RULE-OTA-004`](rules/release.md) | 현상 서술 | — | 코드추론 | 업데이트 확인은 (platform, appVersion, channel, minBundleId, bundleId)로 한 번 질의해 목표 번들 하나를 받는다. 오래 오프라인이던 기기는 그 사이 발행된 번들을 순서대로 밟지 않고 최신 하나로 바로 건너뛴다. |
+| [`RULE-OTA-005`](rules/release.md) | 현상 서술 | — | 코드추론 | 기기는 임베디드 번들, 마지막으로 정상 기동한 stable 번들, 검증 중인 staging 번들만 가진다. 자동 롤백의 착지점은 stable 하나이고 그것이 없으면 임베디드다. 두 칸 전 번들로는 돌아갈 수 없다. |
+| [`RULE-OTA-006`](rules/release.md) | 현상 서술 | — | 코드추론 | hot-updater bundle disable은 서버 상태만 바꾼다. 오프라인 기기는 다음 확인에 성공할 때까지 나쁜 번들을 계속 실행하고, 확인에 성공한 뒤에도 적용은 그다음 콜드 런치다. |
+| [`RULE-OTA-007`](rules/release.md) | MUST | 자동 | 코드추론 | 스키마 변경은 PRAGMA table_info로 현재 상태를 읽어 없는 컬럼만 추가하는 방식이어야 한다. 버전 카운터가 아니라 상태에서 유도되므로 번들을 몇 개 건너뛰어도 결과가 같다. |
+| [`RULE-OTA-008`](rules/release.md) | MUST NOT | 수동 (waiver) | 코드추론 | OTA로 내보내는 번들은 기존 컬럼을 삭제·개명·타입변경하지 않는다. 마이그레이션에 되돌리는 경로가 없어, 번들을 되돌려도 스키마는 되돌아가지 않고 이전 번들이 바뀐 DB를 그대로 읽는다. |
+| [`RULE-OTA-009`](rules/release.md) | MUST NOT | 수동 (waiver) | 코드추론 | body_json에 새 BlockNode type을 기록하는 번들은 OTA로 발행하지 않는다. 되돌아간 이전 번들에서 그 노트를 열면, text 필드가 없는 블록은 에디터와 목록 미리보기를 즉시 깨뜨리고 있더라도 Markdown 내보내기에서 조용히 사라진다. |
+
 ## CONTRACT — 계약
 
 | ID | 근거 | 내용 |
@@ -170,6 +186,7 @@
 | [`ADR-0013`](decisions/ADR-0013-release-path.md) | 기록됨 | main의 CI가 성공한 커밋만 OTA로 자동 발행하고, EAS Build는 수동 실행으로만 큐에 넣는다. |
 | [`ADR-0014`](decisions/ADR-0014-worktree-workflow.md) | 기록됨 | 모든 기능·수정 작업은 .worktrees/ 아래의 별도 git worktree와 브랜치에서 하고, 검증도 그 안에서 실행한다. main 체크아웃에서 직접 작업하지 않는다. |
 | [`ADR-0015`](decisions/ADR-0015-no-keyboard-shortcuts.md) | 기록됨 | ⌘/Ctrl 조합 단축키를 구현하지 않는다. 키보드 상호작용은 필드 간 Return 이동과 인용 확정 공백까지로 한정한다. |
+| [`ADR-0016`](decisions/ADR-0016-cold-launch-apply.md) | 기록됨 | reloadOnForceUpdate를 false로 두어, 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 앱을 즉시 리로드하지 않고 다음 콜드 런치까지 기다린다. |
 
 ## 정본이 아닌 것
 

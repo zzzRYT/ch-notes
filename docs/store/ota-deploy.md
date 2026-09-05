@@ -128,6 +128,23 @@ pnpm exec hot-updater doctor --json \
 `appVersion` 설치본에 OTA로 보낸다. 네이티브 계약이 바뀌면 앱 버전을 올리고 새
 기준선 빌드를 먼저 출시한다.
 
+### 되돌릴 수 있는 번들인가 — 사람이 보는 점검
+
+위 자동 점검은 코드가 도는지만 본다. **되돌릴 수 있는 번들인지는 자동으로 판정되지
+않으므로** 발행 전에 diff를 보고 다음 넷을 확인한다. 하나라도 걸리면 OTA가 아니라
+새 스토어 빌드다. 근거는 `wiki/rules/release.md`(RULE-OTA-001~009).
+
+| 확인 | 걸리면 왜 문제인가 |
+|---|---|
+| `src/db/migrate.ts`에 `ALTER TABLE ... ADD COLUMN` 외의 DDL이 들어갔는가 | 번들은 한 칸 되돌아가지만 스키마는 되돌아가지 않는다. 되돌아간 이전 번들이 없는 컬럼을 읽는다 (RULE-OTA-008) |
+| `src/domain/types.ts`의 `BlockNode` 유니온에 새 멤버가 생겼는가 | 이전 번들은 모르는 블록에서 크래시하거나 내보내기에서 그것을 조용히 잃는다 (RULE-OTA-009) |
+| 임베디드 번들만 가진 기기에서도 이 변경이 필요한 기능이 이미 동작하는가 | OTA를 받지 못하는 설치본이 실재한다. 임베디드 번들 하나로 앱이 완결돼야 한다 (RULE-OTA-001) |
+| 앞 번들이 데이터를 옮겨 두는 것을 전제하는가 | 오래 오프라인이던 기기는 중간 번들을 전부 건너뛴다. 순서를 전제한 이관은 그 기기에서 실행되지 않는다 (RULE-OTA-004) |
+
+**이 앱에서 롤백은 안전망이 아니다.** `reloadOnForceUpdate: false`라 적용은 다음 콜드
+런치이고, 오프라인 기기는 그 전에 인터넷에 닿아야 한다 — 롤백에 걸리는 시간에 하한이
+없다. "문제가 있으면 되돌리면 된다"를 전제로 위험한 번들을 발행하지 않는다.
+
 ## 4. Hot Updater 기준선 스토어 빌드
 
 최초 전환은 반드시 iOS와 Android 새 production 빌드가 필요하다.
@@ -247,6 +264,7 @@ rollback 실기기 확인:
 - [Hot Updater deploy](https://hot-updater.dev/docs/guides/deploy)
 - [Hot Updater bundle signing](https://hot-updater.dev/docs/guides/bundle-signing)
 - [Hot Updater automatic rollback](https://hot-updater.dev/docs/concepts/automatic-rollback)
+- `wiki/policy/POL-RELEASE.md` · `wiki/rules/release.md` · `wiki/decisions/ADR-0016-cold-launch-apply.md` — 이 절차가 따르는 정본
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
 - [Cloudflare D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/)
 - [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)

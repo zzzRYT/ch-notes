@@ -26,7 +26,8 @@ const auto=rules.filter(b=>b.auto).length;
 const AREAS=[["RULE-REF","성경 참조 해석","rules/scripture-ref.md"],["RULE-EDIT","에디터·인용 삽입","rules/editor-insert.md"],
  ["RULE-NOTE","노트 저장","rules/note-persistence.md"],["RULE-SEARCH","검색","rules/search.md"],
  ["RULE-MD","공유 파일","rules/share-markdown.md"],["RULE-BIBLE","성경 리더","rules/bible-reader.md"],
- ["RULE-SET","설정·테마","rules/settings-theme.md"],["RULE-UI","레이아웃·접근성","rules/layout-a11y.md"]];
+ ["RULE-SET","설정·테마","rules/settings-theme.md"],["RULE-UI","레이아웃·접근성","rules/layout-a11y.md"],
+ ["RULE-OTA","OTA 배포","rules/release.md"]];
 let out=`# 전체 ID 표
 
 [\`README.md\`](README.md)의 규약에 따라 발급된 모든 ID다. 숫자는 \`node wiki/check.mjs\` 실행 시점 기준이며, 이 표와 실제 파일이 어긋나면 **파일이 정본**이다.
@@ -49,7 +50,7 @@ let out=`# 전체 ID 표
 | 코드에서 추론한 항목 | ${blocks.filter(b=>b.conf==="코드추론").length} |
 | **확인 필요 (사용자 답 대기)** | **${blocks.filter(b=>b.conf==="확인필요").length}** → [\`drift.md\`](drift.md) E절 |
 
-자동 증거 비율이 67% 언저리인 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없다**([\`drift.md\`](drift.md) C3). 그 규칙들은 대문자 MUST를 쓰지 않는다.
+자동 증거 비율이 60%에 못 미치는 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없고**([\`drift.md\`](drift.md) C3), **OTA 규칙은 실기기와 실제 발행 없이는 재현되지 않는다**. 그 규칙들은 대문자 요구를 쓸 때 반드시 \`waiver\`를 붙인다.
 
 ## POL — 사용자 정책
 
