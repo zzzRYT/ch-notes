@@ -47,7 +47,10 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # --ignore-workspace: 루트 pnpm-workspace.yaml(packages/*)은 이 앱을 멤버로
+        # 포함하지 않는데도 pnpm v10이 상위로 올라가 워크스페이스를 대신 설치한다.
+        # Phase 4에서 앱이 정식 멤버가 될 때까지 독립 프로젝트로 설치한다.
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Build
         env:

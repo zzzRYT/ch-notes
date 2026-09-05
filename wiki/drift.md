@@ -121,6 +121,11 @@
 ### B17. 가져온 노트가 작성 시각을 잃는다
 `repo.create`의 입력 타입에 `createdAt`/`updatedAt`이 없고 두 컬럼 모두 `Date.now()`로 채운다. 가져온 노트는 "가져오기를 실행한 시각"을 갖게 되고, 목록이 `created_at` 내림차순이라 오래된 설교 노트가 맨 위로 올라온다. → [`RULE-MD-004`](rules/share-markdown.md)
 
+### B18. 루트 워크스페이스가 앱 설치를 가로챈다
+`feat/editor-core-pkg`가 루트에 `pnpm-workspace.yaml`(`packages: ['packages/*']`)을 들여왔다. 브랜치 주석은 "apps/ch-life는 Phase 4까지 독립 프로젝트로 남는다"고 적었지만 **pnpm v10.15는 그렇게 동작하지 않는다** — `apps/ch-life`에서 `pnpm install`을 돌려도 상위로 올라가 루트 워크스페이스를 설치한다(`Scope: all 2 workspace projects`). 앱 의존성이 설치되지 않아 CI 전체가 깨진다.
+
+`.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막았다. Phase 4에서 앱이 정식 멤버가 되면 이 플래그를 걷어내고 Metro monorepo 설정(watchFolders + nodeModulesPaths)을 함께 넣어야 한다.
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
