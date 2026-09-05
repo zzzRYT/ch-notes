@@ -38,6 +38,8 @@ main 머지 → CI(typecheck·lint·test) 성공 → hot-updater deploy --channe
 네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait        [수동]
 ```
 
+⚠️ **자동 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
+
 CI가 실패하면 OTA는 발행되지 않는다. OTA는 **CI를 통과한 정확한 커밋**(`workflow_run.head_sha`)을 체크아웃해 배포한다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
 
 ## 함정 세 가지
