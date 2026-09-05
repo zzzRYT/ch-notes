@@ -1,2 +1,7 @@
 # Worktrees
 .worktrees/
+
+# Workspace dependencies & build output
+node_modules/
+dist/
+*.tsbuildinfo
