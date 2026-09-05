@@ -14,6 +14,9 @@
 | 고객 지원 | [`docs/store/support.md`](docs/store/support.md) |
 | 개인정보처리방침 | https://zzzryt.github.io/ch-notes/privacy-policy.html |
 | 스토어 등록 정보 | [`docs/store/store-listing.md`](docs/store/store-listing.md) |
+| **정본 위키** | [`wiki/README.md`](wiki/README.md) |
+| **작업 절차 (정본 먼저)** | [`wiki/workflow.md`](wiki/workflow.md) |
+| **작업별 진입점** | [`wiki/by-task.md`](wiki/by-task.md) |
 
 ---
 
@@ -35,10 +38,13 @@ ch-life/
 ├── apps/ch-life/        # Expo 앱 본체
 │   ├── app/             # expo-router 라우트 (index, note/[id], bible, settings, ...)
 │   └── src/             # feature/domain별 모듈
+├── wiki/                # 정본 위키 — 정책·규칙·계약·결정 (POL/RULE/CONTRACT/ADR)
+│   ├── workflow.md      #   작업 절차 — 코드를 열기 전에 정본을 확인한다
+│   └── by-task.md       #   작업 유형·코드 경로별 진입점
 ├── docs/
 │   ├── store/           # 스토어 등록 정보 · 지원 페이지 · 자동제출 가이드
 │   ├── legal/           # 개인정보처리방침
-│   └── plans/           # 기획 문서
+│   └── plans/           # 기획 문서 (역사 기록)
 ├── website/             # GitHub Pages (개인정보처리방침 호스팅)
 ├── DESIGN.md            # 디자인 시스템 문서
 └── .github/workflows/   # CI · EAS Build · Hot Updater · Pages

@@ -6,6 +6,14 @@ expo-router / expo-sqlite / zustand**, 웹 + 모바일. 어르신 친화 UX.
 > **Expo는 자주 바뀐다.** 코드 작성 전 v54 버전드 문서를 확인할 것:
 > https://docs.expo.dev/versions/v54.0.0/
 
+## 정본 위키 — 코드를 열기 전에
+
+절차는 저장소 루트 `CLAUDE.md`의 "무슨 일을 하든 정본을 먼저 본다"에 있다(두 파일은 함께 로드된다).
+전문은 `wiki/workflow.md`, 작업별 진입점은 `wiki/by-task.md`.
+
+**이 앱에서 특히:** 테스트는 이름이 아니라 본문을 본다 — 이름과 검증 내용이 다른 테스트가
+실재한다(`wiki/drift.md` C절). `DESIGN.md`·`docs/plans/**`는 역사 기록이며 합격 기준이 아니다.
+
 ## 명령어
 
 | 작업 | 명령 |
