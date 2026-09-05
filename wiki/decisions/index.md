@@ -39,6 +39,7 @@
 | [ADR-0016](ADR-0016-commit-convention.md) | 커밋은 gitmoji를 붙인 Conventional Commits로 쓴다 | 커밋 메시지를 쓸 때 | 기록됨 |
 | [ADR-0017](ADR-0017-pr-gate.md) | main은 PR과 CI를 통과한 것만 받는다 | PR을 열거나 병합 방식을 바꿀 때 | 기록됨 |
 | [ADR-0018](ADR-0018-issue-tracking.md) | 작업 항목은 GitHub Issues, 라벨은 type·area 두 축 | 이슈를 열거나 라벨을 더할 때 | 기록됨 |
+| [ADR-0019](ADR-0019-branch-strategy.md) | main 하나 + 버전별 릴리스 가지 | 브랜치를 만들거나 핫픽스를 낼 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
@@ -53,7 +54,7 @@
 
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
-프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0016](ADR-0016-commit-convention.md) → [ADR-0017](ADR-0017-pr-gate.md) → [ADR-0018](ADR-0018-issue-tracking.md).
+프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0016](ADR-0016-commit-convention.md) → [ADR-0017](ADR-0017-pr-gate.md) → [ADR-0018](ADR-0018-issue-tracking.md) → [ADR-0019](ADR-0019-branch-strategy.md).
 
 ## 새 ADR을 쓸 때
 

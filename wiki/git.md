@@ -114,6 +114,8 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 
 **merge commit을 쓴다.** squash·rebase 머지는 쓰지 않는다. 개별 커밋이 `main`에 그대로 남는 것이 [`ADR-0016`](decisions/ADR-0016-commit-convention.md)의 전제다.
 
+저장소 설정에서 squash·rebase 버튼은 꺼 두었다. 병합 커밋 제목은 **PR 제목에서 자동으로 만들어지므로**, PR 제목이 컨벤션을 따르면 `git log --first-parent main`이 그대로 변경 이력이 된다.
+
 그 대가로 **푸시 전에 브랜치를 정리한다** — `wip`·`오타 수정`·`리뷰 반영` 같은 커밋은 `git rebase -i`로 접어 넣는다. 되돌릴 수 있는 단위로 남길 커밋만 올린다.
 
 ### 제목과 설명
@@ -163,3 +165,71 @@ PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커�
 ### 닫기
 
 이슈는 **PR 병합으로 닫는다.** 커밋이나 PR 본문에 `Closes #12`를 적으면 GitHub이 닫는다. 손으로 닫을 때는 왜 닫는지 한 줄 남긴다 — "재현 안 됨"과 "안 하기로 함"은 다른 결말이고, 6개월 뒤에는 구분이 안 된다.
+
+---
+
+## 4. 브랜치
+
+가지는 세 종류뿐이다([`ADR-0019`](decisions/ADR-0019-branch-strategy.md)).
+
+```text
+feat/note-search ─┐
+fix/editor-crash ─┼─► main ──┬─► release/1.0.2 ──► 태그 v1.0.2 ──► 스토어 · OTA
+docs/git-rules   ─┘          │        │
+                             └────────┘  역머지 (버전 bump·핫픽스를 main으로)
+```
+
+- **`main`** — 통합 가지. 언제나 초록이고, 여기 있는 것이 다음 릴리스 후보다.
+- **작업 가지** — `main`에서 잘라 `main`으로 돌아간다. 짧게 살고 병합되면 사라진다.
+- **`release/<버전>`** — 출시된 버전 하나의 유지보수 선. 오래 산다.
+
+### 이름
+
+접두는 **커밋 타입과 같은 단어**를 쓴다 — `feat/` · `fix/` · `docs/` · `chore/` · `refactor/` · `test/` · `perf/` · `ci/`. 뒤에는 짧은 kebab-case 영문 slug를 붙인다: `feat/note-search`.
+
+`release/`만 예외다. 타입이 아니라 **구조**를 나타내며, 버전 번호를 그대로 쓴다 — `release/1.0.2`는 `app.config.ts`의 `version`과 같고, 거기 붙는 태그는 `v1.0.2`다.
+
+`feature/`는 쓰지 않는다(옛 표기다).
+
+### 작업 가지
+
+워크트리 안에서 만든다([`ADR-0014`](decisions/ADR-0014-worktree-workflow.md)). 기준은 **무엇을 고치는가**로 정한다.
+
+| 고치는 대상 | 분기 기준 | 돌아가는 곳 |
+|---|---|---|
+| 다음 버전 | `origin/main` | `main` |
+| **이미 나간 버전** | `origin/release/<버전>` | `release/<버전>` → 뒤에 `main`으로 역머지 |
+
+병합되면 브랜치는 자동으로 지워진다. 커밋은 `main`에 남으므로 잃는 것은 없다.
+
+### 릴리스 가지
+
+`main`에서 잘라 만들고, **지우지 않는다.** hot-updater OTA는 설치본의 앱 버전을 겨냥해 나가므로(`--target-app-version`), 1.0.2 사용자에게 무언가를 보내려면 **1.0.2 코드 선이 살아 있어야 한다.** `main`은 이미 1.1.0을 향해 가 있을 수 있다.
+
+- 버전 bump(`🔧 chore(release):`)와 스토어 제출은 이 가지에서 한다.
+- 출시 시점 커밋에 `v<버전>` 태그를 붙인다. 되돌릴 손잡이이자 가지를 잃었을 때의 복원점이다.
+- 그 버전에 나가는 모든 OTA는 이 가지에서 발행한다.
+- GitHub 룰셋이 `release/**`의 삭제·강제 푸시를 막고, PR과 CI 통과를 요구한다.
+
+### 합치는 방향
+
+**방향마다 방법이 다르다. 바꿔 쓰면 릴리스 선이 오염된다.**
+
+| 방향 | 방법 |
+|---|---|
+| `release/x.y.z` → `main` | **역머지.** 버전 bump와 핫픽스를 `main`이 받는다 |
+| `main` → `release/x.y.z` | **cherry-pick만.** 필요한 커밋 하나씩. 절대 머지하지 않는다 |
+
+`main`을 릴리스 가지에 머지하면, 그 버전에 넣기로 한 적 없는 기능이 딸려 들어오고 **다음 OTA로 사용자에게 나간다.** 스토어 심사를 통과한 것과 다른 코드가 나가는 길이 여기다.
+
+### 역머지는 임시 가지로 한다
+
+`main`은 "브랜치가 최신 상태일 것"(strict)을 요구한다. `release/1.0.2`를 PR의 head로 쓰면 GitHub이 **`main`을 릴리스 가지에 병합하라고 요구한다** — 위에서 금지한 바로 그 방향이다.
+
+```bash
+git switch -c chore/backmerge-1.0.2 origin/release/1.0.2
+git merge origin/main        # 충돌은 여기서 푼다. 릴리스 가지는 그대로다
+git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
+```
+
+임시 가지는 병합되면 자동으로 지워지고, `release/1.0.2`는 그대로 남는다.

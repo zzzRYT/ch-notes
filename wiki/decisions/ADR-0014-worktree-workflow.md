@@ -19,7 +19,7 @@ source:
 
 ## 결정
 
-`origin/main`에서 분기한 워크트리를 `.worktrees/<slug>`에 만들고, 그 안에서 `pnpm install` 후 작업·검증한다. 브랜치 접두는 `feature/` · `fix/` · `chore/`.
+`origin/main`에서 분기한 워크트리를 `.worktrees/<slug>`에 만들고, 그 안에서 `pnpm install` 후 작업·검증한다. 브랜치 접두는 커밋 타입과 같은 단어를 쓴다 — [`ADR-0019`](ADR-0019-branch-strategy.md).
 
 ## 귀결
 
