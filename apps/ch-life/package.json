@@ -10,7 +10,8 @@
     "test": "TZ=Asia/Seoul jest",
     "test:ci": "TZ=Asia/Seoul jest --ci",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy:ota": "node scripts/deploy-ota.mjs"
   },
   "dependencies": {
     "@hot-updater/react-native": "0.36.8",

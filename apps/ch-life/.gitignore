@@ -54,3 +54,4 @@ keys/
 .env.hotupdater
 .hot-updater/output/
 .hot-updater/logs/
+.hot-updater/output

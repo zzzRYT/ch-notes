@@ -43,7 +43,9 @@ Cloudflare/EAS/GitHub 비밀값을 이 문서, 이슈, 채팅, shell history에 
 Cloudflare 대시보드에서 다음 두 자격증명을 만든다.
 
 1. D1 API token: 대상 계정의 **D1 Edit** 권한.
-2. R2 API token: `ch-life-hot-updater` bucket 대상 **Object Read & Write** 권한.
+2. R2 API token: `ch-notes-bucket` 대상 **Object Read & Write** 권한. 생성
+   결과의 **Access Key ID(32자)**와 **Secret Access Key(64자)**를 사용한다.
+   함께 표시되는 53자짜리 API token 값 자체를 Access Key ID에 넣지 않는다.
 
 그 다음 이 디렉터리에서 초기화를 실행한다.
 
@@ -152,15 +154,19 @@ Updater가 들어가기 전 산출물이다. 그것을 OTA 기준선으로 오�
 `--force-update`는 쓰지 않는다.
 
 ```bash
-git status --short
-pnpm exec hot-updater deploy \
-  --channel production \
-  --target-app-version 1.0.1 \
-  --message "feat: <사용자에게 보이는 변경 요약>"
+git switch main
+git pull --ff-only
+cd apps/ch-life
+pnpm deploy:ota -- --message "feat: <사용자에게 보이는 변경 요약>"
 ```
 
+`deploy:ota`는 clean main 여부, Cloudflare·R2 자격증명 형식, private signing
+key를 먼저 검사하고 `app.config.ts`의 현재 버전을 target app version으로 자동
+사용한다. 다른 브랜치나 dirty worktree에서는 기본적으로 발행하지 않는다.
+
 플랫폼을 생략하면 iOS 성공 후 Android를 순차 발행한다. 한 플랫폼만 다시 보낼
-때는 `--platform ios` 또는 `--platform android`를 붙인다. 기본 rollout은 100%다.
+때는 `pnpm deploy:ota -- --platform ios` 또는 `--platform android`를 붙인다.
+기본 rollout은 100%다.
 첫 실증은 사용자가 한 명이므로 100%로 진행하되 bundle ID 두 개를 기록한다.
 
 GitHub Actions에서는 **Hot Updater (OTA)** workflow의 `production` 채널을
