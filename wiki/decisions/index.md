@@ -37,6 +37,7 @@
 | [ADR-0013](ADR-0013-release-path.md) | OTA는 CI 통과 후 자동, 네이티브 빌드는 수동 | 릴리스 파이프라인, `version` 변경 | 기록됨 (이유 미기록) |
 | [ADR-0014](ADR-0014-worktree-workflow.md) | 기능 작업은 워크트리에서 격리한다 | **새 작업을 시작하기 전** | 기록됨 (이유 미기록) |
 | [ADR-0016](ADR-0016-commit-convention.md) | 커밋은 gitmoji를 붙인 Conventional Commits로 쓴다 | 커밋 메시지를 쓸 때 | 기록됨 |
+| [ADR-0017](ADR-0017-pr-gate.md) | main은 PR과 CI를 통과한 것만 받는다 | PR을 열거나 병합 방식을 바꿀 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
@@ -51,7 +52,7 @@
 
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
-프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0016](ADR-0016-commit-convention.md).
+프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0016](ADR-0016-commit-convention.md) → [ADR-0017](ADR-0017-pr-gate.md).
 
 ## 새 ADR을 쓸 때
 
