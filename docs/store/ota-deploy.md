@@ -3,8 +3,8 @@
 씀씀의 JavaScript와 번들 자산을 Hot Updater + Cloudflare로 배포하고,
 문제가 생겼을 때 정상 번들로 복구하는 절차다.
 
-> 2026-09-05 상태: 앱·서명·CI 설정과 네이티브 prebuild 검증은 완료했다.
-> Cloudflare 리소스 생성, EAS/GitHub secret 등록, 새 스토어 빌드와 실기기
+> 2026-09-05 상태: 앱·서명·CI 설정, Cloudflare 리소스 생성, EAS/GitHub
+> secret 등록과 네이티브 prebuild 검증을 완료했다. 새 스토어 빌드와 실기기
 > OTA·롤백 왕복은 아직 실행 전이다.
 
 ## 배포 모델
@@ -52,15 +52,15 @@ cd apps/ch-life
 pnpm exec hot-updater init --provider cloudflare --build expo
 ```
 
-권장 리소스명은 R2 bucket, D1 database, Worker 모두
-`ch-life-hot-updater`다. R2 bucket은 private로 만든다. CLI의 password prompt에
+현재 production 리소스는 Worker `hot-updater`, D1 database `ch-notes`, R2
+bucket `ch-notes-bucket`이다. R2 bucket은 private다. CLI의 password prompt에
 token과 access key를 넣고, 재실행용 `.env.hotupdater` 저장에 동의한다. 이 파일은
 Git에서 제외되어 있다.
 
 성공 후 출력된 공개 endpoint를 `.env.hotupdater`에 추가한다.
 
 ```dotenv
-HOT_UPDATER_BASE_URL=https://ch-life-hot-updater.<workers-subdomain>.workers.dev/api/check-update
+HOT_UPDATER_BASE_URL=https://hot-updater.jinjinstar3.workers.dev/api/check-update
 ```
 
 환경을 재현하거나 migration을 다시 맞출 때는 저장된 값을 사용한다.
