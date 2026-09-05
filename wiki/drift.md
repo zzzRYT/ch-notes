@@ -126,6 +126,20 @@
 
 `.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막았다. Phase 4에서 앱이 정식 멤버가 되면 이 플래그를 걷어내고 Metro monorepo 설정(watchFolders + nodeModulesPaths)을 함께 넣어야 한다.
 
+### B19. OTA는 한 번도 성공한 적이 없다
+`hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
+
+```
+◆  ✅ Bundle Signing Complete
+◇  📦 Uploading to Storage (iOS • r2Storage)
+■  Credential access key has length 53, should be 32
+■  Failed to upload bundle to storage
+```
+
+번들 생성·Hermes 컴파일·서명까지는 전부 통과하고 **R2 업로드에서만** 죽는다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있다 — 다른 자격증명(API 토큰 등)을 이 슬롯에 넣었을 가능성이 크다.
+
+워크플로의 `test -n` 가드는 값의 **존재**만 보고 형식은 보지 않으므로 이 실수를 잡지 못한다. 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 자동 경로는 **실제로는 닫혀 있다.**
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
