@@ -53,4 +53,6 @@ jobs:
         env:
           EAS_PROFILE: ${{ github.event.inputs.profile }}
           EAS_PLATFORM: ${{ github.event.inputs.platform }}
+          HOT_UPDATER_BASE_URL: ${{ vars.HOT_UPDATER_BASE_URL }}
+          HOT_UPDATER_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_PRIVATE_KEY }}
         run: eas build --profile "$EAS_PROFILE" --platform "$EAS_PLATFORM" --non-interactive --no-wait

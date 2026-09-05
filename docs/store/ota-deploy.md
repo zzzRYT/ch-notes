@@ -1,181 +1,246 @@
-# OTA 배포 운영 절차
+# Hot Updater OTA 배포 운영 절차
 
-씀씀의 JavaScript와 번들 자산을 EAS Update로 배포하고, 문제가 생겼을 때 안전한 버전으로 되돌리는 절차다.
+씀씀의 JavaScript와 번들 자산을 Hot Updater + Cloudflare로 배포하고,
+문제가 생겼을 때 정상 번들로 복구하는 절차다.
 
-> 현재 상태: 운영 절차만 확정했다. production 발행·실기기 적용·롤백 왕복은 아직 실행하지 않았다. 아래의 `<...>` 값과 실측 기록은 실제 리허설에서 채운다.
+> 2026-09-05 상태: 앱·서명·CI 설정과 네이티브 prebuild 검증은 완료했다.
+> Cloudflare 리소스 생성, EAS/GitHub secret 등록, 새 스토어 빌드와 실기기
+> OTA·롤백 왕복은 아직 실행 전이다.
 
-## 현재 배관
+## 배포 모델
 
-- Expo SDK: 54
-- 업데이트 런타임: `expo-updates`
-- 프로젝트: `@zzzryt/ch-note`
-- production 채널: `production`
-- 런타임 정책: `runtimeVersion: { policy: "appVersion" }`
-- 현재 앱 버전과 대상 런타임: `1.0.0`
-- 최초 발행 거처: `/Users/leejaejin/coding/toy-project/ch-life/.worktrees/post-launch-ops`
-- 최초 발행 Git 브랜치: `zzzRYT/post-launch-ops`
+- 앱 런타임: `@hot-updater/react-native` 0.36.8
+- 빌드 플러그인: `@hot-updater/expo` 0.36.8
+- 저장소/DB/API: Cloudflare R2 + D1 + Worker
+- 호환성: `appVersion`
+- 기본 네이티브 채널: `production`
+- 현재 새 기준선 버전: `1.0.1`
+- 번들 서명: RSA-4096, private key는 Git과 앱 번들에서 제외
+- 적용 정책: 일반 업데이트와 서버 롤백 모두 현재 세션을 재시작하지 않고
+  다음 cold launch에 적용 (`reloadOnForceUpdate: false`)
 
-`eas.json`의 production 빌드는 `production` 채널을 바이너리에 넣는다. 채널은 설치된 바이너리가 어느 업데이트 흐름을 조회할지 정하고, EAS Update 브랜치는 시간순 업데이트 묶음을 보관한다. 이 프로젝트는 단순 운영을 위해 `--channel production`으로 발행하며, EAS가 production 채널에 연결된 브랜치에 업데이트를 추가하게 한다.
+Hot Updater는 `expo-updates`와 함께 쓸 수 없다. 이 저장소는 기존
+`updates.url`, `runtimeVersion`, EAS Update 채널 설정과 `expo-updates`
+의존성을 제거했다. Hot Updater 네이티브 모듈과 public key가 들어간 새 스토어
+빌드가 설치되기 전에는 Hot Updater OTA를 받을 수 없다.
 
-빌드와 업데이트는 플랫폼과 runtime version이 모두 같을 때만 호환된다. `appVersion` 정책에서는 스토어 표시 버전 `1.0.0`이 runtime version `1.0.0`이 된다. iOS build number와 Android versionCode는 runtime version에 포함되지 않는다.
+## 자동화와 사람 작업 경계
 
-## 발행 전 점검
+| 단계 | 자동화 | 사용자가 직접 할 일 |
+| --- | --- | --- |
+| 앱 전환 | 패키지·config plugin·root wrapper·서명 설정·CI | 없음 |
+| Cloudflare | `hot-updater init`가 R2·D1·Worker 생성과 migration 수행 | Cloudflare에서 최소 권한 token 2개 생성 후 로컬 prompt에 입력 |
+| 키 | 로컬 RSA key 생성, public key를 prebuild 때 자동 주입 | private key를 비밀 저장소에 등록하고 원본을 안전하게 백업 |
+| 네이티브 출시 | GitHub Action/EAS가 iOS·Android 빌드 큐잉 | `zzzryt` EAS 인증, 스토어 약관·심사·출시 승인 |
+| OTA | CI 성공 뒤 preview 자동 발행, production 수동 발행 | production 실행 승인과 iOS·Android 실기기 확인 |
+| 롤백 | CLI가 문제 bundle을 비활성화 | 어떤 bundle을 되돌릴지 승인하고 실기기 복구 확인 |
 
-production 발행은 반드시 위 작업 거처의 배포할 커밋에서 실행한다. 작업 트리가 더럽거나 다른 기능이 섞였으면 발행하지 않는다.
+Cloudflare/EAS/GitHub 비밀값을 이 문서, 이슈, 채팅, shell history에 붙이지
+않는다. 로컬의 `.env.hotupdater` 또는 각 서비스의 secret 입력창에만 넣는다.
+
+## 1. Cloudflare 최초 구성 — 사용자 입력 필요
+
+Cloudflare 대시보드에서 다음 두 자격증명을 만든다.
+
+1. D1 API token: 대상 계정의 **D1 Edit** 권한.
+2. R2 API token: `ch-life-hot-updater` bucket 대상 **Object Read & Write** 권한.
+
+그 다음 이 디렉터리에서 초기화를 실행한다.
 
 ```bash
-cd /Users/leejaejin/coding/toy-project/ch-life/.worktrees/post-launch-ops/apps/ch-life
-
-git status --short
-git log -1 --oneline
-eas whoami
+cd apps/ch-life
+pnpm exec hot-updater init --provider cloudflare --build expo
 ```
 
-`eas whoami`는 프로젝트 owner에 접근할 수 있는 `zzzryt` 계정이어야 한다. 2026-09-02 점검 당시 로컬 로그인은 다른 계정이어서 조회 권한이 없었다. 다음 단계 전에 명시적으로 다시 로그인한다.
+권장 리소스명은 R2 bucket, D1 database, Worker 모두
+`ch-life-hot-updater`다. R2 bucket은 private로 만든다. CLI의 password prompt에
+token과 access key를 넣고, 재실행용 `.env.hotupdater` 저장에 동의한다. 이 파일은
+Git에서 제외되어 있다.
+
+성공 후 출력된 공개 endpoint를 `.env.hotupdater`에 추가한다.
+
+```dotenv
+HOT_UPDATER_BASE_URL=https://ch-life-hot-updater.<workers-subdomain>.workers.dev/api/check-update
+```
+
+환경을 재현하거나 migration을 다시 맞출 때는 저장된 값을 사용한다.
+
+```bash
+pnpm exec hot-updater init \
+  --provider cloudflare \
+  --build expo \
+  --from-env-file .env.hotupdater
+```
+
+## 2. 서명 키 보관 — 사용자 인증 필요
+
+로컬 키는 `apps/ch-life/keys/`에 있고 Git에서 제외되어 있다. private key를
+암호화된 개인 비밀 저장소에 한 번 더 백업한다. 분실하면 기존 public key가 박힌
+앱에 서명된 새 bundle을 보낼 수 없다.
+
+EAS의 `zzzryt` 계정으로 전환한 뒤 production 환경에 private key와 Worker URL을
+등록한다. 값은 대화나 로그로 전달하지 않는다.
 
 ```bash
 eas logout
 eas login
+eas env:create --environment production --name HOT_UPDATER_PRIVATE_KEY \
+  --value "$(cat keys/private-key.pem)" --visibility secret
+eas env:create --environment production --name HOT_UPDATER_BASE_URL \
+  --value "<PUBLIC_WORKER_BASE_URL>" --visibility plain
 ```
 
-스토어에 올라간 production 바이너리가 실제로 `channel: production`, `runtimeVersion: 1.0.0`인지 확인한다.
+GitHub Actions 자동화를 쓸 때는 다음을 등록한다.
 
-```bash
-eas build:list --platform all --status finished --limit 10
-eas build:view <IOS_BUILD_ID>
-eas build:view <ANDROID_BUILD_ID>
-eas channel:view production
-```
+- Repository variable: `HOT_UPDATER_BASE_URL`,
+  `HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME`
+- Repository secret: `HOT_UPDATER_PRIVATE_KEY`,
+  `HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID`,
+  `HOT_UPDATER_CLOUDFLARE_API_TOKEN`,
+  `HOT_UPDATER_CLOUDFLARE_D1_DATABASE_ID`,
+  `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID`,
+  `HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY`
 
-다음 조건이 하나라도 맞지 않으면 발행을 중단한다.
-
-- 스토어 설치본을 만든 build profile이 `production`이 아니다.
-- 바이너리의 channel이 `production`이 아니다.
-- 바이너리와 업데이트의 runtime version이 다르다.
-- 배포 커밋에 네이티브 변경이 섞였다.
-- 로컬 계정이 프로젝트를 조회할 수 없다.
-
-코드 게이트도 먼저 통과시킨다.
+## 3. 배포 전 자동 점검
 
 ```bash
 pnpm test:ci
 pnpm typecheck
 pnpm lint
+pnpm exec hot-updater doctor --json \
+  --server-base-url "$HOT_UPDATER_BASE_URL"
 ```
 
-## production 발행
+`doctor`는 패키지 버전, iOS·Android 네이티브 연결, 서명 설정, Worker `/version`
+호환성을 검사한다. 하나라도 실패하면 빌드나 OTA를 발행하지 않는다.
 
-현재 커밋의 JavaScript 번들과 자산을 production 채널에 발행한다.
+다음 변경은 OTA가 아니라 새 스토어 빌드다.
+
+- 네이티브 모듈 또는 config plugin 추가·제거·업데이트
+- Expo SDK / React Native 변경
+- 권한, 아이콘, splash, scheme, bundle identifier/package 변경
+- iOS/Android native project나 Gradle/Pod 설정 변경
+- Hot Updater public key 또는 기본 채널 변경
+
+순수 JS/TS 로직, 스타일, Metro bundle에 포함되는 이미지·폰트만 기존
+`appVersion` 설치본에 OTA로 보낸다. 네이티브 계약이 바뀌면 앱 버전을 올리고 새
+기준선 빌드를 먼저 출시한다.
+
+## 4. Hot Updater 기준선 스토어 빌드
+
+최초 전환은 반드시 iOS와 Android 새 production 빌드가 필요하다.
 
 ```bash
-eas update --channel production --message "<사용자에게 보이는 변경 요약>"
+eas build --profile production --platform all
 ```
 
-명령 결과에서 update group ID, runtime version, platform별 update ID와 dashboard URL을 배포 기록에 남긴다. 발행 직후 서버 상태도 다시 확인한다.
+또는 GitHub Actions의 **EAS Build** workflow를 `production / all`로 실행한다.
+완성된 빌드에 대해 다음을 확인한 뒤 각 스토어에 제출한다.
+
+- 앱 버전 `1.0.1`과 새 build number/versionCode
+- default channel `production`
+- iOS `HotUpdater.bundleURL()` / Android `HotUpdater.getJSBundleFile()`
+- 양 플랫폼 public key 포함
+- 스토어 심사 통과 후 실제 스토어 설치본으로 확인
+
+현재 공개 스토어 버전은 1.0 계열이고, 2026-09-02에 만든 1.0.1 빌드는 Hot
+Updater가 들어가기 전 산출물이다. 그것을 OTA 기준선으로 오인하지 않는다.
+
+## 5. production OTA 발행
+
+스토어에서 Hot Updater 기준선 설치가 끝난 뒤, 깨끗한 배포 커밋에서 실행한다.
+`--force-update`는 쓰지 않는다.
 
 ```bash
-eas update:view <UPDATE_GROUP_ID>
-eas update:list --all --runtime-version 1.0.0
-eas channel:view production
-```
-
-### 실기기 적용 확인
-
-Expo SDK 54의 기본값은 시작할 때 항상 업데이트를 확인하고(`checkAutomatically: ALWAYS`), 시작 화면에서 기다리지 않는 것(`fallbackToCacheTimeout: 0`)이다. 따라서 보통 첫 실행에서 백그라운드로 내려받고, 앱을 완전히 종료한 다음 다시 실행할 때 적용된다. 강제 재시작이나 전체 화면 안내를 앱 코드에서 호출하지 않는다.
-
-스토어에서 설치한 앱으로 다음을 기록한다.
-
-1. 앱을 완전히 종료한다.
-2. 첫 번째 실행에서 변경 전/후 중 무엇이 보이는지 기록한다.
-3. 앱을 다시 완전히 종료한다.
-4. 두 번째 실행에서 변경이 적용됐는지 기록한다.
-5. iOS와 Android 각각 필요한 실행 횟수와 확인 시각을 기록한다.
-6. `Updates.updateId`, `Updates.channel`, `Updates.runtimeVersion` 진단값으로 `embedded`가 아닌 production 업데이트인지 확인한다.
-
-실측 전에는 “두 번째 실행에 반드시 적용된다”고 완료 판정하지 않는다. 네트워크와 OS 종료 방식에 따라 다운로드 시점이 달라질 수 있다.
-
-## 롤백
-
-롤백도 새 업데이트를 발행하는 동작이다. 이미 잘못된 업데이트를 실행한 사용자는 다음 호환 업데이트를 다운로드하고 다시 시작할 때까지 그 버전을 실행할 수 있다. 로컬 DB나 파일 형식을 이전 버전과 호환되지 않게 바꾼 업데이트는 코드만 되돌려도 안전하지 않을 수 있으므로, 먼저 같은 사용자 상태를 가진 release/staging 빌드에서 검증한다.
-
-### 첫 OTA를 임베디드 번들로 되돌리기
-
-production의 첫 OTA 전 상태는 스토어 바이너리에 포함된 embedded update다.
-
-```bash
-eas update:roll-back-to-embedded \
+git status --short
+pnpm exec hot-updater deploy \
   --channel production \
-  --runtime-version 1.0.0 \
-  --message "rollback: <문제가 된 update group ID>를 embedded로 복구"
+  --target-app-version 1.0.1 \
+  --message "feat: <사용자에게 보이는 변경 요약>"
 ```
 
-발행 결과의 새 rollback group ID를 기록하고, 실기기에서 같은 재실행 절차를 밟아 OTA 기능이 사라지고 embedded 상태가 실행되는지 확인한다.
+플랫폼을 생략하면 iOS 성공 후 Android를 순차 발행한다. 한 플랫폼만 다시 보낼
+때는 `--platform ios` 또는 `--platform android`를 붙인다. 기본 rollout은 100%다.
+첫 실증은 사용자가 한 명이므로 100%로 진행하되 bundle ID 두 개를 기록한다.
 
-### 이후 OTA를 이전 정상 그룹으로 되돌리기
+GitHub Actions에서는 **Hot Updater (OTA)** workflow의 `production` 채널을
+수동 선택한다. main CI 성공 뒤 자동 실행되는 것은 `preview`뿐이다.
 
-정상 동작이 확인된 update group을 production에 재발행한다. 소스 코드를 다시 번들링하는 대신 검증했던 동일 아티팩트를 사용한다.
+## 6. 실기기 적용 확인
+
+일반 bundle은 현재 세션 뒤에서 다운로드되고 다음 cold launch에 적용된다.
+
+1. 스토어에서 받은 1.0.1 앱을 iOS·Android 실기기에 설치한다.
+2. 앱을 완전히 종료하고 첫 실행 결과와 시각을 기록한다.
+3. 다시 완전히 종료한 뒤 두 번째 실행에서 변경을 확인한다.
+4. 설정의 문의 메일 초안에서 bundle ID, channel, app version을 확인한다.
+5. 예배 중 사용 흐름이 reload나 전체 화면 UI로 끊기지 않았는지 확인한다.
+
+정확한 적용 횟수는 네트워크와 OS 종료 방식에 따라 달라질 수 있으므로 실측값을
+기록한다.
+
+## 7. 롤백
+
+최근 bundle을 확인한다.
 
 ```bash
-eas update:republish \
-  --group <KNOWN_GOOD_UPDATE_GROUP_ID> \
-  --destination-channel production \
-  --message "rollback: <문제가 된 update group ID>에서 정상 그룹으로 복구"
+pnpm exec hot-updater bundle list --channel production --json
 ```
 
-대화형 통합 명령 `eas update:rollback`으로도 이전 그룹 또는 embedded update를 선택할 수 있다. 사고 대응 문서에는 자동화하기 쉬운 명시적 명령을 우선 남긴다.
-
-### 롤백 뒤 수정본 재발행
-
-수정본의 전체 게이트를 다시 통과시킨 뒤 새 update로 발행한다.
+문제 bundle을 비활성화하면 이전 정상 bundle, 없으면 embedded bundle로
+되돌아간다.
 
 ```bash
-eas update --channel production --message "fix: <수정 내용>"
+pnpm exec hot-updater bundle disable <BAD_BUNDLE_ID> --yes
 ```
 
-새 update group ID와 실기기 복구 확인 결과를 기록한다. 롤백 그룹을 삭제하지 않는다. 어떤 버전이 언제 사용자에게 제공됐는지 추적할 수 있어야 한다.
+이 앱은 `reloadOnForceUpdate: false`이므로 서버가 롤백을 지시해도 현재 세션은
+재시작하지 않는다. 실기기에서 앱을 완전히 종료하고 다시 실행해 정상 bundle을
+확인한다. 복구가 끝난 뒤 원인을 수정한 새 bundle ID로 다시 배포한다.
 
-## OTA로 배포할 수 없는 변경
+시작 화면까지 도달하지 못하는 bundle은 `HotUpdater.wrap`의 자동 롤백 대상이다.
+새 bundle은 첫 정상 렌더 전까지 staging 상태이고, 시작 실패 시 다음 실행에서
+직전 정상 bundle 또는 embedded bundle로 복구된다.
 
-다음 변경은 네이티브 바이너리와의 계약을 바꾸므로 새 스토어 빌드가 필요하다.
+## Cloudflare 무료 한도와 장애 경계
 
-- 네이티브 모듈이나 네이티브 의존성 추가·제거·버전 변경
-- config plugin 추가·제거·설정 변경
-- Expo SDK 또는 React Native 업그레이드
-- `app.config.ts`에서 네이티브 프로젝트로 반영되는 값 변경
-- 앱 아이콘, adaptive icon, splash, 앱 이름, scheme 변경
-- 카메라·사진·추적 등의 권한 및 `Info.plist`/AndroidManifest 선언 변경
-- bundle identifier, Android package, new architecture, JS engine 변경
-- iOS Podfile, Xcode 프로젝트, Android Gradle 설정 변경
+2026-09-05 공식 요금표 기준:
 
-일반적인 TypeScript/JavaScript 로직, React 컴포넌트, 스타일, 번들에 포함되는 이미지·폰트는 기존 네이티브 런타임과 호환되는 한 OTA 대상이다. 새 라이브러리가 순수 JS처럼 보여도 네이티브 코드나 config plugin을 포함하는지 반드시 확인한다.
+- Workers Free: 100,000 requests/day, 10ms CPU/invocation. 초과 시 Error 1027.
+- D1 Free: 5,000,000 rows read/day, 100,000 rows written/day, 총 5GB. 일일
+  한도 초과 시 쿼리가 UTC 00:00 reset까지 실패한다.
+- R2 Standard Free: 10GB-month/month, Class A 1,000,000/month, Class B
+  10,000,000/month, egress 무료.
 
-네이티브 계약이 바뀌면 `version`을 올리고 새 production 빌드를 만든다. 이 프로젝트의 `appVersion` 정책은 새 버전을 새 runtime version으로 만들어, 예를 들어 `1.1.0`용 JavaScript가 `1.0.0` 바이너리에 전달되지 않게 한다. build number/versionCode만 올리는 것으로는 runtime version이 분리되지 않는다.
+실사용자 한 명이 앱 시작 때 update check를 하고 배포 수가 적은 현재 규모는 이
+한도보다 매우 작다. 무료 플랜에서는 자동 과금보다 update check 실패가 주된
+위험이다. 앱은 이 오류를 경고 로그로만 남기고 embedded/기존 정상 bundle로 계속
+실행한다.
 
 ## 배포 기록 템플릿
 
 ```text
 배포 시각:
 작업 거처 / Git commit:
-EAS 계정:
-채널 / runtime version:
-iOS build ID / Android build ID:
-update group ID:
-platform update IDs:
-변경 내용:
+Hot Updater / Worker version:
+채널 / target app version:
+iOS store build ID / Android store build ID:
+iOS bundle ID / Android bundle ID:
 첫 실행 결과:
 두 번째 실행 결과:
 iOS 적용 확인:
 Android 적용 확인:
-rollback group ID:
+rollback 대상 bundle ID:
 rollback 실기기 확인:
-재발행 group ID:
-재발행 실기기 확인:
 잔여 위험:
 ```
 
 ## 근거 문서
 
-- [Expo SDK 54 `expo-updates`](https://docs.expo.dev/versions/v54.0.0/sdk/updates/)
-- [EAS Update 배포](https://docs.expo.dev/eas-update/deployment/)
-- [EAS Update 롤백](https://docs.expo.dev/eas-update/rollbacks/)
-- [EAS CLI 명령 레퍼런스](https://docs.expo.dev/eas/cli/)
+- [Hot Updater Cloudflare provider](https://hot-updater.dev/docs/managed/cloudflare)
+- [Hot Updater deploy](https://hot-updater.dev/docs/guides/deploy)
+- [Hot Updater bundle signing](https://hot-updater.dev/docs/guides/bundle-signing)
+- [Hot Updater automatic rollback](https://hot-updater.dev/docs/concepts/automatic-rollback)
+- [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
+- [Cloudflare D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/)
+- [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)

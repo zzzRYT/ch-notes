@@ -17,7 +17,7 @@ const full: SupportEnv = {
   deviceName: "iPhone 15 Pro",
   updateId: "0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
   channel: "production",
-  runtimeVersion: "1.0.0",
+  updateAppVersion: "1.0.0",
 };
 
 const empty: SupportEnv = {
@@ -28,7 +28,7 @@ const empty: SupportEnv = {
   deviceName: null,
   updateId: null,
   channel: null,
-  runtimeVersion: null,
+  updateAppVersion: null,
 };
 
 // jest는 TZ=Asia/Seoul로 돈다(package.json). 로컬 시각 포맷이 고정된다.
@@ -69,7 +69,7 @@ describe("formatDiagnostics", () => {
         "앱 버전: 1.0.0+12",
         "업데이트: 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
         "채널: production",
-        "런타임: 1.0.0",
+        "OTA 대상 앱 버전: 1.0.0",
         "기기: iPhone 15 Pro",
         "운영체제: ios 18.2",
       ].join("\n"),
@@ -127,7 +127,7 @@ describe("buildContactDraft", () => {
         "앱 버전: 1.0.0+12",
         "업데이트: 0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
         "채널: production",
-        "런타임: 1.0.0",
+        "OTA 대상 앱 버전: 1.0.0",
         "기기: iPhone 15 Pro",
         "운영체제: ios 18.2",
       ].join("\n"),

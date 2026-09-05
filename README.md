@@ -23,7 +23,7 @@
 - **expo-router** (typed routes) — 파일 기반 라우팅
 - **expo-sqlite** — 로컬 영속화 (테스트는 Node용 `better-sqlite3` 어댑터)
 - **zustand** — 상태 관리 + 설정 영속화
-- **expo-updates (EAS Update)** — OTA 배포
+- **Hot Updater + Cloudflare** — 셀프 호스팅 OTA 배포
 - 패키지 매니저: **pnpm** (`.npmrc`의 `node-linker=hoisted` 필수)
 
 ---
@@ -41,7 +41,7 @@ ch-life/
 │   └── plans/           # 기획 문서
 ├── website/             # GitHub Pages (개인정보처리방침 호스팅)
 ├── DESIGN.md            # 디자인 시스템 문서
-└── .github/workflows/   # CI · EAS Build · EAS Update · Pages
+└── .github/workflows/   # CI · EAS Build · Hot Updater · Pages
 ```
 
 ### 앱 내부 모듈 (`apps/ch-life/src/`)
@@ -198,11 +198,11 @@ PR을 올린 뒤에는 CI 결과와 리뷰 의견을 확인하고, 수정 사항
 
 ## 배포
 
-- **JS/에셋만 변경** → EAS Update(OTA).
+- **JS/에셋만 변경** → Hot Updater(OTA).
 - **네이티브 의존성 / `version` 변경** → EAS Build.
-- ⚠️ `runtimeVersion: appVersion` — `app.config.ts`의 `version`을 올리면 OTA가 구버전 설치본에 안 닿으므로 **새 네이티브 빌드 필요**.
+- ⚠️ `updateStrategy: appVersion` — 대상 버전을 명시해 배포하며, 버전이나 네이티브 계약을 바꾸면 **새 네이티브 빌드 필요**.
 
-자세한 절차는 `apps/ch-life/.claude/skills/eas-release` 및 [`docs/store/android-auto-submit.md`](docs/store/android-auto-submit.md) 참고.
+자세한 절차는 `apps/ch-life/.claude/skills/eas-release`, [`docs/store/ota-deploy.md`](docs/store/ota-deploy.md), [`docs/store/android-auto-submit.md`](docs/store/android-auto-submit.md) 참고.
 
 ---
 
