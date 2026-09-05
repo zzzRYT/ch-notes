@@ -255,13 +255,18 @@ git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
 
 ### 릴리스 절차
 
-스토어 제출마다 릴리스 가지를 하나 만든다.
+스토어 제출마다 릴리스 가지를 하나 만든다. **가지는 `main`의 커밋 그대로 만들고, 버전 bump는 PR로 넣는다** — 룰셋이 `release/**`에 PR과 CI를 요구하므로, 직접 푸시한 bump 커밋은 검사를 건너뛴 채 배포 대상이 된다.
 
 ```bash
-git switch -c release/1.0.2 origin/main
-# app.config.ts version 1.0.2, src/version.ts OTA_RELEASE 0
-git commit -m "🔧 chore(release): 앱 버전 1.0.2로 올림"
-git push -u origin release/1.0.2          # CI 통과 확인
+# 1. 가지를 main 지점에 그대로 연다 (새 커밋 없음)
+git push origin origin/main:refs/heads/release/1.0.2
+
+# 2. 버전 bump는 PR로
+git switch -c chore/release-1.0.2 origin/release/1.0.2
+#    app.config.ts version → 1.0.2,  src/version.ts OTA_RELEASE → 0
+git commit -am "🔧 chore(release): 앱 버전 1.0.2로 올림"
+git push -u origin chore/release-1.0.2
+gh pr create --base release/1.0.2      # CI 통과 후 병합
 ```
 
 이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)하고, 스토어 제출이 끝나면 그 커밋에 태그를 붙인다.
@@ -281,7 +286,7 @@ git tag v1.0.2 && git push origin v1.0.2
 
 `production`을 `main`에서 쏘려 하면 워크플로가 거부한다 — 스토어에 올린 것과 다른 코드가 기존 설치본으로 나가는 것을 막는다.
 
-production OTA를 낸 뒤에는 `OTA_RELEASE`를 올린 그 커밋에 태그를 붙인다: `v1.0.2+3`. 되돌릴 지점이자, D1을 열지 않고도 몇 번째 번들인지 아는 유일한 수단이다.
+`OTA_RELEASE` 증가도 같은 방식이다 — 릴리스 가지로 PR을 열어 CI를 통과시킨 뒤 병합하고, 그 커밋을 발행한다. **발행되는 커밋은 예외 없이 CI를 통과한 커밋이다.** 발행 뒤 그 커밋에 태그를 붙인다: `v1.0.2+3`. 되돌릴 지점이자, D1을 열지 않고도 몇 번째 번들인지 아는 유일한 수단이다.
 
 ### 나가기 전에 통과해야 하는 것
 

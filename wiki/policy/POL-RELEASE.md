@@ -12,6 +12,7 @@ source:
   - apps/ch-life/.claude/skills/eas-release/SKILL.md
 verified_by:
   - test: .github/workflows/ci.yml
+  - ci: .github/workflows/eas-update.yml
 ```
 
 이 앱에는 서버가 없으므로 릴리스가 곧 배포의 전부다. 두 경로를 잘못 고르면 **수정이 사용자에게 아예 닿지 않는다.**
