@@ -41,6 +41,7 @@ ch-life/
 ├── wiki/                # 정본 위키 — 정책·규칙·계약·결정 (POL/RULE/CONTRACT/ADR)
 │   ├── workflow.md      #   작업 절차 — 코드를 열기 전에 정본을 확인한다
 │   └── by-task.md       #   작업 유형·코드 경로별 진입점
+├── wiki/                # 정본(canon) — POL · RULE · CONTRACT · ADR, git 운용 규칙
 ├── docs/
 │   ├── store/           # 스토어 등록 정보 · 지원 페이지 · 자동제출 가이드
 │   ├── legal/           # 개인정보처리방침
@@ -114,79 +115,27 @@ Expo 개발 화면에서 실행할 플랫폼을 선택하거나 아래 명령을
 
 ## 기여 가이드
 
-버그 수정, 기능 제안, 문서 개선 모두 환영합니다. 작업 내용과 논의 과정을 추적할 수 있도록 가능하면 이슈를 먼저 만들고, 하나의 PR에는 하나의 목적만 담아 주세요.
+작업 방식의 정본은 **[`wiki/git.md`](wiki/git.md)** 다 — 커밋 메시지 형식, 브랜치 이름, PR 게이트, 이슈·라벨, 릴리스와 OTA 절차가 이유와 함께 거기 있다. 아래는 처음 한 번 훑을 요약이다.
 
-### 이슈 만들기
+**작업 순서**
 
-[GitHub Issues](https://github.com/zzzRYT/ch-notes/issues)에서 기존 이슈를 먼저 검색한 뒤 새 이슈를 작성합니다.
+1. 코드를 열기 전에 [`wiki/workflow.md`](wiki/workflow.md)로 정본을 확인한다. 이미 결정된 것과 충돌하면 거기서 멈춘다.
+2. `main`에서 작업 가지를 딴다. 접두는 커밋 타입과 같은 단어다 — `feat/note-search`, `fix/editor-crash`, `docs/git-rules`.
+3. 커밋은 `🐛 fix(notes): 복원 경쟁 상황에서 최신 undo 유지`처럼 쓴다. 이모지는 타입이 정하고, 제목은 한국어 명사형이다.
+4. `apps/ch-life`에서 `pnpm typecheck` · `pnpm lint` · `pnpm test:ci`, 위키를 건드렸으면 `node wiki/check.mjs`.
+5. `main`으로 PR을 연다. 직접 푸시는 막혀 있고, CI가 통과해야 병합된다. 템플릿의 세 칸(무엇을·왜 / 검증 / 위키)을 채운다.
 
-버그 이슈에는 다음 내용을 포함해 주세요.
+**이슈** — 버그·기능 제안은 [GitHub Issues](https://github.com/zzzRYT/ch-notes/issues)에 템플릿으로 연다. 라벨은 `type:`·`area:` 두 축이고, 값은 커밋 타입·scope와 같은 단어를 쓴다.
 
-- 문제가 발생한 플랫폼과 실행 환경(iOS, Android, Web)
-- 재현 순서
-- 기대한 동작과 실제 동작
-- 오류 메시지, 로그 또는 화면 캡처(가능한 경우)
-
-기능 제안에는 해결하려는 문제, 필요한 이유, 기대하는 사용 흐름을 적어 주세요. 구현 방법이 정해지지 않았더라도 사용자 관점의 문제와 결과가 분명하면 충분합니다.
-
-### 브랜치에서 작업하기
-
-저장소에 직접 푸시할 권한이 없다면 먼저 GitHub에서 저장소를 Fork한 뒤, 온보딩 가이드의 `git clone` URL을 자신의 Fork URL로 바꿔 내려받습니다. 이어서 원본 저장소를 `upstream`으로 등록합니다.
+**외부 기여자** — 저장소에 푸시 권한이 없으면 Fork한 뒤 원본을 `upstream`으로 등록하고, `upstream/main`을 기준으로 가지를 딴다.
 
 ```bash
 git remote add upstream https://github.com/zzzRYT/ch-notes.git
+git switch main && git pull --ff-only upstream main
+git switch -c feat/작업명
 ```
 
-기본 브랜치인 `main`을 최신 상태로 만든 뒤 작업 브랜치를 생성합니다. Fork에서 작업하는 외부 기여자는 `upstream/main`을, 저장소에 직접 푸시할 수 있는 구성원은 `origin/main`을 기준으로 사용합니다.
-
-```bash
-git switch main
-git pull --ff-only upstream main  # 직접 기여자는 upstream 대신 origin 사용
-git switch -c feat/간단한-작업명
-```
-
-브랜치 이름은 작업 성격을 알아볼 수 있게 작성합니다.
-
-- 기능: `feat/note-search`
-- 버그 수정: `fix/editor-crash`
-- 문서: `docs/contribution-guide`
-- 기타 유지보수: `chore/dependency-update`
-
-커밋은 서로 관련된 변경끼리 나누고, `feat:`, `fix:`, `docs:`, `chore:`처럼 변경 목적이 드러나는 메시지를 권장합니다.
-
-### 변경 사항 검증하기
-
-PR을 올리기 전에 `apps/ch-life`에서 아래 검사를 실행해 주세요.
-
-```bash
-pnpm typecheck
-pnpm lint
-pnpm test:ci
-```
-
-문서만 변경했다면 테스트 실행은 생략할 수 있지만, 링크·명령어·Markdown 형식이 실제 저장소와 일치하는지 직접 확인해 주세요. UI 변경은 영향을 받는 플랫폼에서 직접 실행하고, 작은 화면과 큰 화면을 함께 확인하는 것을 권장합니다.
-
-### Pull Request 올리기
-
-작업 브랜치를 자신의 `origin`에 올린 뒤 원본 저장소의 `main`을 대상으로 PR을 생성합니다.
-
-```bash
-git push -u origin feat/간단한-작업명
-```
-
-PR 설명에는 다음 내용을 포함해 주세요.
-
-- 무엇을, 왜 변경했는지
-- 관련 이슈 번호(`Closes #123` 등)
-- 실행한 검증 명령과 결과
-- UI 변경 전후의 화면 캡처 또는 영상(해당하는 경우)
-- 리뷰어가 특별히 확인해야 할 사항
-
-PR을 올린 뒤에는 CI 결과와 리뷰 의견을 확인하고, 수정 사항은 같은 브랜치에 추가로 푸시합니다. 리뷰가 끝나기 전에는 불필요한 대규모 리팩터링이나 관련 없는 파일 변경을 섞지 않습니다.
-
-### 현재 보안 및 설정 범위
-
-현재 프로젝트에는 별도 백엔드, 서버 자격 증명, 개발용 `.env`가 없어 추가 보안 설정 절차는 없습니다. 다만 개인 토큰, 서명 키, 로컬 기기 정보처럼 개인이 사용하는 민감 정보는 저장소에 커밋하지 마세요. 향후 외부 서비스나 환경 변수가 도입되면 이 문서에 설정 및 보안 절차를 함께 추가합니다.
+**보안** — 지금은 백엔드도 개발용 `.env`도 없어 별도 설정 절차가 없다. 개인 토큰·서명 키·기기 정보는 커밋하지 않는다. 배포 자격증명은 GitHub Secrets에만 둔다.
 
 ---
 
@@ -208,7 +157,11 @@ PR을 올린 뒤에는 CI 결과와 리뷰 의견을 확인하고, 수정 사항
 - **네이티브 의존성 / `version` 변경** → EAS Build.
 - ⚠️ `updateStrategy: appVersion` — 대상 버전을 명시해 배포하며, 버전이나 네이티브 계약을 바꾸면 **새 네이티브 빌드 필요**.
 
-자세한 절차는 `apps/ch-life/.claude/skills/eas-release`, [`docs/store/ota-deploy.md`](docs/store/ota-deploy.md), [`docs/store/android-auto-submit.md`](docs/store/android-auto-submit.md) 참고.
+- 버전은 네 자리로 읽는다 — `1.0.2+3`의 앞 세 자리는 스토어 빌드, `+3`은 그 버전에 낸 OTA 순번(`src/version.ts`).
+- `production` 채널 OTA는 `release/<버전>` 가지에서 수동 실행으로만 나간다.
+- ⚠️ **자동 OTA는 현재 실패한다** — R2 자격증명이 잘못돼 있다(`wiki/drift.md` B19). 스토어의 1.0.1 설치본은 hot-updater가 없어 어떤 OTA도 받지 못한다.
+
+절차와 이유는 [`wiki/git.md`](wiki/git.md) 5절. 그 밖에 `apps/ch-life/.claude/skills/eas-release`, [`docs/store/ota-deploy.md`](docs/store/ota-deploy.md), [`docs/store/android-auto-submit.md`](docs/store/android-auto-submit.md).
 
 ---
 
