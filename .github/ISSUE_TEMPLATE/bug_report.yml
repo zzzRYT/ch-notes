@@ -1,0 +1,57 @@
+name: 버그 신고
+description: 앱이 의도와 다르게 동작합니다
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        같은 문제가 이미 올라와 있는지 먼저 검색해 주세요.
+        노트 데이터는 기기에만 저장되므로, 데이터가 사라졌다면 **다른 작업을 하기 전에** 적어 주세요.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: 무슨 일이 일어났나요
+      description: 기대한 동작과 실제 동작을 함께 적어 주세요.
+      placeholder: |
+        기대: "요한복음 3:16" 뒤에 space를 치면 인용 블록이 들어온다
+        실제: 아무 일도 일어나지 않고 글자만 남는다
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 순서
+      description: 1번부터 순서대로. 매번 재현되는지, 가끔인지도 적어 주세요.
+      placeholder: |
+        1. 새 노트를 연다
+        2. 제목 줄에 "요한복음 3:16"을 입력한다
+        3. space를 누른다
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 플랫폼
+      multiple: true
+      options:
+        - iOS
+        - Android
+        - Web
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 앱 버전 / 기기
+      description: 설정 화면 아래쪽의 버전과 기기 모델을 적어 주세요.
+      placeholder: "1.0.1 / iPhone 13, iOS 17.4"
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 화면 캡처·로그
+      description: 있으면 붙여 주세요. 없으면 비워 두셔도 됩니다.

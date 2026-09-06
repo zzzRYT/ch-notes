@@ -3,7 +3,7 @@
 ```yaml
 id: ADR-0013
 status: accepted
-statement: main의 CI가 성공한 커밋만 OTA로 자동 발행하고, EAS Build는 수동 실행으로만 큐에 넣는다.
+statement: main의 CI가 성공한 커밋만 OTA로 자동 발행하고, EAS Build는 수동 실행으로만 큐에 넣는다. 이 자동 발행의 대상은 preview 채널이며, 사용자에게 닿는 production 발행은 ADR-0021이 정한다.
 confidence: 기록됨
 source:
   - .github/workflows/eas-update.yml 주석
