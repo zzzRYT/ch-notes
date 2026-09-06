@@ -20,9 +20,16 @@
     "production": {
       "android": {
         "serviceAccountKeyPath": "./credentials/play-service-account.json",
-        "track": "internal",
+        "track": "alpha",
         "releaseStatus": "completed",
         "changesNotSentForReview": false
+      },
+      "ios": {
+        "ascAppId": "6772700147",
+        "appleTeamId": "43ZASDF2J7",
+        "ascApiKeyPath": "./credentials/AuthKey_58F737893F.p8",
+        "ascApiKeyId": "58F737893F",
+        "ascApiKeyIssuerId": "f1eec000-ce31-47c1-95f9-73e2590725c3"
       }
     }
   }
