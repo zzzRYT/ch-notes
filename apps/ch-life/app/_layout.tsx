@@ -33,6 +33,7 @@ function RootLayout() {
           <View style={{ flex: 1 }}>
             <ThemedStack />
             <ActionBannerHost />
+            <StoreUpdateDialog />
           </View>
         </ThemeProvider>
       </KeyboardProvider>

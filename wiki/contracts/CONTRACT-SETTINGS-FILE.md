@@ -27,6 +27,7 @@ source:
 | `accentChoice` | default 또는 지정된 6개 hex | default | default |
 | `lastOpenedNoteId` | string 또는 null | null | null |
 | `lastBibleRef` | string 또는 null (예: `"Gen 1"`) | null | null |
+| `dismissedUpdateVersion` | string 또는 null (예: `"1.0.2"`) | null | null |
 
 ## 두 가지 엄격도가 공존하는 이유
 
@@ -35,6 +36,8 @@ source:
 `themePreference`는 필수인데 **화면 색에 아무 영향도 주지 않는다.** 설정 UI에 노출되지도 않는다([`RULE-SET-003`](../rules/settings-theme.md)).
 
 `lastOpenedNoteId`는 스키마에 있지만 읽는 곳이 없다 — 마지막 노트 자동 복원은 구현되지 않았다.
+
+`dismissedUpdateVersion`은 스토어 업데이트 안내를 닫은 버전 문자열이다([`RULE-OTA-010`](../rules/release.md), [`ADR-0022`](../decisions/ADR-0022-store-update-notice.md)). 개별 폴백 쪽으로 넣었으므로 값이 빠지거나 깨져도 **설정 파일 전체가 버려지지 않는다** — 안내가 한 번 더 뜰 뿐이다.
 
 ## 바꾸려면
 

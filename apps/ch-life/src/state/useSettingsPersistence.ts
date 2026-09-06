@@ -23,6 +23,9 @@ export function useSettingsPersistence(): void {
       })
       .finally(() => {
         loadedRef.current = true;
+        // 기본값과 저장값을 가르는 신호. 파일을 읽기 전에 화면을 띄우는
+        // 기능(예: StoreUpdateDialog)이 기본값을 저장값으로 오인하지 않게 한다.
+        useAppStore.getState().markSettingsLoaded();
       });
   }, []);
 

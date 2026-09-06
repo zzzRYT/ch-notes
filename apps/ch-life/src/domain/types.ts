@@ -66,4 +66,6 @@ export type Settings = {
   accentChoice: AccentChoice;
   lastOpenedNoteId: string | null;
   lastBibleRef: string | null;
+  /** 스토어 업데이트 안내를 닫은 버전. 같은 버전은 다시 띄우지 않는다. */
+  dismissedUpdateVersion: string | null;
 };
