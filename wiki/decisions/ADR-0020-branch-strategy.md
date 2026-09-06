@@ -1,7 +1,7 @@
-# ADR-0019 · main 하나 + 버전별 릴리스 가지
+# ADR-0020 · main 하나 + 버전별 릴리스 가지
 
 ```yaml
-id: ADR-0019
+id: ADR-0020
 status: accepted
 statement: 작업 가지는 main에서 나서 main으로 돌아가고, 출시된 버전마다 release/<버전> 가지를 남겨 그 버전의 OTA와 핫픽스를 거기서 낸다. release에서 main으로는 역머지, main에서 release로는 cherry-pick만 한다. 브랜치 접두는 커밋 타입과 같은 단어를 쓴다.
 confidence: 기록됨
@@ -41,6 +41,6 @@ source:
 - **`release/**`에 GitHub 룰셋을 걸었다** — 삭제·강제 푸시 금지, PR 필수, CI 통과 필수. 이 게이트가 없으면 릴리스 가지에 직접 푸시한 뒤 수동 OTA 배포를 돌릴 수 있고, 그 경로에는 타입체크·테스트가 없다.
 - 병합 시 브랜치 자동 삭제를 켰다. 룰셋의 삭제 금지가 릴리스 가지를 이 자동 삭제에서 지킨다.
 - **역머지는 릴리스 가지를 PR head로 쓰면 안 된다.** `main`이 strict라 GitHub이 `main`을 릴리스 가지에 병합하라고 요구하기 때문이다 — 금지한 방향이다. 임시 가지(`chore/backmerge-<버전>`)를 경유한다([`git.md`](../git.md) 4절).
-- squash·rebase 머지 버튼을 저장소 설정에서 껐다. 병합 커밋 제목은 PR 제목에서 만들어지므로, PR 제목이 [`ADR-0016`](ADR-0016-commit-convention.md)을 따르면 `git log --first-parent main`이 그대로 변경 이력이 된다.
+- squash·rebase 머지 버튼을 저장소 설정에서 껐다. 병합 커밋 제목은 PR 제목에서 만들어지므로, PR 제목이 [`ADR-0017`](ADR-0017-commit-convention.md)을 따르면 `git log --first-parent main`이 그대로 변경 이력이 된다.
 - 병합된 브랜치는 정리했다 — 원격 9개, 로컬 19개. `main`에 다 들어가 있어 잃은 커밋은 없다.
 - [`ADR-0014`](ADR-0014-worktree-workflow.md)의 접두 표기(`feature/`)와 `start-feature` 스킬의 기본값을 이 결정에 맞춰 고쳤다. **핫픽스 작업은 `origin/main`이 아니라 `origin/release/<버전>`에서 분기해야 한다** — 스킬은 항상 `origin/main`을 기준으로 삼으므로 그때는 손으로 만든다.

@@ -2,7 +2,7 @@
 
 이 저장소에서 **커밋·브랜치·PR·이슈·릴리스를 어떻게 다루는가.** 무엇을 만드는가는 [`policy/`](policy/index.md)·[`rules/`](rules/index.md)에 있고, 여기는 그것을 굴리는 방식이다.
 
-각 규칙의 *이유*는 결정 기록에 있다 — 커밋 [`ADR-0016`](decisions/ADR-0016-commit-convention.md).
+각 규칙의 *이유*는 결정 기록에 있다 — 커밋 [`ADR-0017`](decisions/ADR-0017-commit-convention.md).
 
 ---
 
@@ -96,7 +96,7 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 
 ## 2. Pull Request
 
-`main`으로 가는 길은 PR 하나뿐이다. 직접 푸시는 GitHub 브랜치 보호가 막는다([`ADR-0017`](decisions/ADR-0017-pr-gate.md)).
+`main`으로 가는 길은 PR 하나뿐이다. 직접 푸시는 GitHub 브랜치 보호가 막는다([`ADR-0018`](decisions/ADR-0018-pr-gate.md)).
 
 ### 병합 조건
 
@@ -112,7 +112,7 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 
 ### 병합 방식
 
-**merge commit을 쓴다.** squash·rebase 머지는 쓰지 않는다. 개별 커밋이 `main`에 그대로 남는 것이 [`ADR-0016`](decisions/ADR-0016-commit-convention.md)의 전제다.
+**merge commit을 쓴다.** squash·rebase 머지는 쓰지 않는다. 개별 커밋이 `main`에 그대로 남는 것이 [`ADR-0017`](decisions/ADR-0017-commit-convention.md)의 전제다.
 
 저장소 설정에서 squash·rebase 버튼은 꺼 두었다. 병합 커밋 제목은 **PR 제목에서 자동으로 만들어지므로**, PR 제목이 컨벤션을 따르면 `git log --first-parent main`이 그대로 변경 이력이 된다.
 
@@ -132,7 +132,7 @@ PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커�
 
 ## 3. 이슈
 
-**이 저장소의 작업 항목은 GitHub Issues에 산다**([`ADR-0018`](decisions/ADR-0018-issue-tracking.md)). 코드·PR·CI와 같은 곳에 두어 `Closes #12` 한 줄로 이어지게 하는 것이 목적이다.
+**이 저장소의 작업 항목은 GitHub Issues에 산다**([`ADR-0019`](decisions/ADR-0019-issue-tracking.md)). 코드·PR·CI와 같은 곳에 두어 `Closes #12` 한 줄로 이어지게 하는 것이 목적이다.
 
 ### 무엇을 이슈로 만드는가
 
@@ -170,7 +170,7 @@ PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커�
 
 ## 4. 브랜치
 
-가지는 세 종류뿐이다([`ADR-0019`](decisions/ADR-0019-branch-strategy.md)).
+가지는 세 종류뿐이다([`ADR-0020`](decisions/ADR-0020-branch-strategy.md)).
 
 ```text
 feat/note-search ─┐
@@ -238,7 +238,7 @@ git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
 
 ## 5. 버전과 배포
 
-이 앱은 서버가 없다. **릴리스가 곧 배포의 전부**이고, 경로를 잘못 고르면 수정이 사용자에게 아예 닿지 않는다([`POL-RELEASE-001`](policy/POL-RELEASE.md), [`ADR-0020`](decisions/ADR-0020-release-strategy.md)).
+이 앱은 서버가 없다. **릴리스가 곧 배포의 전부**이고, 경로를 잘못 고르면 수정이 사용자에게 아예 닿지 않는다([`POL-RELEASE-001`](policy/POL-RELEASE.md), [`ADR-0021`](decisions/ADR-0021-release-strategy.md)).
 
 ### 버전 올리는 기준
 

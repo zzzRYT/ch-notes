@@ -1,7 +1,7 @@
-# ADR-0016 · 커밋은 gitmoji를 붙인 Conventional Commits로 쓴다
+# ADR-0017 · 커밋은 gitmoji를 붙인 Conventional Commits로 쓴다
 
 ```yaml
-id: ADR-0016
+id: ADR-0017
 status: accepted
 statement: 커밋 제목은 "<이모지> <타입>(<범위>): <한국어 제목>" 형식으로 쓰고, 이모지는 타입에서 1:1로 결정된다. 파괴적 변경은 `!`와 BREAKING CHANGE 푸터를 함께 쓰고, [skip ci]는 쓰지 않는다.
 confidence: 기록됨

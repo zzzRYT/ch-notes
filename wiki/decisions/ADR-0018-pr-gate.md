@@ -1,7 +1,7 @@
-# ADR-0017 · main은 PR과 CI를 통과한 것만 받는다
+# ADR-0018 · main은 PR과 CI를 통과한 것만 받는다
 
 ```yaml
-id: ADR-0017
+id: ADR-0018
 status: accepted
 statement: main 브랜치를 보호해 직접 푸시를 막고, PR과 CI 통과를 병합 조건으로 강제한다. 리뷰 승인은 요구하지 않고, 관리자도 우회하지 않는다. 병합은 merge commit으로 한다.
 confidence: 기록됨

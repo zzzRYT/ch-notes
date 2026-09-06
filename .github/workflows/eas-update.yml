@@ -55,7 +55,7 @@ jobs:
 
       - name: Guard production channel
         # production 은 사용자에게 닿는다. 그 발행은 릴리스 가지에서만 낸다
-        # (wiki/decisions/ADR-0019). main 에서 production 을 쏘면 스토어에 올린
+        # (wiki/decisions/ADR-0020-branch-strategy.md). main 에서 production 을 쏘면 스토어에 올린
         # 것과 다른 코드가 기존 설치본으로 나간다.
         env:
           HOT_UPDATER_CHANNEL: ${{ github.event.inputs.channel || 'preview' }}

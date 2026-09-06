@@ -1,7 +1,7 @@
-# ADR-0018 · 작업 항목은 GitHub Issues에 두고 라벨은 두 축만 쓴다
+# ADR-0019 · 작업 항목은 GitHub Issues에 두고 라벨은 두 축만 쓴다
 
 ```yaml
-id: ADR-0018
+id: ADR-0019
 status: accepted
 statement: 이 저장소의 할 일과 버그는 GitHub Issues를 정본으로 삼는다. 라벨은 type과 area 두 축만 쓰고 진행 상태 라벨은 두지 않는다. 이슈는 버그·기능 두 템플릿으로만 열 수 있다.
 confidence: 기록됨

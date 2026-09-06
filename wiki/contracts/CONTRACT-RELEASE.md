@@ -41,7 +41,7 @@ release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --chann
 네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait          [수동]
 ```
 
-`production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0020`](../decisions/ADR-0020-release-strategy.md)).
+`production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 
 ⚠️ **자동 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
 

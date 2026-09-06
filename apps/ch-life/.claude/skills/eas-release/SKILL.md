@@ -5,7 +5,7 @@ description: Ship a ch-life release — decide between Hot Updater OTA and EAS B
 
 # 릴리스 / Hot Updater·EAS 배포
 
-정본은 `wiki/git.md` 5절과 `wiki/contracts/CONTRACT-RELEASE.md`(+ `POL-RELEASE-001`, `ADR-0013`, `ADR-0020`)다.
+정본은 `wiki/git.md` 5절과 `wiki/contracts/CONTRACT-RELEASE.md`(+ `POL-RELEASE-001`, `ADR-0013`, `ADR-0021`)다.
 **절차(가지·PR·태그)는 `wiki/git.md` 5절이 정본이고, 여기는 OTA/Build 판단과 점검 목록이다.**
 
 ⚠️ **스토어의 1.0.1은 `expo-updates`로 빌드된 바이너리인데 main은 `hot-updater`로 갈아탔다**

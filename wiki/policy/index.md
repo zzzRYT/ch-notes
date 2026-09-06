@@ -16,7 +16,7 @@
 | [POL-ACCESSIBILITY.md](POL-ACCESSIBILITY.md) | POL-A11Y-001 | 글자 크기 4단계, 손가락으로 누를 수 있는 크기, 색만으로 뜻을 전하지 않음 | 새 화면·컴포넌트, `fontScale`, 터치 타깃 |
 | [POL-PORTABILITY.md](POL-PORTABILITY.md) | POL-PORT-001 | 노트는 표준 Markdown으로 나가고 다시 들어온다 | `src/markdown/**`, `src/share/**` |
 | [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 | `assets/bible.json` 교체, `app/licenses.tsx`, 내보내기 포맷 |
-| [POL-RELEASE.md](POL-RELEASE.md) | POL-RELEASE-001 | CI를 통과한 커밋만 자동 OTA로 나간다 | `app.config.ts`, `eas.json`, `.github/workflows/**` |
+| [POL-RELEASE.md](POL-RELEASE.md) | POL-RELEASE-001<br>POL-RELEASE-002<br>POL-RELEASE-003 | CI를 통과한 커밋만 자동 OTA로 나간다 · 설치한 그대로도 완전하다 · 업데이트가 이미 쓴 노트를 잃게 하지 않는다 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `app/_layout.tsx` |
 
 ## 이 계층에서 사고 나는 지점
 
@@ -26,6 +26,8 @@
 - **POL-LICENSE-001의 SA는 앱 밖까지 따라간다.** 내보낸 `.md`에 본문이 실리면 그 파일도 CC BY-SA다.
 - **POL-RELEASE-001에는 앱 버전 결합 함정이 붙어 있다.** `version`을 올리면 OTA가 기존 설치본에 닿지 않는다.
 - **POL-RELEASE-001은 지금 스토어 사용자와 끊겨 있다.** 1.0.1은 `expo-updates` 바이너리인데 `main`은 hot-updater다 — 1.0.1 설치본에는 OTA가 닿지 않는다([`../contracts/CONTRACT-RELEASE.md`](../contracts/CONTRACT-RELEASE.md)).
+- **POL-RELEASE-002가 POL-RELEASE-001보다 앞선다.** OTA는 네트워크를 전제하고 이 앱은 오프라인이 기본이다. 충돌하면 **오프라인이 이긴다** — 임베디드 번들만으로 완전해야 하고, 업데이트 확인은 실행 조건이 아니다.
+- **POL-RELEASE-003은 "되돌리면 된다"를 금지한다.** 번들은 한 칸 되돌아가지만 스키마는 앞으로만 간다. 되돌릴 수 없는 변경을 OTA에 실으면 롤백이 데이터를 구하지 못한다([`../rules/release.md`](../rules/release.md)).
 
 ## 처음이라면
 
