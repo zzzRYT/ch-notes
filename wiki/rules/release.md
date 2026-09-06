@@ -1,6 +1,6 @@
 # RULE-OTA — 오프라인 우선 앱에 OTA를 얹을 때
 
-상위 정책: [`POL-RELEASE-002`](../policy/POL-RELEASE.md)(RULE-OTA-001·002), [`POL-RELEASE-003`](../policy/POL-RELEASE.md)(RULE-OTA-003~009)
+상위 정책: [`POL-RELEASE-002`](../policy/POL-RELEASE.md)(RULE-OTA-001·002·010), [`POL-RELEASE-003`](../policy/POL-RELEASE.md)(RULE-OTA-003~009)
 
 OTA는 **네트워크를 전제한 배포 방식**이다. 이 앱은 [`ADR-0012`](../decisions/ADR-0012-local-only.md)로 **네트워크 없는 상태가 기본**이다. 둘을 같이 쓰면 다른 앱에는 없는 문제가 생긴다 — 어떤 기기는 발행한 번들을 **영원히 받지 않고**, 받은 기기도 **되돌아갈 곳이 한 칸뿐**이며, 서버에서 내린 롤백 지시는 **오프라인 기기에 닿지 않는다.**
 
@@ -12,7 +12,7 @@ OTA는 **네트워크를 전제한 배포 방식**이다. 이 앱은 [`ADR-0012`
 
 ## 오프라인에서도 앱은 완전하다
 
-앞의 둘은 [`POL-RELEASE-002`](../policy/POL-RELEASE.md)(설치본 단독 완결), 셋째는 [`POL-RELEASE-003`](../policy/POL-RELEASE.md)(쓰던 것을 잃지 않는다)에 속한다. 셋 다 "업데이트가 앱의 실행 경로에 끼어들지 않는다"는 한 가지를 서로 다른 시점에 말한다 — 시작할 때, 확인이 실패할 때, 실행 중일 때.
+[`RULE-OTA-001`](#rule-ota-001--임베디드-번들-하나로-앱이-완결된다)·[`RULE-OTA-002`](#rule-ota-002--업데이트-확인이-실패해도-앱은-막히지-않는다)·[`RULE-OTA-010`](#rule-ota-010--스토어-새-버전-안내는-닫을-수-있고-오프라인에서는-없다)은 [`POL-RELEASE-002`](../policy/POL-RELEASE.md)(설치본 단독 완결), [`RULE-OTA-003`](#rule-ota-003--적용은-다음-콜드-런치에서만-일어난다)은 [`POL-RELEASE-003`](../policy/POL-RELEASE.md)(쓰던 것을 잃지 않는다)에 속한다. 넷 다 "업데이트가 앱의 실행 경로에 끼어들지 않는다"는 한 가지를 서로 다른 시점에 말한다 — 시작할 때, 확인이 실패할 때, 새 스토어 빌드를 안내할 때, 실행 중일 때.
 
 ### RULE-OTA-001 · 임베디드 번들 하나로 앱이 완결된다
 
@@ -57,6 +57,54 @@ source:
 `HotUpdater.wrap`에 **`fallbackComponent`를 주지 않은 것이 이 규칙의 구현**이다. 주는 순간 확인이 끝날 때까지 그 컴포넌트가 화면을 잡고, 오프라인 기기는 매 실행마다 그 화면을 먼저 본다. `onError`도 `console.warn` 한 줄이다 — 사용자에게 아무것도 알리지 않는다([`POL-A11Y-001`](../policy/POL-ACCESSIBILITY.md)의 "조용함").
 
 ⚠️ **`fallbackComponent`를 추가하는 것은 이 규칙을 깨는 변경이다.** 진행률을 보여 주고 싶어지는 자리지만, 오프라인이 기본인 이 앱에서는 정상 상태에 오류 화면을 붙이는 셈이 된다.
+
+스토어 버전 확인([`RULE-OTA-010`](#rule-ota-010--스토어-새-버전-안내는-닫을-수-있고-오프라인에서는-없다))도 같은 규칙 아래 있다. 확인을 기다리는 화면은 `fallbackComponent`를 다른 이름으로 넣는 것과 같다.
+
+### RULE-OTA-010 · 스토어 새 버전 안내는 닫을 수 있고 오프라인에서는 없다
+
+```yaml
+id: RULE-OTA-010
+policy: POL-RELEASE-002
+requirement: MUST
+statement: 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다.
+implemented_by:
+  - apps/ch-life/src/update/compare-version.ts
+  - apps/ch-life/src/update/latest-store-version.ts
+  - apps/ch-life/src/update/store-link.ts
+  - apps/ch-life/src/update/StoreUpdateDialog.tsx
+  - apps/ch-life/app/_layout.tsx
+  - website/app-version.json
+verified_by:
+  - test: apps/ch-life/src/update/__tests__/compare-version.test.ts#숫자로 비교한다 — 1.0.10이 1.0.9보다 크다
+  - test: apps/ch-life/src/update/__tests__/compare-version.test.ts#형식이 어긋나면 null이다 — 비교하지 않는다
+  - test: apps/ch-life/src/update/__tests__/latest-store-version.test.ts#빠졌거나 문자열이 아니면 null이다
+  - manual: 비행기 모드 콜드 런치 — 지연·오류 표시·다이어로그가 없다
+  - manual: 서버가 설치본보다 낮거나 같은 버전을 돌려줄 때 다이어로그가 없다
+  - manual: 닫은 뒤 다시 켜도 같은 버전은 뜨지 않고, 값을 올리면 다시 뜬다
+waiver: 순수 함수(비교·응답 파싱)에만 자동 증거를 붙일 수 있다. 네트워크·다이어로그·스토어 이동은 실기기와 실제 발행 없이는 재현되지 않는다(drift C3).
+confidence: 기록됨
+source:
+  - apps/ch-life/src/update/StoreUpdateDialog.tsx
+  - wiki/decisions/ADR-0022-store-update-notice.md
+```
+
+OTA로 닿지 않는 변경이 실재하는데([`RULE-OTA-008`](#rule-ota-008--ota-번들은-스키마를-파괴적으로-바꾸지-않는다)·[`RULE-OTA-009`](#rule-ota-009--새-블록-타입은-ota로-내보내지-않는다)) 그 사용자를 새 스토어 빌드로 옮길 수단이 앱에 없었다. **hot-updater는 스토어의 최신 버전을 모른다** — 서버 질의는 그 appVersion에 맞는 번들 하나를 돌려줄 뿐이다([`RULE-OTA-004`](#rule-ota-004--기기는-중간-번들을-전부-건너뛴다)). 그래서 버전 소스를 따로 뒀다([`ADR-0022`](../decisions/ADR-0022-store-update-notice.md)).
+
+이 기능이 지켜야 하는 것은 전부 **하지 않는 것**이다.
+
+| 하지 않는다 | 왜 |
+|---|---|
+| 확인을 기다리는 화면 | [`RULE-OTA-002`](#rule-ota-002--업데이트-확인이-실패해도-앱은-막히지-않는다) — 첫 렌더를 막지 않는다. 실패는 `console.warn` 한 줄 |
+| 닫을 수 없는 다이어로그 | [`POL-RELEASE-002`](../policy/POL-RELEASE.md) — 강제 업데이트는 두지 않았다 |
+| 오프라인 기기에서의 어떤 표시 | [`RULE-OTA-001`](#rule-ota-001--임베디드-번들-하나로-앱이-완결된다) — 한 번도 네트워크에 닿지 않는 기기가 정상 사용자다 |
+| 문자열 비교 | `1.0.10`이 `1.0.9`보다 **작다**고 판정한다. 자리별 숫자 비교여야 한다 |
+| 형식이 어긋난 값으로 안내 | 없는 업데이트를 안내하는 쪽이 안 하는 쪽보다 나쁘다. `compareAppVersion`은 `null`을 돌려준다 |
+| 노트를 쓰는 화면 위에 띄우기 | [`ADR-0016`](../decisions/ADR-0016-cold-launch-apply.md)의 정신 — 폰은 `/note/*` 경로로, 태블릿은 키보드로 가른다 |
+| 같은 버전 두 번 안내 | 닫으면 `settings.json`의 `dismissedUpdateVersion`에 남는다([`CONTRACT-SETTINGS-FILE`](../contracts/CONTRACT-SETTINGS-FILE.md)) |
+
+⚠️ **`website/app-version.json`은 스토어 심사가 끝난 뒤에 올린다.** 버전 bump와 같은 PR에 넣으면 아직 스토어에 없는 버전을 안내하게 된다. `pages.yml`은 `main` 푸시에만 돌므로 `main`으로 별도 PR을 낸다.
+
+⚠️ **이 안내는 이 기능이 들어간 다음 스토어 빌드부터 효력이 있다.** 1.0.1 설치본에는 이 코드가 없다.
 
 ### RULE-OTA-003 · 적용은 다음 콜드 런치에서만 일어난다
 

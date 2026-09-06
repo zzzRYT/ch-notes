@@ -275,6 +275,8 @@ gh pr create --base release/1.0.2      # CI 통과 후 병합
 git tag v1.0.2 && git push origin v1.0.2
 ```
 
+**심사를 통과해 스토어에 실제로 올라간 뒤**, `website/app-version.json`의 해당 플랫폼 값을 새 버전으로 올리는 PR을 **`main`에** 낸다. 이것이 기존 설치본에서 "스토어에서 업데이트하세요" 다이어로그를 켜는 스위치다([`RULE-OTA-010`](rules/release.md), [`ADR-0022`](decisions/ADR-0022-store-update-notice.md)). ⚠️ **버전 bump와 같은 PR에 넣지 않는다** — 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다. iOS와 Android는 심사 시점이 다르므로 **먼저 올라간 쪽만 먼저** 고친다.
+
 마지막으로 `main`으로 역머지한다([`4절`](#4-브랜치)의 임시 가지 방식).
 
 ### OTA 발행
