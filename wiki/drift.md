@@ -227,6 +227,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
 | E17 | **R2의 지난 번들을 언제 지우는가?** 기기는 언제나 자기 버전의 최신 번들 하나만 요청하므로([`RULE-OTA-004`](rules/release.md)) **밀려난 번들을 지워도 오래 오프라인이던 기기가 곤란해지지 않는다.** 남는 것은 비용과 감사 추적 문제뿐이다 — 무료 한도(R2 10GB-month) 안에서는 "지우지 않는다"도 성립한다. 보존 기간을 정할 것인가? (지울 때는 R2를 직접 건드리지 말고 `hot-updater bundle delete`를 쓴다 — D1 행만 남고 객체가 없으면 그 URL을 받은 기기가 깨진다.) | [`RULE-OTA-005`](rules/release.md), `docs/store/ota-deploy.md` |
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
+| E19 | **Play 트랙을 `internal`에서 `alpha`로 올린 이유는?** `eas.json`의 `submit.production.android.track`이 바뀌었는데 기록이 없다. iOS 자동제출(ASC API 키)을 붙이면서 함께 정한 것인가, 아니면 별개의 판단인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), `docs/store/android-auto-submit.md` |
 
 ## G. 아직 정본화되지 않은 구현
 
