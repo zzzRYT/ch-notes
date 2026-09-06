@@ -105,7 +105,7 @@ node wiki/gen-index.mjs   # index.md 재생성
 
 이 `README.md`는 위 예시 블록이 실제 ID처럼 수집되지 않도록 검사 대상에서 제외된다.
 
-CI 연결과 PR 템플릿은 아직 하지 않았다. 다음 단계 후보다([`drift.md`](drift.md) 참고).
+PR 템플릿과 브랜치 보호는 붙였다([`git.md`](git.md)). `check.mjs`를 CI에서 돌리는 것은 아직 하지 않았다 — 다음 단계 후보다([`drift.md`](drift.md) 참고).
 
 ## 6. 목차
 
@@ -113,6 +113,7 @@ CI 연결과 PR 템플릿은 아직 하지 않았다. 다음 단계 후보다([`
 
 - [`workflow.md`](workflow.md) — 작업 절차. 정본을 먼저 확인하는 다섯 단계
 - [`by-task.md`](by-task.md) — 작업 유형·코드 경로별 진입점
+- [`git.md`](git.md) — 커밋·브랜치·PR·이슈·릴리스를 다루는 방식
 
 **정본 계층** (폴더마다 역할 인덱스가 있다)
 

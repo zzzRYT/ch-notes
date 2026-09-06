@@ -13,8 +13,10 @@ ch-life는 모든 기능 작업을 `.worktrees/`에서 격리해서 진행한다
 
 키워드(한글/영문 가능)에서 두 값을 만든다:
 - `<slug>` — 짧은 kebab-case 영문. 예: "성경 검색" → `bible-search`, "노트 공유 개선" → `note-share`.
-- `<branch>` — 타입 접두사 + slug. 기본 `feature/<slug>`. 키워드가 버그수정이면 `fix/<slug>`,
-  잡일/릴리스 준비면 `chore/<slug>`. (기존 컨벤션: `feature/`, `fix/`, `chore/`)
+- `<branch>` — 타입 접두사 + slug. 기본 `feat/<slug>`. 키워드가 버그수정이면 `fix/<slug>`,
+  잡일/릴리스 준비면 `chore/<slug>`. 접두는 커밋 타입과 같은 단어를 쓴다 —
+  `feat/` `fix/` `docs/` `chore/` `refactor/` `test/` `perf/` `ci/` (`wiki/git.md` 4절).
+  **이미 나간 버전의 핫픽스라면** `origin/main`이 아니라 `origin/release/<버전>`에서 분기한다.
 
 확신이 안 서면 사용자에게 slug/타입을 한 번 확인한다.
 

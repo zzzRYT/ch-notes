@@ -20,6 +20,7 @@
 | `src/browser/**`, `src/workspace/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
 | `src/theme/**`, `src/state/**`, `src/workspace/**`, `src/chrome/**`, `app/settings.tsx` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
 경로는 모두 `apps/ch-life/` 기준이다(릴리스 영역의 `.github/**` 제외).
 

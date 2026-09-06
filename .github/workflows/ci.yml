@@ -3,7 +3,8 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # release/** 도 검사한다. 그 가지에서 수동 OTA를 발행하기 때문이다.
+    branches: [main, "release/**"]
 
 # Cancel superseded runs on the same ref to save runner minutes.
 concurrency:
