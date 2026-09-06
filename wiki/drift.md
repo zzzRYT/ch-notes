@@ -121,10 +121,12 @@
 ### B17. 가져온 노트가 작성 시각을 잃는다
 `repo.create`의 입력 타입에 `createdAt`/`updatedAt`이 없고 두 컬럼 모두 `Date.now()`로 채운다. 가져온 노트는 "가져오기를 실행한 시각"을 갖게 되고, 목록이 `created_at` 내림차순이라 오래된 설교 노트가 맨 위로 올라온다. → [`RULE-MD-004`](rules/share-markdown.md)
 
-### B18. 루트 워크스페이스가 앱 설치를 가로챈다
+### B18. 루트 워크스페이스가 앱 설치를 가로챘다 — 해소됨
 `feat/editor-core-pkg`가 루트에 `pnpm-workspace.yaml`(`packages: ['packages/*']`)을 들여왔다. 브랜치 주석은 "apps/ch-life는 Phase 4까지 독립 프로젝트로 남는다"고 적었지만 **pnpm v10.15는 그렇게 동작하지 않는다** — `apps/ch-life`에서 `pnpm install`을 돌려도 상위로 올라가 루트 워크스페이스를 설치한다(`Scope: all 2 workspace projects`). 앱 의존성이 설치되지 않아 CI 전체가 깨진다.
 
-`.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막았다. Phase 4에서 앱이 정식 멤버가 되면 이 플래그를 걷어내고 Metro monorepo 설정(watchFolders + nodeModulesPaths)을 함께 넣어야 한다.
+`.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막아 두었었다.
+
+**2026-09-06에 원인을 걷어냈다** — 루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`과 `packages/editor-core` 스캐폴드를 `main`에서 제거했다 — 스캐폴드를 `main`에 둘 것인가라는 질문(옛 E15)의 답이다. 앱을 아무도 소비하지 않는 패키지 하나 때문에 세 워크플로가 우회 플래그를 달고 있을 이유가 없다. 플래그도 함께 지웠다. Phase 2를 시작할 때 브랜치에서 다시 세우고, 앱이 실제로 그 패키지를 쓰기 전까지 `main`에 올리지 않는다(`docs/editor-core/extraction-plan.md`).
 
 ### B19. OTA는 한 번도 성공한 적이 없다
 `hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
@@ -223,7 +225,6 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E12 | 확정 키를 `Tab`에서 space로 바꾼 이유는? 소프트 키보드에 Tab이 없어서가 맞나? | [`ADR-0002`](decisions/ADR-0002-space-trigger.md) |
 | E13 | **스토어의 1.0.1은 `expo-updates` 바이너리인데 `main`은 hot-updater다 — 1.0.1 설치본은 OTA를 받지 못한다.** 의도된 상태인가? 새 스토어 빌드 계획은? 그리고 `expo-updates`를 버린 이유는 무엇인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), [`ADR-0013`](decisions/ADR-0013-release-path.md) |
 | E14 | 구절 삽입 **성공**에 배너를 띄우기로 한 것은 POL-A11Y-001의 "조용함"을 의도적으로 완화한 것인가? 삭제 배너는 undo 때문에 불가피하지만 삽입은 아니다. | [`POL-A11Y-001`](policy/POL-ACCESSIBILITY.md), G1 |
-| E15 | `feat/editor-core-pkg`(Phase 1 스캐폴드)를 `main`에 둘 것인가, Phase 4까지 브랜치에 둘 것인가? | `docs/editor-core/extraction-plan.md` |
 | E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
 | E17 | **R2의 지난 번들을 언제 지우는가?** 기기는 언제나 자기 버전의 최신 번들 하나만 요청하므로([`RULE-OTA-004`](rules/release.md)) **밀려난 번들을 지워도 오래 오프라인이던 기기가 곤란해지지 않는다.** 남는 것은 비용과 감사 추적 문제뿐이다 — 무료 한도(R2 10GB-month) 안에서는 "지우지 않는다"도 성립한다. 보존 기간을 정할 것인가? (지울 때는 R2를 직접 건드리지 말고 `hot-updater bundle delete`를 쓴다 — D1 행만 남고 객체가 없으면 그 URL을 받은 기기가 깨진다.) | [`RULE-OTA-005`](rules/release.md), `docs/store/ota-deploy.md` |
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
