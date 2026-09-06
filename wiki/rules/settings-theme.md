@@ -110,8 +110,9 @@ OS 시스템 글자 크기를 따라가지 않고 앱 자체 배율만 쓴다(`D
 id: RULE-SET-006
 policy: POL-A11Y-001
 requirement: SHOULD
-statement: 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다.
+statement: 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다. 이 배선은 useSettingsPersistence 훅 하나에 모여 있고 루트 레이아웃은 그것을 부르기만 한다.
 implemented_by:
+  - apps/ch-life/src/state/useSettingsPersistence.ts
   - apps/ch-life/app/_layout.tsx
 verified_by:
   - manual: 설정 변경 후 앱 재시작 시 유지
@@ -119,3 +120,5 @@ confidence: 코드추론
 ```
 
 로드 완료 플래그가 서기 전에는 구독이 저장을 건너뛴다. 그렇게 하지 않으면 기본값이 파일을 덮어써 저장된 설정이 사라진다. 저장 실패는 콘솔 경고만 남기고 사용자에게 알리지 않는다.
+
+⚠️ **부팅 배선은 `app/_layout.tsx`가 아니라 자기 모듈 옆에 둔다.** 레이아웃은 프로바이더·훅 호출·화면 위 호스트 목록만 담는 합성 지점이다. 여기에 이펙트를 직접 쓰기 시작하면 그 파일이 앱의 모든 시작 동작을 아는 자리가 된다 — 이미 위키 블록 열한 개가 `_layout.tsx`를 가리키고 있다.
