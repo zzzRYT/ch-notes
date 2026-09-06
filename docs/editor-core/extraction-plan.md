@@ -42,11 +42,19 @@ QuoteBlock, SermonMetaHeader, modals), `db/expo-adapter.ts`, `db/index.ts`,
 
 ## Phase roadmap
 
-- [x] **Phase 1 — workspace + scaffold.** Root pnpm workspace (`packages/*`),
+- [ ] **Phase 1 — workspace + scaffold.** Root pnpm workspace (`packages/*`),
       `@ch-life/editor-core` scaffold (tsup + vitest + exports map). App untouched.
       Verify: build + smoke test green; `git status` shows no changes under `apps/`.
-      _Done: build emits ESM+CJS+dts, smoke test passes, typecheck clean, app dir
-      provably unchanged. pnpm 10 needed `onlyBuiltDependencies: [esbuild]` in root._
+      _Done once (build emitted ESM+CJS+dts, smoke test passed, app dir unchanged;
+      pnpm 10 needed `onlyBuiltDependencies: [esbuild]` in root), then **reverted
+      out of `main` on 2026-09-06** — see below._
+
+> **The scaffold is not in `main`.** Phase 1 landed on `main` and was removed again:
+> the root workspace made pnpm v10 hijack the app install, which cost every workflow
+> an `--ignore-workspace` flag, while nothing consumed `@ch-life/editor-core` yet —
+> a live cost for a package with one smoke test in it. The work survives in
+> `feat/editor-core-pkg` and in git history; redo Phase 1 on a branch when Phase 2
+> actually starts, and keep it there until the app is ready to consume the package.
 - [ ] **Phase 2 — port pure logic (TDD).** Move modules above into `editor-core`,
       port their tests, do the `createBibleLookup(data)` DI refactor. ≥80% coverage.
 - [ ] **Phase 3 — versioning/publishing.** Add Changesets; cut a version; run the

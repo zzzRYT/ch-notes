@@ -54,7 +54,7 @@ release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --chann
 
 CI가 실패하면 OTA는 발행되지 않는다. OTA는 **CI를 통과한 정확한 커밋**(`workflow_run.head_sha`)을 체크아웃해 배포한다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
 
-## 함정 세 가지
+## 함정 넷
 
 1. **`updateStrategy: "appVersion"`** — `version`을 올리면 기존 설치본과 번들이 분리된다. 버전을 올리고 OTA만 쏘면 아무에게도 닿지 않는다. 반드시 새 빌드를 낸다.
 2. **pnpm `node-linker=hoisted`** — `.npmrc`의 이 설정이 없으면 `babel-preset-expo` 해석이 실패해 번들이 깨진다. 건드리지 않는다.
