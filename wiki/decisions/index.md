@@ -39,6 +39,7 @@
 | [ADR-0013](ADR-0013-release-path.md) | OTA는 CI 통과 후 자동, 네이티브 빌드는 수동 | 릴리스 파이프라인, `version` 변경 | 기록됨 (이유 미기록) |
 | [ADR-0014](ADR-0014-worktree-workflow.md) | 기능 작업은 워크트리에서 격리한다 | **새 작업을 시작하기 전** | 기록됨 (이유 미기록) |
 | [ADR-0016](ADR-0016-cold-launch-apply.md) | 업데이트는 다음 콜드 런치에만 적용한다 | OTA 발행, 롤백 소요 시간을 따질 때 | 기록됨 |
+| [ADR-0017](ADR-0017-figma-design-system-structure.md) | Figma 디자인 시스템은 한 페이지에 층위로 놓고 근거는 이름에 적는다 | 디자인 토큰·컴포넌트를 더하거나 Figma 파일을 손볼 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
@@ -54,6 +55,7 @@
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
 프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md).
+디자인 시스템 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0017](ADR-0017-figma-design-system-structure.md). 변형 4종이 색을 정하고, 그 색이 Figma 변수가 된다.
 
 ## 새 ADR을 쓸 때
 

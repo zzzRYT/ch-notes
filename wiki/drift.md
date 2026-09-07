@@ -81,6 +81,10 @@
 ### B9. 테마 토큰이 두 세대 공존
 `ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다. 성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`)는 아직 **테마를 쓰지 않고 하드코딩된 색**(`#f4f4f4`, `#222`)을 쓴다 → 다크 변형에서 이 화면들만 밝다.
 
+**범위는 이보다 넓다.** `useTheme`을 쓰지 않는 파일은 셋이 아니라 **다섯**이다 — 위 셋에 `src/browser/ChapterGrid.tsx`와 `src/list/SwipeToDelete.tsx`가 더 있다. 그리고 미적용은 색에 그치지 않는다: 이 다섯 파일은 `scaled()`도 쓰지 않아 **성경 본문이 글자 크기 설정과 무관하게 항상 16px 고정**이다(`src/browser/VerseList.tsx:140`).
+
+두 세대의 관계도 균일하지 않다. 레거시 필드를 읽는 파일 18개, 신 토큰을 읽는 파일 17개, **양쪽을 동시에 쓰는 파일이 15개**다. 값으로 보면 `surface`·`text`·`line`·`quoteBar` 네 필드는 4개 팔레트 **전부에서** `paper`·`ink`·`rule`·`ink4`와 바이트 단위로 동일해 순수 개명으로 지울 수 있지만, `bg`·`subtle`·`chipBg`·`chipText`·`accentText`는 대응하는 신 토큰이 없거나 값이 달라 그대로 살려야 한다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
+
 ### B10. 자동완성 문법이 `parseRef` 문법과 어긋난다
 `useAutocomplete`의 트리거 패턴은 영어 책 토큰을 `[A-Za-z]{2,20}`으로 잡아 **숫자로 시작하는 책 이름을 표현하지 못한다.** `parseRef`는 `[A-Za-z][A-Za-z\s]{0,20}`이라 공백을 허용하지만 역시 선행 숫자는 못 받는다. 결과:
 
@@ -154,6 +158,76 @@
 
 지금은 새 타입을 쓰는 코드가 없으니 **현재 버그는 아니다.** 문제는 OTA다 — 번들을 되돌리면 이전 번들이 새 번들이 쓴 데이터를 읽게 되고, 그 순간 이 표가 현실이 된다([`RULE-OTA-009`](rules/release.md)). 렌더러·직렬화에 폴백을 넣기 전까지 블록 타입 추가는 OTA로 내보낼 수 없는 변경이다.
 
+### B21. RULE-UI-004의 44px 미만 터치 타깃이 기록보다 훨씬 많다
+위키는 예외를 **하나**만 기록한다 — 절 옆 `＋`(32px + `hitSlop 8`). 그 기록은 정확하지만, 아래는 전부 미기록이다.
+
+| 요소 | 크기 | hitSlop | 유효 폭 |
+|---|--:|--:|--:|
+| `src/editor/QuoteBlock.tsx:226-233` collapse 토글 | 36 | 없음 | 36 |
+| `src/workspace/PanelRail.tsx:47-54` 접힌 레일 | 38 | 없음 | 38 |
+| `src/workspace/TabletWorkspace.tsx:502-508` 노트 삭제 | 40×40 | 없음 | 40 |
+| `src/workspace/BibleLookupPanel.tsx:263-269` 검색어 지우기 | 22 | 6 | 34 |
+| `src/workspace/BibleLookupPanel.tsx:277-286` 책 추천 칩 | 세로 ~26 | 없음 | ~26 |
+| `src/workspace/BibleLookupPanel.tsx:322-328` 최근 참조 칩 | 세로 ~26 | 없음 | ~26 |
+| `src/editor/DatePickerModal.tsx:190-196` 날짜 셀 | 화면폭÷7 | 없음 | 360dp에서 ~40 |
+
+collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사실상 기본 경험**에 들어 있다. → [`RULE-UI-004`](rules/layout-a11y.md)
+
+### B22. 좁은 간격의 아이콘 버튼 열은 hitSlop이 서로 잠식한다
+인접 버튼의 `hitSlop`이 겹치면 각 버튼에 배타적으로 할당되는 폭은 `박스 + gap`을 넘지 못한다. **`hitSlop` 값만 보고 44px 기준 충족을 판정하면 틀린다.**
+
+| 위치 | 명목 | gap | 배타적 폭 |
+|---|---|--:|--:|
+| `app/index.tsx` 헤더 아이콘 4개(안쪽 2개) | 40 + hitSlop 8 | 2 | 최대 42 |
+| `src/workspace/NoteListSidebar.tsx` 헤더 아이콘 4개(전부) | 28 + hitSlop 10 | 4 | 32~40 |
+
+→ [`RULE-UI-004`](rules/layout-a11y.md)
+
+### B23. RULE-UI-005를 문장은 지키고 취지는 못 지키는 선택 표시가 둘 있다
+- `src/workspace/NoteListSidebar.tsx:171-178` 선택된 노트 행 — `accentSoft`(알파 8~14%) 배경 + `accessibilityState`뿐. 규칙 문장은 통과하지만 **규칙 자신의 `verified_by`("흑백 모드에서 구분")를 통과하지 못한다.** 제목 굵기도 선택 여부와 무관하게 항상 `600`이다(`:284`).
+- `src/editor/DatePickerModal.tsx:93-113` 선택 날짜 셀 — 시각 신호(불투명 `accent` 배경 + 굵기)는 충분하나 **`accessibilityState`가 아예 없다.** 위와 정반대 방향의 결함이다.
+
+→ [`RULE-UI-005`](rules/layout-a11y.md)
+
+### B24. `fontFamily` 설정은 폰트 미로딩과 **별개로** 이미 무효다
+`ThemeProvider`의 `fontStackFor`는 `"Pretendard, -apple-system, system-ui, sans-serif"` 같은 **CSS 폰트 스택 콤마 문자열**을 반환한다. React Native의 `fontFamily`는 폴백 목록을 받지 않고 단일 폰트 이름만 받는다(RN 공식 문서: *"fontFamily only accepts a single font name rather than a fallback list"*). RN은 이 문자열 전체를 존재하지 않는 폰트 하나로 취급해 조용히 시스템 폰트로 대체한다 — **폰트 파일을 `expo-font`로 로드해도 Sans/Serif/Mono 선택은 여전히 동작하지 않는다.** 콤마 문자열을 먼저 고쳐야 한다.
+
+그 위에 두 가지가 더 겹친다. 폰트 파일(`.ttf`/`.otf`)이 저장소에 0개이고 `useFonts`/`Font.loadAsync` 호출도 0건이다(`expo-font` 패키지 자체는 `expo@54`의 의존성으로 존재한다). 그리고 `fontStack`이 실제로 `style`에 꽂히는 곳은 **`fontSize` 98곳 중 4곳**뿐이다 — `ParagraphInput.tsx:192`, `QuoteBlock.tsx:108`, `SermonMetaHeader.tsx:106`, `DatePickerModal.tsx:63`.
+
+웹(react-native-web)에서는 CSS 문법이 그대로 동작해 제네릭 `serif`/`monospace` 차이는 난다 — **네이티브와 웹의 동작이 갈린다**(E7과 연결). → [`RULE-SET-005`](rules/settings-theme.md)
+
+### B25. `theme.isDark`는 계산만 되고 소비처가 없다
+`src/theme/ThemeProvider.tsx:211`에서 `isDark: variation === "dark"`로 계산되어 `Theme` 타입에 실리지만, 앱 전체에서 이 필드를 읽는 코드가 **0건**이다(정의부 3줄 — `:37`, `:185`, `:211` — 이 전부). 다크 화면은 `isDark` 분기가 아니라 `DARK` 팔레트 값 자체로 렌더링된다. [`RULE-SET-003`](rules/settings-theme.md)은 `isDark`의 정의를 서술하지만 그것이 미사용이라는 사실은 적지 않는다. → [`ADR-0010`](decisions/ADR-0010-variation-theming.md)
+
+### B26. `AccentChoice`의 hex 6개는 스타일 리터럴이 아니라 저장되는 사용자 데이터다
+`AccentChoice` 유니온의 6개 값 중 **4개**(`#1e6fd9`·`#b15c2e`·`#6b7280`·`#f5b35e`)가 각 변형의 기본 `accent`와 같은 문자열이다. 팔레트를 손보며 이 리터럴을 따라 바꾸면, 그 값을 저장해 둔 사용자의 `accentChoice`가 `settings-validator.ts`의 `readEnum` 개별 폴백([`RULE-SET-002`](rules/settings-theme.md))에 걸려 **다음 실행에 조용히 `default`로 리셋된다.** 관대한 파싱이 만드는 무음 데이터 손실이다 — 값을 바꾸려면 구 hex → 신 hex 마이그레이션이 함께 필요하다.
+
+지금 세 파일(`src/domain/types.ts`·`src/state/settings-validator.ts`·`app/settings.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+
+### B27. 글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다
+`fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있다. 그런데 `.tsx`의 `fontSize:` 선언 **98건 중 `scaled()`를 거치는 것은 28건**뿐이고, 나머지 70건은 리터럴 숫자다(18개 파일). 리터럴 일부는 호출부에서 인라인 `scaled()`로 덮이지만 전부는 아니다.
+
+날짜 선택 달력 하나만 봐도 덮이지 않는 것이 셋이다 — 요일 `일~토` 12px(`src/editor/DatePickerModal.tsx:186`), 이전/다음 달 `‹ ›` 24px(`:181`), '오늘' 버튼 14px(`:205`). 같은 화면에서 달 제목 17과 날짜 숫자 15만 커진다(`:63`, `:122`). 글자 크기를 1.6으로 올린 사용자에게 이 화면은 **일부만 커지고 나머지는 그대로**인 상태가 된다.
+
+`scaled()`를 모든 텍스트에 적용하라고 못박은 `RULE`은 없다(`wiki/rules`·`wiki/contracts` 전수 확인). 그래서 이것은 규칙 위반이 아니라 **정본이 비어 있는 자리**다 — 어디까지 확대 대상인지 정한 적이 없다. → E22
+
+### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다
+`BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/domain/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
+
+그런데 편집기는 둘만 안다. 렌더는 `block.type === 'quote'`면 `QuoteBlock`, **나머지는 전부 `ParagraphInput`**이다(`src/editor/NoteEditor.tsx:175-192`). `heading`의 `level`도 `todo`의 `checked`도 화면에 나타나지 않는다. 그 위에 `handleCommit`이 `if (prev?.type !== 'paragraph') return;`으로 막는다(`:105`) — **그 블록에 친 글자는 저장되지 않고 조용히 버려진다.**
+
+디스크의 데이터가 파괴되지는 않는다. 마크다운으로 가져온 할 일 목록은 파일에 그대로 남는다. 사라지는 것은 **사용자가 방금 친 것**과 **그 블록이 무엇인지 알아볼 방법**이다. B20이 "알 수 없는 블록 타입"을 다뤘다면 이쪽은 **알려진 블록 타입**이 같은 취급을 받는 자리다. → B20
+
+### B29. 글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다
+`app/settings.tsx`에 `scaled`가 **0건**이다(`useTheme`에서 `colors`만 꺼낸다 — `:71`). 그래서 '크게'·'아주 크게'를 고르는 칩(`chipText: { fontSize: 14 }`, `:371`)도, 그 위의 설명 문구도 배율을 받지 않는다.
+
+어르신 친화 UX의 대표 기능을 켜는 화면이 그 기능의 밖에 있다. B27의 일반적 문제(98건 중 28건만 `scaled()`)가 가장 나쁘게 드러나는 지점이다. → B27, E22
+
+### B30. 태블릿에서 같은 동작에 컨트롤이 둘 렌더된다
+`leftOpen === false`이면 `PanelRail`(글리프 `≡`, `onExpand → setLeftOpen(true)`, `src/workspace/TabletWorkspace.tsx:308-315`)과 브레드크럼의 `≡` 버튼(`onPress → setLeftOpen(true)`, `:321-335`)이 **동시에** 화면에 있다. 오른쪽도 같다 — `PanelRail` 글리프 `✦`(`:455-462`)와 브레드크럼 `◧`(`:380-395`).
+
+같은 동작인데 기호도 크기도 다르다(`PanelRail.glyph` 16px vs 브레드크럼 `crumbBtnText` 15px). 어느 쪽이 정본인지 코드에 근거가 없다. 아이콘 인벤토리에서 '펼치기/접기' 하나에 기호 체계가 넷인 것도 여기서 갈라진다.
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
@@ -193,7 +267,9 @@ RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디�
 placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하지 않는다**([`RULE-SEARCH-001`](rules/search.md)).
 
 ### D3. 플랫폼 표기가 문서마다 다르다
-`README.md`와 `CLAUDE.md`는 "웹 + 모바일"이라 하고, `DESIGN.md`·v1 spec은 "웹은 V1/V2 범위 밖"이라 한다. `package.json`에 `web` 스크립트가 있고 `app.config.ts`에 웹 favicon 설정이 있으나, 웹 지원 여부를 확인한 기록은 없다. → E절 질문
+`README.md`와 `CLAUDE.md`는 "웹 + 모바일"이라 하고, `DESIGN.md`·v1 spec은 "웹은 V1/V2 범위 밖"이라 한다. `package.json`에 `web` 스크립트가 있고 `app.config.ts`에 웹 favicon 설정이 있다.
+
+**해소(2026-09-06)** — 사용자가 **웹도 실사용 대상**이라고 확정했다(E7). 따라서 `README.md`·`CLAUDE.md`의 "웹 + 모바일"이 맞고 `DESIGN.md`·v1 spec 쪽이 낡은 기록이다. 이 답에는 결과가 따라온다: `focus`/`hover` 상태가 실제 설계 대상이 되고, `fontFamily`가 웹에서만 동작하는 플랫폼 갈림(B24)은 **결함이 아니라 다뤄야 할 계약**이 된다. → E7
 
 ### D4. 스토어 설명이 아직 없는 기능을 말한다
 `docs/store/store-listing.md`: "설교 노트, 성경, 찬송, 묵상, 일정을 하나의 앱에서". **찬송·묵상·일정은 구현되어 있지 않다.** 5-pillar는 비전이고 현재 앱은 설교 노트 + 성경이다.
@@ -215,7 +291,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E4 | 설정 저장을 MMKV에서 파일로 바꾼 이유는? 네이티브 의존성 회피가 맞나? | [`ADR-0004`](decisions/ADR-0004-settings-file.md) |
 | E5 | 자동완성 삽입 후 원본 참조 텍스트를 지우기로 한 이유는? (계획은 유지였다) | A4 |
 | ~~E6~~ | ~~노트 삭제 기능을 넣지 않은 것은 의도인가?~~ **해소** — 1.0.1에 삭제+되돌리기가 들어갔다. | D1, [`RULE-NOTE-007`](rules/note-persistence.md) |
-| E7 | 웹은 지원 대상인가? 문서마다 다르게 적혀 있다. | D3 |
+| ~~E7~~ | ~~웹은 지원 대상인가? 문서마다 다르게 적혀 있다.~~ **해소(2026-09-06)** — 사용자 확정: **예, 웹도 실사용 대상**이다. `focus`/`hover` 토큰과 플랫폼별 서체 동작을 설계 대상에 포함한다. | D3, B24 |
 | E8 | 스키마 DDL 이중 기록을 정리할 것인가, 규율로 유지할 것인가? | [`ADR-0006`](decisions/ADR-0006-duplicated-schema.md) |
 | E9 | 외부 ref 파서 대신 자체 별칭 표를 쓴 이유는? | A11 |
 | ~~E10~~ | ~~`hot-updater` 전환은 계속 진행할 것인가?~~ **해소** — `30b6a60`(PR #14)로 `main`에 병합됐고 `expo-updates`는 제거됐다. | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) |
@@ -226,7 +302,11 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E15 | `feat/editor-core-pkg`(Phase 1 스캐폴드)를 `main`에 둘 것인가, Phase 4까지 브랜치에 둘 것인가? | `docs/editor-core/extraction-plan.md` |
 | E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
 | E17 | **R2의 지난 번들을 언제 지우는가?** 기기는 언제나 자기 버전의 최신 번들 하나만 요청하므로([`RULE-OTA-004`](rules/release.md)) **밀려난 번들을 지워도 오래 오프라인이던 기기가 곤란해지지 않는다.** 남는 것은 비용과 감사 추적 문제뿐이다 — 무료 한도(R2 10GB-month) 안에서는 "지우지 않는다"도 성립한다. 보존 기간을 정할 것인가? (지울 때는 R2를 직접 건드리지 말고 `hot-updater bundle delete`를 쓴다 — D1 행만 남고 객체가 없으면 그 URL을 받은 기기가 깨진다.) | [`RULE-OTA-005`](rules/release.md), `docs/store/ota-deploy.md` |
+| ~~E19~~ | ~~**디자인 토큰의 정본은 어디인가?**~~ **답 나옴(2026-09-06)** — 사용자 확정: **초기 토큰은 코드(`ThemeProvider`)에서 생성하되, 이후에는 Figma가 정본**이 된다. 남은 질문은 E21로 옮긴다 — 이 방향은 `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**를 요구하고, Variables REST API가 Enterprise 전용이라 Figma→코드 반영이 항상 수동이기 때문이다. | E21, 이슈 #22 |
+| E21 | **Figma가 토큰 정본이 될 때 절차를 어떻게 고정하는가?** ⑴ `CLAUDE.md` 문서 지위 표에 "디자인 토큰만은 Figma가 정본"이라는 예외를 명시할 것인가, ⑵ Figma→코드 반영이 수동일 때 어긋남을 무엇으로 잡을 것인가(팔레트 스냅샷 테스트? `drift.md` 항목?), ⑶ 최초 부트스트랩(코드→Figma) 이후 코드 쪽 팔레트 직접 수정을 금지할 것인가? | E19, [`ADR-0010`](decisions/ADR-0010-variation-theming.md) |
+| E20 | **`fontFamily` 축을 살릴 것인가, 걷어낼 것인가?** 지금은 RN 제약으로 원천 무효다(B24). 살리려면 폰트 파일 번들링 + `expo-font` 로딩 + 단일 폰트명 반환이 모두 필요하고, 걷어내려면 설정 스키마에서 필드를 빼는 대신 [`RULE-SET-002`](rules/settings-theme.md)의 관대한 파싱을 지켜야 한다. | B24, [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) |
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
+| E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** `.tsx`의 `fontSize` 98건 중 28건만 `scaled()`를 거친다(B27). 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없다. 확대할 것과 고정할 것의 경계를 `RULE`로 박아야 지금처럼 파일마다 갈리지 않는다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
 
 ## G. 아직 정본화되지 않은 구현
 

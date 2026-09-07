@@ -191,6 +191,22 @@
 
 ---
 
+## 7-1. 디자인 시스템·Figma
+
+**먼저 읽는다** — [ADR-0017](decisions/ADR-0017-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B30 · E19 · E21 · E22
+
+**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/theme/ThemeProvider.tsx` (팔레트 원본)
+
+**토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
+
+**컴포넌트를 더하기 전에 층위와 등급을 정한다.** 층위(Atom/Molecule/Organism)는 보드를 나누고, 등급(`code`/`proposed`/`planned`)은 이름 접두사가 된다. 판정 규칙은 [ADR-0017](decisions/ADR-0017-figma-design-system-structure.md)에 있다 — 매번 다시 논쟁하지 않는다.
+
+**이름을 바꾸거나 합칠 때는 순서가 있다.** ⑴ RN에 실제 공유 컴포넌트를 뽑고 ⑵ 호출부를 전부 바꾸고 ⑶ 그 다음에 Figma를 정리한다. Figma를 먼저 정리하면 배치된 인스턴스가 끊긴다.
+
+**고치고 나면** `node docs/design-system/figma-plugin/build.mjs` → `node docs/design-system/figma-plugin/stub-test.mjs`. 스텁이 페이지 한도·보드 범위·컴포넌트 id 안정성·사양 자기모순을 대조한다.
+
+---
+
 ## 8. 릴리스·개발 하네스
 
 **먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~009) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md)

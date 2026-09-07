@@ -1,0 +1,51 @@
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 13px -apple-system, system-ui, sans-serif; margin: 0; padding: 14px; }
+  h1 { font-size: 14px; margin: 0 0 2px; }
+  p.sub { margin: 0 0 12px; color: #777; font-size: 11px; line-height: 1.5; }
+  button { width: 100%; padding: 9px 12px; margin-bottom: 6px; border: 1px solid #d8d8d6;
+           border-radius: 8px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+  button:hover { background: #f4f4f2; }
+  button.primary { background: #1e6fd9; border-color: #1e6fd9; color: #fff; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  #log { margin-top: 10px; padding: 8px; height: 170px; overflow: auto; background: #f7f7f5;
+         border-radius: 8px; font: 11px ui-monospace, Menlo, monospace; white-space: pre-wrap; color: #333; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1916; color: #f5f3ee; }
+    button { background: #262521; border-color: #3a3833; color: #f5f3ee; }
+    button:hover { background: #302e29; }
+    #log { background: #131210; color: #d8d5ce; }
+  }
+</style>
+
+<h1>씀씀 (ch-life) 디자인 토큰</h1>
+<p class="sub">ThemeProvider.tsx에서 추출한 값을 이 파일에 반영합니다.<br>
+멱등 — 여러 번 눌러도 중복 생성되지 않습니다.</p>
+
+<button class="primary" id="all">전체 실행 (①~⑥)</button>
+<button id="numbers">① 수치 토큰 — 간격·반경·타이포·아이콘·터치</button>
+<button id="colors">② 색 토큰 — 4테마 × 16</button>
+<button id="styles">③ 텍스트 스타일 — 6단계</button>
+<button id="doc">④ 토큰 보드 다시 그리기</button>
+<button id="components">⑤ 공통 컴포넌트 — 코드에서 추출한 사양대로</button>
+<button id="iconsheet">⑥ 아이콘 시트 — lucide 벡터 + 글리프</button>
+
+<div id="log">준비됨.</div>
+
+<script>
+  const log = document.getElementById('log');
+  const btns = [...document.querySelectorAll('button')];
+  function send(type) {
+    btns.forEach(b => b.disabled = true);
+    log.textContent += '\n▶ 실행 중…';
+    log.scrollTop = log.scrollHeight;
+    parent.postMessage({ pluginMessage: { type } }, '*');
+  }
+  btns.forEach(b => b.onclick = () => send(b.id));
+  onmessage = (e) => {
+    const m = e.data.pluginMessage;
+    if (!m) return;
+    if (m.type === 'log') { log.textContent += '\n' + m.msg; log.scrollTop = log.scrollHeight; }
+    if (m.type === 'done') btns.forEach(b => b.disabled = false);
+  };
+</script>
