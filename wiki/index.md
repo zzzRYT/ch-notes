@@ -9,14 +9,14 @@
 | 사용자 정책 `POL` | 12 |
 | 도메인 규칙 `RULE` | 69 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 16 |
-| **합계** | **104** |
+| 결정 `ADR` | 22 |
+| **합계** | **110** |
 
 | 지표 | 값 |
 |---|---|
 | 자동 증거(test/ci)가 붙은 RULE | **40/69 (58%)** |
 | 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 52 |
+| 근거가 기록으로 남아 있는 항목 | 58 |
 | 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -33,7 +33,7 @@
 | [`POL-NOTE-003`](policy/POL-NOTE.md) | — | — | 코드추론 | 노트는 날짜별로 묶여 최신순으로 보이고, 제목과 인용한 구절로 찾을 수 있어야 한다. |
 | [`POL-PORT-001`](policy/POL-PORTABILITY.md) | — | — | 기록됨 | 노트 한 개는 언제든 표준 Markdown 파일로 내보낼 수 있어야 하고, 그 파일은 다른 마크다운 앱에서 열려야 하며, 다시 가져와도 내용이 보존되어야 한다. |
 | [`POL-PRIVACY-001`](policy/POL-PRIVACY.md) | MUST NOT | waiver | 기록됨 | 앱은 사용자 콘텐츠·식별 정보·사용 기록을 외부로 전송하지 않는다. 계정도 서버도 애널리틱스도 없다. |
-| [`POL-RELEASE-001`](policy/POL-RELEASE.md) | MUST | 자동 | 기록됨 | 자동 OTA 업데이트는 CI(타입체크·린트·테스트)가 통과한 커밋에서만 발행되고, 네이티브 변경은 OTA로 전달할 수 없으므로 새 빌드를 낸다. |
+| [`POL-RELEASE-001`](policy/POL-RELEASE.md) | MUST | 자동 | 기록됨 | OTA 업데이트는 CI(타입체크·린트·테스트)가 통과한 커밋에서만 발행되고, 사용자에게 닿는 production 채널은 release 가지에서만 낸다. 네이티브 변경은 OTA로 전달할 수 없으므로 새 빌드를 낸다. |
 | [`POL-RELEASE-002`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크에 한 번도 닿지 않아도 스토어에서 설치한 앱은 모든 기능이 동작하고, 업데이트 확인의 실패나 지연이 사용을 막지 않는다. |
 | [`POL-RELEASE-003`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 업데이트는 진행 중인 작성을 끊지 않고, 그 업데이트를 되돌리더라도 사이에 저장된 노트를 열 수 없거나 내보낼 수 없게 만들지 않는다. |
 | [`POL-SCRIPTURE-001`](policy/POL-SCRIPTURE.md) | — | — | 기록됨 | 노트를 쓰다가 성경 참조를 입력하면, 앱을 벗어나지 않고 인터넷도 없이 본문이 인용 블록으로 들어와야 한다. |
@@ -183,10 +183,16 @@
 | [`ADR-0010`](decisions/ADR-0010-variation-theming.md) | 기록됨 | 화면 색은 minimal·paper·focus·dark 네 가지 변형 중 하나로 결정된다. OS 다크모드를 따라가지 않고, themePreference 필드는 색에 관여하지 않는다. |
 | [`ADR-0011`](decisions/ADR-0011-bible-entrypoints.md) | 기록됨 | 노트 목록에서 여는 성경은 삽입 버튼이 없는 전체화면 읽기 전용 라우트이고, 인용 삽입은 에디터에서 연 성경(모달/패널)에서만 한다. |
 | [`ADR-0012`](decisions/ADR-0012-local-only.md) | 기록됨 | 백엔드·계정·동기화·애널리틱스를 두지 않는다. 그 결과 운영 관측(trace/metric)으로 회귀를 잡는 증거 계층이 존재하지 않는다. |
-| [`ADR-0013`](decisions/ADR-0013-release-path.md) | 기록됨 | main의 CI가 성공한 커밋만 OTA로 자동 발행하고, EAS Build는 수동 실행으로만 큐에 넣는다. |
+| [`ADR-0013`](decisions/ADR-0013-release-path.md) | 기록됨 | main의 CI가 성공한 커밋만 OTA로 자동 발행하고, EAS Build는 수동 실행으로만 큐에 넣는다. 이 자동 발행의 대상은 preview 채널이며, 사용자에게 닿는 production 발행은 ADR-0021이 정한다. |
 | [`ADR-0014`](decisions/ADR-0014-worktree-workflow.md) | 기록됨 | 모든 기능·수정 작업은 .worktrees/ 아래의 별도 git worktree와 브랜치에서 하고, 검증도 그 안에서 실행한다. main 체크아웃에서 직접 작업하지 않는다. |
 | [`ADR-0015`](decisions/ADR-0015-no-keyboard-shortcuts.md) | 기록됨 | ⌘/Ctrl 조합 단축키를 구현하지 않는다. 키보드 상호작용은 필드 간 Return 이동과 인용 확정 공백까지로 한정한다. |
 | [`ADR-0016`](decisions/ADR-0016-cold-launch-apply.md) | 기록됨 | reloadOnForceUpdate를 false로 두어, 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 앱을 즉시 리로드하지 않고 다음 콜드 런치까지 기다린다. |
+| [`ADR-0017`](decisions/ADR-0017-commit-convention.md) | 기록됨 | 커밋 제목은 "<이모지> <타입>(<범위>): <한국어 제목>" 형식으로 쓰고, 이모지는 타입에서 1:1로 결정된다. 파괴적 변경은 `!`와 BREAKING CHANGE 푸터를 함께 쓰고, [skip ci]는 쓰지 않는다. |
+| [`ADR-0018`](decisions/ADR-0018-pr-gate.md) | 기록됨 | main 브랜치를 보호해 직접 푸시를 막고, PR과 CI 통과를 병합 조건으로 강제한다. 리뷰 승인은 요구하지 않고, 관리자도 우회하지 않는다. 병합은 merge commit으로 한다. |
+| [`ADR-0019`](decisions/ADR-0019-issue-tracking.md) | 기록됨 | 이 저장소의 할 일과 버그는 GitHub Issues를 정본으로 삼는다. 라벨은 type과 area 두 축만 쓰고 진행 상태 라벨은 두지 않는다. 이슈는 버그·기능 두 템플릿으로만 열 수 있다. |
+| [`ADR-0020`](decisions/ADR-0020-branch-strategy.md) | 기록됨 | 작업 가지는 main에서 나서 main으로 돌아가고, 출시된 버전마다 release/<버전> 가지를 남겨 그 버전의 OTA와 핫픽스를 거기서 낸다. release에서 main으로는 역머지, main에서 release로는 cherry-pick만 한다. 브랜치 접두는 커밋 타입과 같은 단어를 쓴다. |
+| [`ADR-0021`](decisions/ADR-0021-release-strategy.md) | 기록됨 | 스토어 버전은 major.minor.patch로 올리고 그 위에 OTA 발행 번호를 네 번째 자리로 표시한다. OTA 번호는 app.config.ts의 version이 아니라 JS 상수로 올린다. production 채널 OTA는 release/<버전> 가지에서 수동 실행으로만 발행하고, 배포 워크플로는 자격증명의 형식까지 검사한다. |
+| [`ADR-0022`](decisions/ADR-0022-fsd-ddd-architecture.md) | 기록됨 | 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다. |
 
 ## 정본이 아닌 것
 
