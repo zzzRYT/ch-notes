@@ -10,7 +10,7 @@
 
 | `confidence` | 뜻 | 개수 |
 |---|---|---|
-| `기록됨` | 결정이 문서·커밋에 실제로 남아 있다 | 17 |
+| `기록됨` | 결정이 문서·커밋에 실제로 남아 있다 | 19 |
 | `확인필요` | 무엇을 했는지는 알지만 **왜인지는 아무도 기록하지 않았다** | 5 |
 
 `확인필요` 5건: ADR-0004 · ADR-0006 · ADR-0007 · ADR-0008 · ADR-0009. 질문은 [`../drift.md`](../drift.md) E절에 있고, 답은 사용자만 줄 수 있다.
@@ -44,13 +44,15 @@
 | [ADR-0019](ADR-0019-issue-tracking.md) | 작업 항목은 GitHub Issues, 라벨은 type·area 두 축 | 이슈를 열거나 라벨을 더할 때 | 기록됨 |
 | [ADR-0020](ADR-0020-branch-strategy.md) | main 하나 + 버전별 릴리스 가지 | 브랜치를 만들거나 핫픽스를 낼 때 | 기록됨 |
 | [ADR-0021](ADR-0021-release-strategy.md) | 버전 네 자리 · production OTA는 릴리스 가지에서 수동 | 버전을 올리거나 OTA를 발행할 때 | 기록됨 |
-| [ADR-0022](ADR-0022-fsd-ddd-architecture.md) | FSD 레이어 + 선택적 DDD | 폴더를 옮기거나 새 Slice·의존성을 만들 때 | 기록됨 |
+| [ADR-0022](ADR-0022-store-update-notice.md) | 스토어 최신 버전은 `website/app-version.json`, 안내는 닫을 수 있는 다이어로그 | 스토어 빌드를 낸 뒤, 업데이트 안내를 손볼 때 | 기록됨 |
+| [ADR-0023](ADR-0023-figma-design-system-structure.md) | Figma 디자인 시스템은 한 페이지에 층위로 놓고 근거는 이름에 적는다 | 디자인 토큰·컴포넌트를 더하거나 Figma 파일을 손볼 때 | 기록됨 |
+| [ADR-0024](ADR-0024-fsd-ddd-architecture.md) | FSD 레이어 + 선택적 DDD | 폴더를 옮기거나 새 Slice·의존성을 만들 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
 [ADR-0012](ADR-0012-local-only.md)와 [ADR-0015](ADR-0015-no-keyboard-shortcuts.md)는 무언가를 만든 결정이 아니라 **만들지 않기로 한** 결정이다. 코드는 그 *부재*로 이것들을 구현하고 있다. 그래서 "이 기능이 없네, 넣어야지"로 접근하면 결정을 모르고 뒤집게 된다. 새 기능을 붙이기 전에 이 둘부터 확인한다.
 
-`supersedes:`를 가진 ADR은 22건 중 8건이다(0002·0004·0007·0008·0009·0010·0011·0015). 그중 일곱은 최초 설계 문서(`DESIGN.md`, v1 스펙)를 뒤집은 것이고, [ADR-0011](ADR-0011-bible-entrypoints.md)만 **나중에 쓰인 기능 설계 문서**(`docs/plans/2026-06-07-bible-reader-default-design.md`)를 뒤집었다 — 설계와 구현 사이의 간격이 가장 짧았던 번복이다. 그 뒤로 `InsertMode`의 `"newNote"`와 `pendingInsertRef`가 죽은 코드로 남았다([`../drift.md`](../drift.md) B6) — 코드에 남아 있다고 살아 있는 경로로 착각하면 안 된다.
+`supersedes:`를 가진 ADR은 24건 중 8건이다(0002·0004·0007·0008·0009·0010·0011·0015). 그중 일곱은 최초 설계 문서(`DESIGN.md`, v1 스펙)를 뒤집은 것이고, [ADR-0011](ADR-0011-bible-entrypoints.md)만 **나중에 쓰인 기능 설계 문서**(`docs/plans/2026-06-07-bible-reader-default-design.md`)를 뒤집었다 — 설계와 구현 사이의 간격이 가장 짧았던 번복이다. 그 뒤로 `InsertMode`의 `"newNote"`와 `pendingInsertRef`가 죽은 코드로 남았다([`../drift.md`](../drift.md) B6) — 코드에 남아 있다고 살아 있는 경로로 착각하면 안 된다.
 
 ## 읽는 순서 (전제가 앞선 것부터)
 
@@ -59,9 +61,10 @@
 
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
-프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0017](ADR-0017-commit-convention.md) → [ADR-0018](ADR-0018-pr-gate.md) → [ADR-0019](ADR-0019-issue-tracking.md) → [ADR-0020](ADR-0020-branch-strategy.md) → [ADR-0021](ADR-0021-release-strategy.md).
+프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0017](ADR-0017-commit-convention.md) → [ADR-0018](ADR-0018-pr-gate.md) → [ADR-0019](ADR-0019-issue-tracking.md) → [ADR-0020](ADR-0020-branch-strategy.md) → [ADR-0021](ADR-0021-release-strategy.md) → [ADR-0022](ADR-0022-store-update-notice.md).
+디자인 시스템 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0023](ADR-0023-figma-design-system-structure.md). 변형 4종이 색을 정하고, 그 색이 Figma 변수가 된다.
 
-구조 축: [ADR-0022](ADR-0022-fsd-ddd-architecture.md). 새 폴더·Slice·공개 인터페이스를 만들기 전에 읽는다.
+구조 축: [ADR-0024](ADR-0024-fsd-ddd-architecture.md). 새 폴더·Slice·공개 인터페이스를 만들기 전에 읽는다.
 
 ## 새 ADR을 쓸 때
 

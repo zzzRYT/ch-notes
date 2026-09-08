@@ -9,6 +9,7 @@ const valid = {
   accentChoice: "default",
   lastOpenedNoteId: null,
   lastBibleRef: null,
+  dismissedUpdateVersion: null,
 };
 
 describe("parseSettings", () => {
@@ -48,5 +49,21 @@ describe("parseSettings", () => {
     expect(parseSettings({ ...valid, lastBibleRef: "Gen 1" })?.lastBibleRef).toBe(
       "Gen 1",
     );
+  });
+
+  it("dismissedUpdateVersion 없거나 잘못돼도 파일 reject 안 함 → null 폴백", () => {
+    const { dismissedUpdateVersion, ...withoutField } = valid;
+    expect(parseSettings(withoutField)?.dismissedUpdateVersion).toBeNull();
+    expect(
+      parseSettings({ ...valid, dismissedUpdateVersion: 102 })
+        ?.dismissedUpdateVersion,
+    ).toBeNull();
+  });
+
+  it("dismissedUpdateVersion 정상 문자열 보존", () => {
+    expect(
+      parseSettings({ ...valid, dismissedUpdateVersion: "1.0.2" })
+        ?.dismissedUpdateVersion,
+    ).toBe("1.0.2");
   });
 });

@@ -1,0 +1,642 @@
+[
+ {
+  "name": "minimal/bg",
+  "r": 0.980392,
+  "g": 0.980392,
+  "b": 0.968627,
+  "a": 1.0,
+  "code": "colors.bg",
+  "desc": "캔버스 배경. paper와 다르다(focus만 동일)",
+  "raw": "#fafaf7"
+ },
+ {
+  "name": "minimal/paper",
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0,
+  "code": "colors.paper",
+  "desc": "카드·시트 표면. 레거시 surface와 4팔레트 전부 동일 → 통일",
+  "raw": "#ffffff"
+ },
+ {
+  "name": "minimal/ink",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 1.0,
+  "code": "colors.ink",
+  "desc": "본문 텍스트. 레거시 text와 4팔레트 전부 동일 → 통일",
+  "raw": "#0c0a08"
+ },
+ {
+  "name": "minimal/ink-2",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.6,
+  "code": "colors.ink2",
+  "desc": "보조 텍스트",
+  "raw": "rgba(12,10,8,0.6)"
+ },
+ {
+  "name": "minimal/ink-3",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.4,
+  "code": "colors.ink3",
+  "desc": "흐린 텍스트·placeholder",
+  "raw": "rgba(12,10,8,0.4)"
+ },
+ {
+  "name": "minimal/ink-4",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.18,
+  "code": "colors.ink4",
+  "desc": "가장 흐림. 레거시 quoteBar와 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(12,10,8,0.18)"
+ },
+ {
+  "name": "minimal/subtle",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.55,
+  "code": "colors.subtle",
+  "desc": "⚠️ ink2와 값이 다르다(4팔레트 전부). 통합하지 말 것",
+  "raw": "rgba(12,10,8,0.55)"
+ },
+ {
+  "name": "minimal/rule",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.08,
+  "code": "colors.rule",
+  "desc": "구분선. 레거시 line과 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(12,10,8,0.08)"
+ },
+ {
+  "name": "minimal/accent",
+  "r": 0.117647,
+  "g": 0.435294,
+  "b": 0.85098,
+  "a": 1.0,
+  "code": "colors.accent",
+  "desc": "강조색. 사용자가 accentChoice로 덮어쓸 수 있다",
+  "raw": "#1e6fd9"
+ },
+ {
+  "name": "minimal/accent-soft",
+  "r": 0.117647,
+  "g": 0.435294,
+  "b": 0.85098,
+  "a": 0.08,
+  "code": "colors.accentSoft",
+  "desc": "강조색 옅은 배경. ⚠️ 변형 내장 알파는 8/9/8/14%인데 사용자가 색을 직접 고르면 항상 8%로 파생된다(규칙이 둘)",
+  "raw": "rgba(30,111,217,0.08)"
+ },
+ {
+  "name": "minimal/accent-text",
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0,
+  "code": "colors.accentText",
+  "desc": "accent 위에 얹는 텍스트색",
+  "raw": "#ffffff"
+ },
+ {
+  "name": "minimal/chip-bg",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.06,
+  "code": "colors.chipBg",
+  "desc": "칩 배경",
+  "raw": "rgba(12,10,8,0.06)"
+ },
+ {
+  "name": "minimal/chip-text",
+  "r": 0.047059,
+  "g": 0.039216,
+  "b": 0.031373,
+  "a": 0.6,
+  "code": "colors.chipText",
+  "desc": "칩 텍스트. minimal·focus는 ink2와 같고 paper·dark는 다르다 — 규칙성 없음(확인필요)",
+  "raw": "rgba(12,10,8,0.6)"
+ },
+ {
+  "name": "minimal/err-bar",
+  "r": 0.784314,
+  "g": 0.203922,
+  "b": 0.164706,
+  "a": 1.0,
+  "code": "colors.errBar",
+  "desc": "오류 막대·테두리",
+  "raw": "#c8342a"
+ },
+ {
+  "name": "minimal/err-bg",
+  "r": 0.992157,
+  "g": 0.886275,
+  "b": 0.882353,
+  "a": 1.0,
+  "code": "colors.errBg",
+  "desc": "오류 배경. ⚠️ paper만 알파(0.12), 나머지는 solid",
+  "raw": "#fde2e1"
+ },
+ {
+  "name": "minimal/err-text",
+  "r": 0.784314,
+  "g": 0.203922,
+  "b": 0.164706,
+  "a": 1.0,
+  "code": "colors.errText",
+  "desc": "오류 텍스트. ⚠️ dark만 errBar와 다르다",
+  "raw": "#c8342a"
+ },
+ {
+  "name": "paper/bg",
+  "r": 0.968627,
+  "g": 0.952941,
+  "b": 0.92549,
+  "a": 1.0,
+  "code": "colors.bg",
+  "desc": "캔버스 배경. paper와 다르다(focus만 동일)",
+  "raw": "#f7f3ec"
+ },
+ {
+  "name": "paper/paper",
+  "r": 0.988235,
+  "g": 0.976471,
+  "b": 0.952941,
+  "a": 1.0,
+  "code": "colors.paper",
+  "desc": "카드·시트 표면. 레거시 surface와 4팔레트 전부 동일 → 통일",
+  "raw": "#fcf9f3"
+ },
+ {
+  "name": "paper/ink",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 1.0,
+  "code": "colors.ink",
+  "desc": "본문 텍스트. 레거시 text와 4팔레트 전부 동일 → 통일",
+  "raw": "#1f1a13"
+ },
+ {
+  "name": "paper/ink-2",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.68,
+  "code": "colors.ink2",
+  "desc": "보조 텍스트",
+  "raw": "rgba(31,26,19,0.68)"
+ },
+ {
+  "name": "paper/ink-3",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.44,
+  "code": "colors.ink3",
+  "desc": "흐린 텍스트·placeholder",
+  "raw": "rgba(31,26,19,0.44)"
+ },
+ {
+  "name": "paper/ink-4",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.2,
+  "code": "colors.ink4",
+  "desc": "가장 흐림. 레거시 quoteBar와 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(31,26,19,0.2)"
+ },
+ {
+  "name": "paper/subtle",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.6,
+  "code": "colors.subtle",
+  "desc": "⚠️ ink2와 값이 다르다(4팔레트 전부). 통합하지 말 것",
+  "raw": "rgba(31,26,19,0.6)"
+ },
+ {
+  "name": "paper/rule",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.09,
+  "code": "colors.rule",
+  "desc": "구분선. 레거시 line과 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(31,26,19,0.09)"
+ },
+ {
+  "name": "paper/accent",
+  "r": 0.694118,
+  "g": 0.360784,
+  "b": 0.180392,
+  "a": 1.0,
+  "code": "colors.accent",
+  "desc": "강조색. 사용자가 accentChoice로 덮어쓸 수 있다",
+  "raw": "#b15c2e"
+ },
+ {
+  "name": "paper/accent-soft",
+  "r": 0.694118,
+  "g": 0.360784,
+  "b": 0.180392,
+  "a": 0.09,
+  "code": "colors.accentSoft",
+  "desc": "강조색 옅은 배경. ⚠️ 변형 내장 알파는 8/9/8/14%인데 사용자가 색을 직접 고르면 항상 8%로 파생된다(규칙이 둘)",
+  "raw": "rgba(177,92,46,0.09)"
+ },
+ {
+  "name": "paper/accent-text",
+  "r": 0.988235,
+  "g": 0.976471,
+  "b": 0.952941,
+  "a": 1.0,
+  "code": "colors.accentText",
+  "desc": "accent 위에 얹는 텍스트색",
+  "raw": "#fcf9f3"
+ },
+ {
+  "name": "paper/chip-bg",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.06,
+  "code": "colors.chipBg",
+  "desc": "칩 배경",
+  "raw": "rgba(31,26,19,0.06)"
+ },
+ {
+  "name": "paper/chip-text",
+  "r": 0.121569,
+  "g": 0.101961,
+  "b": 0.07451,
+  "a": 0.6,
+  "code": "colors.chipText",
+  "desc": "칩 텍스트. minimal·focus는 ink2와 같고 paper·dark는 다르다 — 규칙성 없음(확인필요)",
+  "raw": "rgba(31,26,19,0.6)"
+ },
+ {
+  "name": "paper/err-bar",
+  "r": 0.603922,
+  "g": 0.219608,
+  "b": 0.137255,
+  "a": 1.0,
+  "code": "colors.errBar",
+  "desc": "오류 막대·테두리",
+  "raw": "#9a3823"
+ },
+ {
+  "name": "paper/err-bg",
+  "r": 0.603922,
+  "g": 0.219608,
+  "b": 0.137255,
+  "a": 0.12,
+  "code": "colors.errBg",
+  "desc": "오류 배경. ⚠️ paper만 알파(0.12), 나머지는 solid",
+  "raw": "rgba(154,56,35,0.12)"
+ },
+ {
+  "name": "paper/err-text",
+  "r": 0.603922,
+  "g": 0.219608,
+  "b": 0.137255,
+  "a": 1.0,
+  "code": "colors.errText",
+  "desc": "오류 텍스트. ⚠️ dark만 errBar와 다르다",
+  "raw": "#9a3823"
+ },
+ {
+  "name": "focus/bg",
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0,
+  "code": "colors.bg",
+  "desc": "캔버스 배경. paper와 다르다(focus만 동일)",
+  "raw": "#ffffff"
+ },
+ {
+  "name": "focus/paper",
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0,
+  "code": "colors.paper",
+  "desc": "카드·시트 표면. 레거시 surface와 4팔레트 전부 동일 → 통일",
+  "raw": "#ffffff"
+ },
+ {
+  "name": "focus/ink",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 1.0,
+  "code": "colors.ink",
+  "desc": "본문 텍스트. 레거시 text와 4팔레트 전부 동일 → 통일",
+  "raw": "#15140e"
+ },
+ {
+  "name": "focus/ink-2",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.55,
+  "code": "colors.ink2",
+  "desc": "보조 텍스트",
+  "raw": "rgba(21,20,14,0.55)"
+ },
+ {
+  "name": "focus/ink-3",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.35,
+  "code": "colors.ink3",
+  "desc": "흐린 텍스트·placeholder",
+  "raw": "rgba(21,20,14,0.35)"
+ },
+ {
+  "name": "focus/ink-4",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.15,
+  "code": "colors.ink4",
+  "desc": "가장 흐림. 레거시 quoteBar와 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(21,20,14,0.15)"
+ },
+ {
+  "name": "focus/subtle",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.5,
+  "code": "colors.subtle",
+  "desc": "⚠️ ink2와 값이 다르다(4팔레트 전부). 통합하지 말 것",
+  "raw": "rgba(21,20,14,0.5)"
+ },
+ {
+  "name": "focus/rule",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.06,
+  "code": "colors.rule",
+  "desc": "구분선. 레거시 line과 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(21,20,14,0.06)"
+ },
+ {
+  "name": "focus/accent",
+  "r": 0.419608,
+  "g": 0.447059,
+  "b": 0.501961,
+  "a": 1.0,
+  "code": "colors.accent",
+  "desc": "강조색. 사용자가 accentChoice로 덮어쓸 수 있다",
+  "raw": "#6b7280"
+ },
+ {
+  "name": "focus/accent-soft",
+  "r": 0.419608,
+  "g": 0.447059,
+  "b": 0.501961,
+  "a": 0.08,
+  "code": "colors.accentSoft",
+  "desc": "강조색 옅은 배경. ⚠️ 변형 내장 알파는 8/9/8/14%인데 사용자가 색을 직접 고르면 항상 8%로 파생된다(규칙이 둘)",
+  "raw": "rgba(107,114,128,0.08)"
+ },
+ {
+  "name": "focus/accent-text",
+  "r": 1.0,
+  "g": 1.0,
+  "b": 1.0,
+  "a": 1.0,
+  "code": "colors.accentText",
+  "desc": "accent 위에 얹는 텍스트색",
+  "raw": "#ffffff"
+ },
+ {
+  "name": "focus/chip-bg",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.05,
+  "code": "colors.chipBg",
+  "desc": "칩 배경",
+  "raw": "rgba(21,20,14,0.05)"
+ },
+ {
+  "name": "focus/chip-text",
+  "r": 0.082353,
+  "g": 0.078431,
+  "b": 0.054902,
+  "a": 0.55,
+  "code": "colors.chipText",
+  "desc": "칩 텍스트. minimal·focus는 ink2와 같고 paper·dark는 다르다 — 규칙성 없음(확인필요)",
+  "raw": "rgba(21,20,14,0.55)"
+ },
+ {
+  "name": "focus/err-bar",
+  "r": 0.784314,
+  "g": 0.203922,
+  "b": 0.164706,
+  "a": 1.0,
+  "code": "colors.errBar",
+  "desc": "오류 막대·테두리",
+  "raw": "#c8342a"
+ },
+ {
+  "name": "focus/err-bg",
+  "r": 0.992157,
+  "g": 0.886275,
+  "b": 0.882353,
+  "a": 1.0,
+  "code": "colors.errBg",
+  "desc": "오류 배경. ⚠️ paper만 알파(0.12), 나머지는 solid",
+  "raw": "#fde2e1"
+ },
+ {
+  "name": "focus/err-text",
+  "r": 0.784314,
+  "g": 0.203922,
+  "b": 0.164706,
+  "a": 1.0,
+  "code": "colors.errText",
+  "desc": "오류 텍스트. ⚠️ dark만 errBar와 다르다",
+  "raw": "#c8342a"
+ },
+ {
+  "name": "dark/bg",
+  "r": 0.054902,
+  "g": 0.05098,
+  "b": 0.047059,
+  "a": 1.0,
+  "code": "colors.bg",
+  "desc": "캔버스 배경. paper와 다르다(focus만 동일)",
+  "raw": "#0e0d0c"
+ },
+ {
+  "name": "dark/paper",
+  "r": 0.101961,
+  "g": 0.098039,
+  "b": 0.086275,
+  "a": 1.0,
+  "code": "colors.paper",
+  "desc": "카드·시트 표면. 레거시 surface와 4팔레트 전부 동일 → 통일",
+  "raw": "#1a1916"
+ },
+ {
+  "name": "dark/ink",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 1.0,
+  "code": "colors.ink",
+  "desc": "본문 텍스트. 레거시 text와 4팔레트 전부 동일 → 통일",
+  "raw": "#f5f3ee"
+ },
+ {
+  "name": "dark/ink-2",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.66,
+  "code": "colors.ink2",
+  "desc": "보조 텍스트",
+  "raw": "rgba(245,243,238,0.66)"
+ },
+ {
+  "name": "dark/ink-3",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.42,
+  "code": "colors.ink3",
+  "desc": "흐린 텍스트·placeholder",
+  "raw": "rgba(245,243,238,0.42)"
+ },
+ {
+  "name": "dark/ink-4",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.2,
+  "code": "colors.ink4",
+  "desc": "가장 흐림. 레거시 quoteBar와 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(245,243,238,0.2)"
+ },
+ {
+  "name": "dark/subtle",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.6,
+  "code": "colors.subtle",
+  "desc": "⚠️ ink2와 값이 다르다(4팔레트 전부). 통합하지 말 것",
+  "raw": "rgba(245,243,238,0.6)"
+ },
+ {
+  "name": "dark/rule",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.1,
+  "code": "colors.rule",
+  "desc": "구분선. 레거시 line과 4팔레트 전부 동일 → 통일",
+  "raw": "rgba(245,243,238,0.1)"
+ },
+ {
+  "name": "dark/accent",
+  "r": 0.960784,
+  "g": 0.701961,
+  "b": 0.368627,
+  "a": 1.0,
+  "code": "colors.accent",
+  "desc": "강조색. 사용자가 accentChoice로 덮어쓸 수 있다",
+  "raw": "#f5b35e"
+ },
+ {
+  "name": "dark/accent-soft",
+  "r": 0.960784,
+  "g": 0.701961,
+  "b": 0.368627,
+  "a": 0.14,
+  "code": "colors.accentSoft",
+  "desc": "강조색 옅은 배경. ⚠️ 변형 내장 알파는 8/9/8/14%인데 사용자가 색을 직접 고르면 항상 8%로 파생된다(규칙이 둘)",
+  "raw": "rgba(245,179,94,0.14)"
+ },
+ {
+  "name": "dark/accent-text",
+  "r": 0.101961,
+  "g": 0.098039,
+  "b": 0.086275,
+  "a": 1.0,
+  "code": "colors.accentText",
+  "desc": "accent 위에 얹는 텍스트색",
+  "raw": "#1a1916"
+ },
+ {
+  "name": "dark/chip-bg",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.06,
+  "code": "colors.chipBg",
+  "desc": "칩 배경",
+  "raw": "rgba(245,243,238,0.06)"
+ },
+ {
+  "name": "dark/chip-text",
+  "r": 0.960784,
+  "g": 0.952941,
+  "b": 0.933333,
+  "a": 0.7,
+  "code": "colors.chipText",
+  "desc": "칩 텍스트. minimal·focus는 ink2와 같고 paper·dark는 다르다 — 규칙성 없음(확인필요)",
+  "raw": "rgba(245,243,238,0.7)"
+ },
+ {
+  "name": "dark/err-bar",
+  "r": 1.0,
+  "g": 0.419608,
+  "b": 0.419608,
+  "a": 1.0,
+  "code": "colors.errBar",
+  "desc": "오류 막대·테두리",
+  "raw": "#ff6b6b"
+ },
+ {
+  "name": "dark/err-bg",
+  "r": 0.227451,
+  "g": 0.090196,
+  "b": 0.086275,
+  "a": 1.0,
+  "code": "colors.errBg",
+  "desc": "오류 배경. ⚠️ paper만 알파(0.12), 나머지는 solid",
+  "raw": "#3a1716"
+ },
+ {
+  "name": "dark/err-text",
+  "r": 1.0,
+  "g": 0.545098,
+  "b": 0.501961,
+  "a": 1.0,
+  "code": "colors.errText",
+  "desc": "오류 텍스트. ⚠️ dark만 errBar와 다르다",
+  "raw": "#ff8b80"
+ }
+]

@@ -1,7 +1,7 @@
-# ADR-0022 · FSD 레이어와 선택적 DDD로 앱 구조를 나눈다
+# ADR-0024 · FSD 레이어와 선택적 DDD로 앱 구조를 나눈다
 
 ```yaml
-id: ADR-0022
+id: ADR-0024
 status: accepted
 statement: 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다.
 confidence: 기록됨

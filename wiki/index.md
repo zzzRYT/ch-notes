@@ -7,16 +7,16 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 69 |
+| 도메인 규칙 `RULE` | 70 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 22 |
-| **합계** | **110** |
+| 결정 `ADR` | 24 |
+| **합계** | **113** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **40/69 (58%)** |
+| 자동 증거(test/ci)가 붙은 RULE | **41/70 (59%)** |
 | 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 58 |
+| 근거가 기록으로 남아 있는 항목 | 61 |
 | 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -128,7 +128,7 @@
 | [`RULE-SET-003`](rules/settings-theme.md) | MUST | 자동 | 기록됨 | 화면 색은 variation(minimal/paper/focus/dark) 하나로 결정된다. isDark는 variation === "dark"이며 themePreference나 OS 다크모드와 무관하다. |
 | [`RULE-SET-004`](rules/settings-theme.md) | SHOULD | 수동 | 코드추론 | blockStyle과 accentChoice가 "default"면 현재 변형의 기본값을 쓰고, 사용자가 고른 값이 있으면 그것이 이긴다. |
 | [`RULE-SET-005`](rules/settings-theme.md) | MUST | 자동 | 코드추론 | 글꼴 크기는 1.0 / 1.2 / 1.4 / 1.6 네 값만 허용하며, 화면의 글자 크기는 기준값 × 배율을 반올림해 계산한다. |
-| [`RULE-SET-006`](rules/settings-theme.md) | SHOULD | 수동 | 코드추론 | 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다. |
+| [`RULE-SET-006`](rules/settings-theme.md) | SHOULD | 수동 | 코드추론 | 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다. 이 배선은 useSettingsPersistence 훅 하나에 모여 있고 루트 레이아웃은 그것을 부르기만 한다. |
 
 ### 레이아웃·접근성 — [`rules/layout-a11y.md`](rules/layout-a11y.md)
 
@@ -147,6 +147,7 @@
 |---|---|---|---|---|
 | [`RULE-OTA-001`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 스토어 빌드에 들어간 임베디드 번들은 OTA가 한 번도 도착하지 않아도 모든 기능이 동작해야 한다. 기능·자산·데이터를 OTA 번들에만 두지 않는다. |
 | [`RULE-OTA-002`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크가 없거나 OTA 서버가 응답하지 않아도 앱은 즉시 렌더되고, 확인 실패는 경고 로그 한 줄로 끝난다. 로딩 화면이나 오류 화면을 띄우지 않는다. |
+| [`RULE-OTA-010`](rules/release.md) | MUST | 자동 | 기록됨 | 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다. |
 | [`RULE-OTA-003`](rules/release.md) | MUST | 수동 (waiver) | 기록됨 | reloadOnForceUpdate가 false이므로 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 화면을 갈아치우지 않고 다음 콜드 런치까지 기다린다. |
 | [`RULE-OTA-004`](rules/release.md) | 현상 서술 | — | 코드추론 | 업데이트 확인은 (platform, appVersion, channel, minBundleId, bundleId)로 한 번 질의해 목표 번들 하나를 받는다. 오래 오프라인이던 기기는 그 사이 발행된 번들을 순서대로 밟지 않고 최신 하나로 바로 건너뛴다. |
 | [`RULE-OTA-005`](rules/release.md) | 현상 서술 | — | 코드추론 | 기기는 임베디드 번들, 마지막으로 정상 기동한 stable 번들, 검증 중인 staging 번들만 가진다. 자동 롤백의 착지점은 stable 하나이고 그것이 없으면 임베디드다. 두 칸 전 번들로는 돌아갈 수 없다. |
@@ -192,7 +193,9 @@
 | [`ADR-0019`](decisions/ADR-0019-issue-tracking.md) | 기록됨 | 이 저장소의 할 일과 버그는 GitHub Issues를 정본으로 삼는다. 라벨은 type과 area 두 축만 쓰고 진행 상태 라벨은 두지 않는다. 이슈는 버그·기능 두 템플릿으로만 열 수 있다. |
 | [`ADR-0020`](decisions/ADR-0020-branch-strategy.md) | 기록됨 | 작업 가지는 main에서 나서 main으로 돌아가고, 출시된 버전마다 release/<버전> 가지를 남겨 그 버전의 OTA와 핫픽스를 거기서 낸다. release에서 main으로는 역머지, main에서 release로는 cherry-pick만 한다. 브랜치 접두는 커밋 타입과 같은 단어를 쓴다. |
 | [`ADR-0021`](decisions/ADR-0021-release-strategy.md) | 기록됨 | 스토어 버전은 major.minor.patch로 올리고 그 위에 OTA 발행 번호를 네 번째 자리로 표시한다. OTA 번호는 app.config.ts의 version이 아니라 JS 상수로 올린다. production 채널 OTA는 release/<버전> 가지에서 수동 실행으로만 발행하고, 배포 워크플로는 자격증명의 형식까지 검사한다. |
-| [`ADR-0022`](decisions/ADR-0022-fsd-ddd-architecture.md) | 기록됨 | 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다. |
+| [`ADR-0022`](decisions/ADR-0022-store-update-notice.md) | 기록됨 | 스토어의 최신 버전은 GitHub Pages로 이미 발행 중인 website/app-version.json에 플랫폼별로 적고, 앱은 콜드 런치 뒤 한 번 읽어 설치본보다 높을 때만 닫을 수 있는 다이어로그를 띄운다. 강제 업데이트는 두지 않고, 같은 버전은 한 번만 안내한다. |
+| [`ADR-0023`](decisions/ADR-0023-figma-design-system-structure.md) | 기록됨 | Figma 디자인 시스템 파일은 페이지 하나에 토큰·컴포넌트·아이콘 보드 셋을 두고, 컴포넌트 보드는 Atoms/Molecules/Organisms 세 층위로 나눈다. 근거의 세기(코드에 있음/제안/예정)는 층위가 아니라 이름 접두사와 변형 단위 플래그로 표시한다. |
+| [`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md) | 기록됨 | 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다. |
 
 ## 정본이 아닌 것
 
