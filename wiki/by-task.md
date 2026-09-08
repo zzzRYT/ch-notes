@@ -19,7 +19,7 @@
 | `src/markdown/**`, `src/share/**` | [마크다운 공유](#5-마크다운-내보내기가져오기) |
 | `src/browser/**`, `src/workspace/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
 | `src/theme/**`, `src/state/**`, `src/workspace/**`, `src/chrome/**`, `app/settings.tsx` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
-| `app.config.ts`, `eas.json`, `.github/workflows/**` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/update/**`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
 경로는 모두 `apps/ch-life/` 기준이다(릴리스 영역의 `.github/**` 제외).
@@ -194,19 +194,20 @@
 
 ## 8. 릴리스·개발 하네스
 
-**먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~009) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md)
+**먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~010) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md) · [ADR-0022](decisions/ADR-0022-store-update-notice.md)
 
 **번들을 발행하기 전에는 [rules/release.md](rules/release.md)를 먼저 본다.** 오프라인이 기본인 앱에 OTA를 얹었기 때문에, 다른 앱에서는 안전한 변경이 여기서는 되돌릴 수 없는 변경이 된다.
 
-**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `app/_layout.tsx` · `scripts/deploy-ota.mjs` · `.github/workflows/{ci,eas-update,eas-build}.yml`
+**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `app/_layout.tsx` · `scripts/deploy-ota.mjs` · `src/update/{compare-version,latest-store-version,store-link,StoreUpdateDialog}.ts(x)` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
 **스킬** `.claude/skills/eas-release/SKILL.md`(릴리스), `.claude/skills/start-feature/SKILL.md`(새 작업)
-**테스트** 없음 — CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`를 열어 보지 않는다.
+**테스트** `src/update/__tests__/{compare-version,latest-store-version}.test.ts` — 이 영역의 **유일한** 자동 증거다. CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`는 열어 보지 않는다.
 
 **같은 변경에서 함께 고친다**
 1. `eas.json`은 [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md)의 `implemented_by`에 올라 있다 — 동작을 바꾸면 같은 커밋에서 계약도.
 2. **고정 식별자 표는 손으로 옮겨 적은 사본이다.** EAS project UUID는 `app.config.ts`에 두 번, 계약 표에 세 번째로 있다. `bundleIdentifier`·`scheme`·채널 이름도 같다.
-3. `version`을 올리는 것과 새 빌드를 내는 것은 한 세트다.
-4. `eas.json`에 프로필을 더하면 두 워크플로의 `options` 드롭다운도.
+3. **버전이 사는 자리가 셋이다** — `app.config.ts`의 `version`(스토어), `src/version.ts`의 `OTA_RELEASE`(번들 순번, 스토어 버전이 오르면 0으로), `website/app-version.json`(앱이 읽는 최신 스토어 버전). 앞의 둘은 릴리스 PR에서, 셋째는 **심사 통과 뒤 `main`으로 따로** 올린다([`RULE-OTA-010`](rules/release.md)). 어긋나면 조용히 틀린다.
+4. `version`을 올리는 것과 새 빌드를 내는 것은 한 세트다.
+5. `eas.json`에 프로필을 더하면 두 워크플로의 `options` 드롭다운도.
 
 **함정**
 - ⚠️ OTA는 `updateStrategy: "appVersion"` — **`version`만 올리고 OTA를 쏘면 아무에게도 안 닿는다.**
@@ -216,6 +217,7 @@
 - ⚠️ **번들은 한 칸만 되돌아가고 스키마는 되돌아가지 않는다.** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA로 내보내면 안 된다([RULE-OTA-008](rules/release.md), [RULE-OTA-009](rules/release.md)).
 - ⚠️ **오프라인 기기는 중간 번들을 전부 건너뛴다.** 번들이 순서대로 적용된다는 전제로 마이그레이션이나 데이터 이관을 설계하면 그 기기에서 깨진다([RULE-OTA-004](rules/release.md)).
 - 서버에서 번들을 내려도(`bundle disable`) 오프라인 기기에는 닿지 않고, 닿아도 적용은 다음 콜드 런치다. **롤백 소요 시간에 하한이 없다**([ADR-0016](decisions/ADR-0016-cold-launch-apply.md)).
+- ⚠️ **`app-version.json`을 버전 bump와 같은 PR에 넣으면 안 된다.** 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다. `pages.yml`은 `main` 푸시의 `website/**` 변경에만 돈다.
 - 워크트리는 `.worktrees` 아래에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
 
 ---

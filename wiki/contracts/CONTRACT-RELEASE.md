@@ -30,6 +30,8 @@ source:
 | OTA 런타임 | `@hot-updater/react-native` — `HotUpdater.wrap`, `updateStrategy: "appVersion"` (`app/_layout.tsx`) |
 | OTA 발행 번호 | `src/version.ts`의 `OTA_RELEASE` — 설정 화면에 `1.0.2+3`으로 표시. **`version`에는 넣지 않는다** |
 | OTA 서버 | Cloudflare R2 + D1 + Worker. `extra.hotUpdaterBaseUrl` ← `HOT_UPDATER_BASE_URL` |
+| 스토어 최신 버전 | `website/app-version.json` → `https://zzzryt.github.io/ch-notes/app-version.json`. 플랫폼별 `{"ios","android"}` ([`RULE-OTA-010`](../rules/release.md)) |
+| 스토어 페이지 | iOS `https://apps.apple.com/app/id6772700147` · Android `market://details?id=com.leejaejin.chlife` |
 | appVersionSource | `remote` (동적 `app.config.ts` + `autoIncrement` 조합에 필요) |
 | 채널 | development / preview / production — `eas.json`의 `env.HOT_UPDATER_CHANNEL`로 주입 |
 | iOS 스토어 제출 | EAS Submit — ASC App ID `6772700147`, Apple Team `43ZASDF2J7`, API 키 `credentials/AuthKey_58F737893F.p8` |
@@ -41,7 +43,10 @@ source:
 main 머지 → CI(typecheck·lint·test) 성공 → hot-updater deploy --channel preview      [자동]
 release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --channel production  [수동]
 네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait          [수동]
+스토어 심사 통과 → website/app-version.json PR → main → pages.yml                    [수동]
 ```
+
+**마지막 줄이 앱 안의 업데이트 안내를 켠다**([`RULE-OTA-010`](../rules/release.md)). 심사가 끝난 **뒤에** 올린다 — 버전 bump와 같은 PR에 넣으면 아직 스토어에 없는 버전을 안내하게 된다. `pages.yml`은 `main` 푸시에만 돌므로 릴리스 가지가 아니라 `main`으로 낸다.
 
 `production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 

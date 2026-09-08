@@ -20,7 +20,7 @@
 | [share-markdown.md](share-markdown.md) | RULE-MD-001 ~ RULE-MD-008 | `.md` 왕복에서 무엇이 보존되고 무엇이 사라지는가 | `src/markdown/**`, `src/share/**` | 6/8 |
 | [settings-theme.md](settings-theme.md) | RULE-SET-001 ~ RULE-SET-006 | 설정 파싱 엄격도, 색은 `variation` 하나로 결정 | `src/state/**`, `src/theme/**` | 4/6 |
 | [layout-a11y.md](layout-a11y.md) | RULE-UI-001 ~ RULE-UI-006 | 900px 폰/태블릿 분기, 터치 크기·라벨·대비 | `src/workspace/**`, `src/chrome/**` | **0/6** |
-| [release.md](release.md) | RULE-OTA-001 ~ RULE-OTA-009 | 오프라인 기본인 앱에 OTA를 얹을 때의 제약 | `app/_layout.tsx`, `src/db/migrate.ts` | **1/9** |
+| [release.md](release.md) | RULE-OTA-001 ~ RULE-OTA-010 | 오프라인 기본인 앱에 OTA를 얹을 때의 제약 | `app/_layout.tsx`, `src/db/migrate.ts`, `src/update/**` | **2/10** |
 
 ## 이 계층에서 사고 나는 지점
 
@@ -34,7 +34,7 @@
 - **share-markdown** — `(KRV)` 표식은 데이터를 잘못 이름 붙였지만 **파서의 판별자**라 바꾸면 기존 파일을 못 읽는다. 그리고 덮어쓰기 가져오기가 없는 필드를 지운다(B16).
 - **settings-theme** — 새 설정 필드는 **반드시 개별 폴백**으로 추가한다. 필수 필드로 다루면 구버전 `settings.json` 전체가 버려진다.
 - **layout-a11y** — 900px 상수가 두 곳에 복제되어 있다(B2). 한쪽만 고치면 목록은 태블릿인데 성경만 시트로 뜬다.
-- **release** — 이 파일만 코드 영역이 아니라 **배포 상황**을 덮는다. 핵심은 하나다. **번들은 한 칸 되돌아가지만 데이터는 되돌아가지 않는다.** 그래서 되돌릴 수 없는 변경(컬럼 삭제·개명, 새 블록 타입)은 OTA에 실을 수 없다. 그리고 오프라인 기기는 중간 번들을 전부 건너뛴다 — 번들이 순서대로 적용된다는 전제를 세우면 안 된다.
+- **release** — 이 파일만 코드 영역이 아니라 **배포 상황**을 덮는다. [`RULE-OTA-010`](release.md)만 이 중 유일하게 화면에 무언가를 띄우는 규칙이고, 나머지는 전부 끼어들지 않기 위한 제약이다. 핵심은 하나다. **번들은 한 칸 되돌아가지만 데이터는 되돌아가지 않는다.** 그래서 되돌릴 수 없는 변경(컬럼 삭제·개명, 새 블록 타입)은 OTA에 실을 수 없다. 그리고 오프라인 기기는 중간 번들을 전부 건너뛴다 — 번들이 순서대로 적용된다는 전제를 세우면 안 된다.
 
 ## 처음이라면
 

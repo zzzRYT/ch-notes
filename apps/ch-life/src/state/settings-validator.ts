@@ -86,5 +86,6 @@ export function parseSettings(x: unknown): Settings | null {
     accentChoice: readEnum(s.accentChoice, ALLOWED_ACCENT, "default"),
     lastOpenedNoteId: readNullableString(s.lastOpenedNoteId),
     lastBibleRef: readNullableString(s.lastBibleRef),
+    dismissedUpdateVersion: readNullableString(s.dismissedUpdateVersion),
   };
 }

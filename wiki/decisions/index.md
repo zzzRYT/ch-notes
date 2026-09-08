@@ -44,6 +44,7 @@
 | [ADR-0019](ADR-0019-issue-tracking.md) | 작업 항목은 GitHub Issues, 라벨은 type·area 두 축 | 이슈를 열거나 라벨을 더할 때 | 기록됨 |
 | [ADR-0020](ADR-0020-branch-strategy.md) | main 하나 + 버전별 릴리스 가지 | 브랜치를 만들거나 핫픽스를 낼 때 | 기록됨 |
 | [ADR-0021](ADR-0021-release-strategy.md) | 버전 네 자리 · production OTA는 릴리스 가지에서 수동 | 버전을 올리거나 OTA를 발행할 때 | 기록됨 |
+| [ADR-0022](ADR-0022-store-update-notice.md) | 스토어 최신 버전은 `website/app-version.json`, 안내는 닫을 수 있는 다이어로그 | 스토어 빌드를 낸 뒤, 업데이트 안내를 손볼 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
@@ -58,7 +59,7 @@
 
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
-프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0017](ADR-0017-commit-convention.md) → [ADR-0018](ADR-0018-pr-gate.md) → [ADR-0019](ADR-0019-issue-tracking.md) → [ADR-0020](ADR-0020-branch-strategy.md) → [ADR-0021](ADR-0021-release-strategy.md).
+프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0017](ADR-0017-commit-convention.md) → [ADR-0018](ADR-0018-pr-gate.md) → [ADR-0019](ADR-0019-issue-tracking.md) → [ADR-0020](ADR-0020-branch-strategy.md) → [ADR-0021](ADR-0021-release-strategy.md) → [ADR-0022](ADR-0022-store-update-notice.md).
 
 ## 새 ADR을 쓸 때
 

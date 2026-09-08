@@ -44,11 +44,21 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
   큐에 넣고 빌드 URL만 반환한다.
 - `production` 프로필은 `autoIncrement: true`(빌드번호 자동 증가).
 
+## 스토어 업데이트 안내 (빌드 뒤 마지막 단계)
+
+기존 설치본에 "스토어에서 업데이트하세요"를 띄우는 스위치는 `website/app-version.json`이다
+(`RULE-OTA-010`, `ADR-0022`). **심사를 통과해 스토어에 실제로 올라간 뒤**, 해당 플랫폼 값을
+새 버전으로 올리는 PR을 **`main`에** 낸다 — `pages.yml`이 `main` 푸시의 `website/**`에만 돌기 때문이다.
+
+⚠️ 버전 bump PR에 같이 넣지 않는다. 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다.
+⚠️ iOS와 Android는 심사 시점이 다르다. **먼저 올라간 쪽만 먼저** 고친다.
+
 ## 배포 전 점검
 
 - [ ] `pnpm typecheck && pnpm lint && pnpm test:ci` 로컬 통과 (CI와 동일).
 - [ ] 발행할 커밋이 **릴리스 가지에 PR로 병합되어 CI를 통과한** 커밋인가.
 - [ ] OTA면 `OTA_RELEASE` 를 올렸는가. 새 스토어 버전이면 `0`으로 되돌렸는가.
+- [ ] 스토어에 새 버전이 실제로 올라갔다면 `website/app-version.json`을 올렸는가 (심사 통과 **뒤**, `main`으로 별도 PR).
 - [ ] 네이티브 변경이면 OTA 아님 → Build 경로 확인.
 - [ ] `version` 올렸으면 → Build 필수, OTA로 끝내지 말 것.
 - [ ] pnpm은 `.npmrc`의 `node-linker=hoisted` 필수 — 없으면 `babel-preset-expo` 해석 실패로
