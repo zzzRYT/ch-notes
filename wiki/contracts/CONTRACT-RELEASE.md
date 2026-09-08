@@ -55,7 +55,7 @@ release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --chann
 빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS Submit**이고, 이제 두 플랫폼 모두 자격증명이 붙어 있다
 (절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). 자격증명은 `apps/ch-life/credentials/`에만
 있고 저장소에는 없으므로 **제출은 그 파일을 가진 기기에서만 된다.** Android는 `internal`이 아니라 `alpha` 트랙으로
-나간다 — 이 선택의 이유는 기록되지 않았다([`../drift.md`](../drift.md) E19).
+나간다 — 이 선택의 이유는 기록되지 않았다([`../drift.md`](../drift.md) E23).
 
 CI가 실패하면 OTA는 발행되지 않는다. OTA는 **CI를 통과한 정확한 커밋**(`workflow_run.head_sha`)을 체크아웃해 배포한다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
 
