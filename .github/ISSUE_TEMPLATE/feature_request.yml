@@ -1,0 +1,39 @@
+name: 기능 제안
+description: 이런 게 있으면 좋겠습니다
+labels: ["type:feat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        구현 방법이 떠오르지 않아도 괜찮습니다. **어떤 상황에서 무엇이 불편한지**가 분명하면 충분합니다.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 어떤 문제를 겪고 있나요
+      description: 해결책이 아니라 문제를 적어 주세요. 언제, 무엇을 하다가 막혔는지.
+      placeholder: 예배 중에 지난주 노트를 찾으려는데 제목이 기억나지 않아 본문으로 검색했지만 안 나왔습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: flow
+    attributes:
+      label: 어떻게 되면 좋겠나요
+      description: 기대하는 사용 흐름을 적어 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 지금은 어떻게 하고 있나요
+      description: 우회 방법이 있는지, 그게 왜 불편한지.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 확인
+      options:
+        - label: 이 앱은 계정도 서버도 없이 기기에만 데이터를 저장한다는 것을 알고 있습니다
+          required: false

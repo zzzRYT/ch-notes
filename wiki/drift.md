@@ -125,10 +125,12 @@
 ### B17. 가져온 노트가 작성 시각을 잃는다
 `repo.create`의 입력 타입에 `createdAt`/`updatedAt`이 없고 두 컬럼 모두 `Date.now()`로 채운다. 가져온 노트는 "가져오기를 실행한 시각"을 갖게 되고, 목록이 `created_at` 내림차순이라 오래된 설교 노트가 맨 위로 올라온다. → [`RULE-MD-004`](rules/share-markdown.md)
 
-### B18. 루트 워크스페이스가 앱 설치를 가로챈다
+### B18. 루트 워크스페이스가 앱 설치를 가로챘다 — 해소됨
 `feat/editor-core-pkg`가 루트에 `pnpm-workspace.yaml`(`packages: ['packages/*']`)을 들여왔다. 브랜치 주석은 "apps/ch-life는 Phase 4까지 독립 프로젝트로 남는다"고 적었지만 **pnpm v10.15는 그렇게 동작하지 않는다** — `apps/ch-life`에서 `pnpm install`을 돌려도 상위로 올라가 루트 워크스페이스를 설치한다(`Scope: all 2 workspace projects`). 앱 의존성이 설치되지 않아 CI 전체가 깨진다.
 
-`.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막았다. Phase 4에서 앱이 정식 멤버가 되면 이 플래그를 걷어내고 Metro monorepo 설정(watchFolders + nodeModulesPaths)을 함께 넣어야 한다.
+`.npmrc`에 `ignore-workspace=true`를 넣어도 **무시된다**(직접 확인). CLI 플래그만 유효해서 세 워크플로(`ci.yml`·`eas-update.yml`·`eas-build.yml`)에 `--ignore-workspace`를 붙여 막아 두었었다.
+
+**2026-09-06에 원인을 걷어냈다** — 루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`과 `packages/editor-core` 스캐폴드를 `main`에서 제거했다 — 스캐폴드를 `main`에 둘 것인가라는 질문(옛 E15)의 답이다. 앱을 아무도 소비하지 않는 패키지 하나 때문에 세 워크플로가 우회 플래그를 달고 있을 이유가 없다. 플래그도 함께 지웠다. Phase 2를 시작할 때 브랜치에서 다시 세우고, 앱이 실제로 그 패키지를 쓰기 전까지 `main`에 올리지 않는다(`docs/editor-core/extraction-plan.md`).
 
 ### B19. OTA는 한 번도 성공한 적이 없다
 `hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
@@ -142,7 +144,7 @@
 
 번들 생성·Hermes 컴파일·서명까지는 전부 통과하고 **R2 업로드에서만** 죽는다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있다 — 다른 자격증명(API 토큰 등)을 이 슬롯에 넣었을 가능성이 크다.
 
-워크플로의 `test -n` 가드는 값의 **존재**만 보고 형식은 보지 않으므로 이 실수를 잡지 못한다. 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 자동 경로는 **실제로는 닫혀 있다.**
+워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다. 다만 **시크릿 값 자체는 아직 고쳐지지 않았다.** 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 자동 경로는 **실제로는 닫혀 있다.**
 
 ### B20. 알 수 없는 블록 타입은 조용히 사라지거나 앱을 깨뜨린다
 `BlockNode`는 닫힌 유니온이지만, 그 값을 읽는 네 경로 중 **모르는 `type`을 다룰 준비가 된 곳이 하나도 없다.**
@@ -241,6 +243,8 @@ DB 테스트는 `schema.sql`을 읽는데 프로덕션은 `db/index.ts`의 인�
 ### C3. UI 계층에 자동 증거가 없다
 RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디터 상호작용(포커스 이동, backspace 병합, 힌트 칩, 시트 애니메이션, 반응형 분기)은 전부 수동 확인이다. 이 위키의 UI 규칙이 `SHOULD`인 이유다.
 
+같은 이유로 **OTA·릴리스 영역도 거의 전부 수동**이다. 예외가 하나 생겼다 — [`RULE-OTA-010`](rules/release.md)의 버전 비교(`compare-version.ts`)와 응답 파싱(`latest-store-version.ts`)은 순수 함수로 떼어 둬서 유닛 테스트가 붙는다. 그래도 그 규칙의 나머지(네트워크 실패, 다이어로그 표시 조건, 스토어 이동)는 여전히 실기기 수동이라 `waiver`가 붙어 있다.
+
 ### C4. 어댑터 차이는 검증되지 않는다
 테스트는 `better-sqlite3`, 프로덕션은 `expo-sqlite`. 트랜잭션·동시성·타입 강제의 차이에서 오는 문제는 테스트가 잡지 못한다.
 
@@ -299,7 +303,6 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E12 | 확정 키를 `Tab`에서 space로 바꾼 이유는? 소프트 키보드에 Tab이 없어서가 맞나? | [`ADR-0002`](decisions/ADR-0002-space-trigger.md) |
 | E13 | **스토어의 1.0.1은 `expo-updates` 바이너리인데 `main`은 hot-updater다 — 1.0.1 설치본은 OTA를 받지 못한다.** 의도된 상태인가? 새 스토어 빌드 계획은? 그리고 `expo-updates`를 버린 이유는 무엇인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), [`ADR-0013`](decisions/ADR-0013-release-path.md) |
 | E14 | 구절 삽입 **성공**에 배너를 띄우기로 한 것은 POL-A11Y-001의 "조용함"을 의도적으로 완화한 것인가? 삭제 배너는 undo 때문에 불가피하지만 삽입은 아니다. | [`POL-A11Y-001`](policy/POL-ACCESSIBILITY.md), G1 |
-| E15 | `feat/editor-core-pkg`(Phase 1 스캐폴드)를 `main`에 둘 것인가, Phase 4까지 브랜치에 둘 것인가? | `docs/editor-core/extraction-plan.md` |
 | E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
 | E17 | **R2의 지난 번들을 언제 지우는가?** 기기는 언제나 자기 버전의 최신 번들 하나만 요청하므로([`RULE-OTA-004`](rules/release.md)) **밀려난 번들을 지워도 오래 오프라인이던 기기가 곤란해지지 않는다.** 남는 것은 비용과 감사 추적 문제뿐이다 — 무료 한도(R2 10GB-month) 안에서는 "지우지 않는다"도 성립한다. 보존 기간을 정할 것인가? (지울 때는 R2를 직접 건드리지 말고 `hot-updater bundle delete`를 쓴다 — D1 행만 남고 객체가 없으면 그 URL을 받은 기기가 깨진다.) | [`RULE-OTA-005`](rules/release.md), `docs/store/ota-deploy.md` |
 | ~~E19~~ | ~~**디자인 토큰의 정본은 어디인가?**~~ **답 나옴(2026-09-06)** — 사용자 확정: **초기 토큰은 코드(`ThemeProvider`)에서 생성하되, 이후에는 Figma가 정본**이 된다. 남은 질문은 E21로 옮긴다 — 이 방향은 `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**를 요구하고, Variables REST API가 Enterprise 전용이라 Figma→코드 반영이 항상 수동이기 때문이다. | E21, 이슈 #22 |
@@ -307,6 +310,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E20 | **`fontFamily` 축을 살릴 것인가, 걷어낼 것인가?** 지금은 RN 제약으로 원천 무효다(B24). 살리려면 폰트 파일 번들링 + `expo-font` 로딩 + 단일 폰트명 반환이 모두 필요하고, 걷어내려면 설정 스키마에서 필드를 빼는 대신 [`RULE-SET-002`](rules/settings-theme.md)의 관대한 파싱을 지켜야 한다. | B24, [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) |
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
 | E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** `.tsx`의 `fontSize` 98건 중 28건만 `scaled()`를 거친다(B27). 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없다. 확대할 것과 고정할 것의 경계를 `RULE`로 박아야 지금처럼 파일마다 갈리지 않는다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
+| E23 | **Play 트랙을 `internal`에서 `alpha`로 올린 이유는?** `eas.json`의 `submit.production.android.track`이 바뀌었는데 기록이 없다. iOS 자동제출(ASC API 키)을 붙이면서 함께 정한 것인가, 아니면 별개의 판단인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), `docs/store/android-auto-submit.md` |
 
 ## G. 아직 정본화되지 않은 구현
 

@@ -315,7 +315,7 @@ async function fixture(label, legacyPages) {
     w.problems.push(`⑤ 단독 실행 뒤 보드가 [${after}] — 다른 보드를 지웠다`);
 
   // ── 등급 승격 검사 ── Proposed/ 접두사가 떨어져도 id 는 그대로여야 한다.
-  // ADR-0017 이 "승격해도 인스턴스가 끊기지 않는다"고 단언하는데, 이걸 재는 검사가 없었다.
+  // ADR-0023 이 "승격해도 인스턴스가 끊기지 않는다"고 단언하는데, 이걸 재는 검사가 없었다.
   const compEntry = (nm) => {
     let found = null;
     const walk = (n) => {

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 사용 문의 · 개인정보 문의
+    url: mailto:jinjinstar3@gmail.com
+    about: 버그나 기능 제안이 아닌 문의는 메일로 보내 주세요.
+  - name: 고객 지원 문서
+    url: https://github.com/zzzRYT/ch-notes/blob/main/docs/store/support.md
+    about: 자주 묻는 질문과 데이터 보관 방식은 여기에 있습니다.

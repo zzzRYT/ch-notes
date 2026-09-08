@@ -1,9 +1,13 @@
 import { d1Database, r2Storage } from "@hot-updater/cloudflare";
 import { expo } from "@hot-updater/expo";
-import { defineConfig } from "hot-updater";
 import { config } from "dotenv";
+import { defineConfig } from "hot-updater";
 
-config({ path: ".env.hotupdater", quiet: true });
+
+
+config({ path: ".env.hotupdater" });
+
+
 
 export default defineConfig({
   build: expo(),

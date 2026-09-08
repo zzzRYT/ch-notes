@@ -1,7 +1,7 @@
 # 컴포넌트 로드맵 — shadcn·TDS 참조와 화면 감사 (2026-09-06)
 
 기존 조사는 [`2026-09-06-token-and-component-survey.md`](2026-09-06-token-and-component-survey.md).
-파일 구조 결정은 [`ADR-0017`](../../wiki/decisions/ADR-0017-figma-design-system-structure.md).
+파일 구조 결정은 [`ADR-0023`](../../wiki/decisions/ADR-0023-figma-design-system-structure.md).
 
 ## 0. 다섯 줄 요약
 
@@ -35,7 +35,7 @@
 | `AppNavBar` | Organism | proposed | 다음 회차 | 화면 5개가 `src/chrome/AppHeader.tsx` 하나를 렌더 | `RULE-UI-006`("헤더는 앱이 직접 그린다")이 이미 정본화한 구조인데 Figma에 없다 |
 | `AlertDialog` | Organism | planned | 다음 회차 | `use-note-import.ts:11-27`(3버튼 destructive) 외 4곳 | 지금은 전부 네이티브 `Alert.alert`라 **앱의 `fontScale`·테마 4종 밖에 있다** |
 
-**이번에 둘만 넣은 이유는 등급 체계가 실행된 적이 없었기 때문이다.** `Proposed/`·`Planned/` 접두사, 승격 시 이름만 바뀌는 경로, `planned`→`reference` 요구 — 전부 코드로만 존재하고 어떤 사양도 `status`를 갖고 있지 않아 **한 번도 실행되지 않은 분기**였다. `ActionBanner`(proposed)와 `Checkbox`(planned)가 각 경로를 하나씩 통과시킨다. 스텁이 이제 `Proposed/ActionBanner` → `ActionBanner` → 다시 `Proposed/ActionBanner` 를 왕복시키며 **id가 유지되는지** 잰다 — `ADR-0017`이 "승격해도 인스턴스가 끊기지 않는다"고 단언하면서 재는 것이 없던 자리다.
+**이번에 둘만 넣은 이유는 등급 체계가 실행된 적이 없었기 때문이다.** `Proposed/`·`Planned/` 접두사, 승격 시 이름만 바뀌는 경로, `planned`→`reference` 요구 — 전부 코드로만 존재하고 어떤 사양도 `status`를 갖고 있지 않아 **한 번도 실행되지 않은 분기**였다. `ActionBanner`(proposed)와 `Checkbox`(planned)가 각 경로를 하나씩 통과시킨다. 스텁이 이제 `Proposed/ActionBanner` → `ActionBanner` → 다시 `Proposed/ActionBanner` 를 왕복시키며 **id가 유지되는지** 잰다 — `ADR-0023`이 "승격해도 인스턴스가 끊기지 않는다"고 단언하면서 재는 것이 없던 자리다.
 
 `AppNavBar`는 하위 부품 4개(뒤로·제목·행동·구분선)를 먼저 정해야 하고 `AlertDialog`는 기존 세트 둘(`ModalSheet`·`ModalFooterTextButton`)을 합성하는 구조라, 둘 다 이번 회차에 끼워 넣기에는 실제 작업이다. §6에 다음 회차로 적어 둔다.
 

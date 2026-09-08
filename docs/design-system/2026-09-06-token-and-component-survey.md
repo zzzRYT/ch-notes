@@ -411,7 +411,7 @@ RULE-UI-001~003, 006과 RULE-SET-001~004, 006, CONTRACT-SETTINGS-FILE, ADR-0010,
 
 ## 11. 사용자 결정 사항
 
-> 이 절은 **무엇이 확정됐고 무엇을 실측했는지**를 남긴다. **앞으로 무엇을 더 만들 것인가**는 여기가 아니라 [`2026-09-06-component-roadmap.md`](2026-09-06-component-roadmap.md)에 있고, **Figma 파일을 어떤 구조로 유지할 것인가**는 [`ADR-0017`](../../wiki/decisions/ADR-0017-figma-design-system-structure.md)에 있다. 셋을 한 문서에 섞으면 조사 기록과 계획이 함께 낡는다.
+> 이 절은 **무엇이 확정됐고 무엇을 실측했는지**를 남긴다. **앞으로 무엇을 더 만들 것인가**는 여기가 아니라 [`2026-09-06-component-roadmap.md`](2026-09-06-component-roadmap.md)에 있고, **Figma 파일을 어떤 구조로 유지할 것인가**는 [`ADR-0023`](../../wiki/decisions/ADR-0023-figma-design-system-structure.md)에 있다. 셋을 한 문서에 섞으면 조사 기록과 계획이 함께 낡는다.
 
 ### 11-1. 확정된 것 (2026-09-06)
 

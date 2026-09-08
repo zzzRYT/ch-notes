@@ -1,7 +1,7 @@
-# ADR-0017 · Figma 디자인 시스템은 한 페이지에 층위로 놓고, 근거의 세기를 이름에 적는다
+# ADR-0023 · Figma 디자인 시스템은 한 페이지에 층위로 놓고, 근거의 세기를 이름에 적는다
 
 ```yaml
-id: ADR-0017
+id: ADR-0023
 status: accepted
 statement: Figma 디자인 시스템 파일은 페이지 하나에 토큰·컴포넌트·아이콘 보드 셋을 두고, 컴포넌트 보드는 Atoms/Molecules/Organisms 세 층위로 나눈다. 근거의 세기(코드에 있음/제안/예정)는 층위가 아니라 이름 접두사와 변형 단위 플래그로 표시한다.
 confidence: 기록됨

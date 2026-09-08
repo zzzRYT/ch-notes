@@ -45,7 +45,7 @@
 
 ## 두 축 — 층위와 등급
 
-결정 근거는 [`ADR-0017`](../../../wiki/decisions/ADR-0017-figma-design-system-structure.md).
+결정 근거는 [`ADR-0023`](../../../wiki/decisions/ADR-0023-figma-design-system-structure.md).
 
 **층위(`level`)가 보드를 나눈다.** "이건 Molecule인가 Organism인가"를 매번 다시 논쟁하지 않도록
 판정을 기계화했다 — 위에서부터 물어 **처음 걸리는 곳**이 그 층위다.

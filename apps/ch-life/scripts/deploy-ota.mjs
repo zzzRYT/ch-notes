@@ -11,16 +11,18 @@ if (hasFlag("--help")) {
   pnpm deploy:ota -- --platform ios
 
 The command deploys a signed update to the production channel for the app
-version declared in app.config.ts. Run it from a clean main branch.
+version declared in app.config.ts. Run it from a clean release/<version>
+branch — production bundles are published from the release line that matches
+the store build (wiki/git.md 5절, ADR-0021).
 
 Options passed after -- are forwarded to hot-updater deploy.
-Local safeguards: --allow-non-main, --allow-dirty, --dry-run`);
+Local safeguards: --allow-non-release, --allow-dirty, --dry-run`);
   process.exit(0);
 }
 
 const localFlags = new Set([
   "--",
-  "--allow-non-main",
+  "--allow-non-release",
   "--allow-dirty",
   "--dry-run",
 ]);
@@ -49,9 +51,14 @@ function output(command, commandArgs) {
   }).trim();
 }
 
+// production 번들은 스토어에 나간 버전의 릴리스 선에서만 낸다. main 에서 쏘면
+// 심사를 통과한 것과 다른 코드가 기존 설치본으로 간다 (ADR-0021). 워크플로도
+// 같은 검사를 한다 — .github/workflows/eas-update.yml 의 Guard production channel.
 const branch = output("git", ["branch", "--show-current"]);
-if (branch !== "main" && !hasFlag("--allow-non-main")) {
-  fail(`current branch is ${branch || "detached HEAD"}; merge to main first`);
+if (!branch.startsWith("release/") && !hasFlag("--allow-non-release")) {
+  fail(
+    `current branch is ${branch || "detached HEAD"}; publish production from release/<version>`,
+  );
 }
 
 const worktree = output("git", ["status", "--short"]);

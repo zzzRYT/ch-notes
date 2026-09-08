@@ -22,6 +22,8 @@ type AppState = {
   noteRevision: number;
   lastRestoredNoteId: string | null;
   settings: Settings;
+  /** settings.json을 읽으려는 시도가 끝났는가. 기본값과 저장값을 가른다. */
+  settingsLoaded: boolean;
   setCurrentNoteId: (id: string | null) => void;
   requestInsertRef: (ref: string) => void;
   consumePendingInsert: () => string | null;
@@ -31,6 +33,7 @@ type AppState = {
   finishDeleteUndo: (restoredNoteId: string) => void;
   failDeleteUndo: (failedNoteId: string) => void;
   setSettings: (next: Partial<Settings>) => void;
+  markSettingsLoaded: () => void;
 };
 
 let feedbackSequence = 0;
@@ -54,6 +57,7 @@ const DEFAULT_SETTINGS: Settings = {
   accentChoice: "default",
   lastOpenedNoteId: null,
   lastBibleRef: null,
+  dismissedUpdateVersion: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -64,6 +68,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   noteRevision: 0,
   lastRestoredNoteId: null,
   settings: DEFAULT_SETTINGS,
+  settingsLoaded: false,
   setCurrentNoteId: (id) => set({ currentNoteId: id }),
   requestInsertRef: (ref) => set({ pendingInsertRef: ref }),
   consumePendingInsert: () => {
@@ -136,4 +141,5 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
   setSettings: (next) =>
     set((s) => ({ settings: { ...s.settings, ...next } })),
+  markSettingsLoaded: () => set({ settingsLoaded: true }),
 }));

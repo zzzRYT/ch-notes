@@ -15,6 +15,7 @@ import { useTheme, VARIATION_OPTIONS } from '@/theme/ThemeProvider';
 import { AppHeader } from '@/chrome/AppHeader';
 import { HeaderBack } from '@/chrome/HeaderControls';
 import { useContactSupport } from '@/support/use-contact-support';
+import { OTA_RELEASE } from '@/version';
 import type {
   AccentChoice,
   BlockStyle,
@@ -72,7 +73,9 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const setSettings = useAppStore((s) => s.setSettings);
 
-  const version = Constants.expoConfig?.version ?? '?';
+  const storeVersion = Constants.expoConfig?.version ?? '?';
+  // 스토어 버전 + OTA 발행 번호. 번들만 갈아탄 기기도 어느 번들인지 보인다.
+  const version = OTA_RELEASE > 0 ? `${storeVersion}+${OTA_RELEASE}` : storeVersion;
   const router = useRouter();
   const { openContact, showAddressFallback, supportEmail } =
     useContactSupport();
