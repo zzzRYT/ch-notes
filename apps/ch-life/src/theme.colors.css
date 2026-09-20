@@ -1,0 +1,115 @@
+/* 자동 생성 — apps/ch-life/src/shared/ui/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.
+   재생성: python3 docs/design-system/figma-plugin/extract-colors.py */
+@theme {
+  --color-bg: #ffffff;
+  --color-paper: #ffffff;
+  --color-ink: #15140e;
+  --color-ink-2: rgba(21,20,14,0.55);
+  --color-ink-3: rgba(21,20,14,0.35);
+  --color-ink-4: rgba(21,20,14,0.15);
+  --color-subtle: rgba(21,20,14,0.5);
+  --color-rule: rgba(21,20,14,0.06);
+  --color-accent: #6b7280;
+  --color-accent-soft: rgba(107,114,128,0.08);
+  --color-accent-text: #ffffff;
+  --color-chip-bg: rgba(21,20,14,0.05);
+  --color-chip-text: rgba(21,20,14,0.55);
+  --color-err-bar: #c8342a;
+  --color-err-bg: #fde2e1;
+  --color-err-text: #c8342a;
+}
+
+@layer theme {
+  :root {
+    @variant minimal {
+      --color-bg: #fafaf7;
+      --color-paper: #ffffff;
+      --color-ink: #0c0a08;
+      --color-ink-2: rgba(12,10,8,0.6);
+      --color-ink-3: rgba(12,10,8,0.4);
+      --color-ink-4: rgba(12,10,8,0.18);
+      --color-subtle: rgba(12,10,8,0.55);
+      --color-rule: rgba(12,10,8,0.08);
+      --color-accent: #1e6fd9;
+      --color-accent-soft: rgba(30,111,217,0.08);
+      --color-accent-text: #ffffff;
+      --color-chip-bg: rgba(12,10,8,0.06);
+      --color-chip-text: rgba(12,10,8,0.6);
+      --color-err-bar: #c8342a;
+      --color-err-bg: #fde2e1;
+      --color-err-text: #c8342a;
+    }
+    @variant paper {
+      --color-bg: #f7f3ec;
+      --color-paper: #fcf9f3;
+      --color-ink: #1f1a13;
+      --color-ink-2: rgba(31,26,19,0.68);
+      --color-ink-3: rgba(31,26,19,0.44);
+      --color-ink-4: rgba(31,26,19,0.2);
+      --color-subtle: rgba(31,26,19,0.6);
+      --color-rule: rgba(31,26,19,0.09);
+      --color-accent: #b15c2e;
+      --color-accent-soft: rgba(177,92,46,0.09);
+      --color-accent-text: #fcf9f3;
+      --color-chip-bg: rgba(31,26,19,0.06);
+      --color-chip-text: rgba(31,26,19,0.6);
+      --color-err-bar: #9a3823;
+      --color-err-bg: rgba(154,56,35,0.12);
+      --color-err-text: #9a3823;
+    }
+    @variant focus {
+      --color-bg: #ffffff;
+      --color-paper: #ffffff;
+      --color-ink: #15140e;
+      --color-ink-2: rgba(21,20,14,0.55);
+      --color-ink-3: rgba(21,20,14,0.35);
+      --color-ink-4: rgba(21,20,14,0.15);
+      --color-subtle: rgba(21,20,14,0.5);
+      --color-rule: rgba(21,20,14,0.06);
+      --color-accent: #6b7280;
+      --color-accent-soft: rgba(107,114,128,0.08);
+      --color-accent-text: #ffffff;
+      --color-chip-bg: rgba(21,20,14,0.05);
+      --color-chip-text: rgba(21,20,14,0.55);
+      --color-err-bar: #c8342a;
+      --color-err-bg: #fde2e1;
+      --color-err-text: #c8342a;
+    }
+    @variant dark {
+      --color-bg: #0e0d0c;
+      --color-paper: #1a1916;
+      --color-ink: #f5f3ee;
+      --color-ink-2: rgba(245,243,238,0.66);
+      --color-ink-3: rgba(245,243,238,0.42);
+      --color-ink-4: rgba(245,243,238,0.2);
+      --color-subtle: rgba(245,243,238,0.6);
+      --color-rule: rgba(245,243,238,0.1);
+      --color-accent: #f5b35e;
+      --color-accent-soft: rgba(245,179,94,0.14);
+      --color-accent-text: #1a1916;
+      --color-chip-bg: rgba(245,243,238,0.06);
+      --color-chip-text: rgba(245,243,238,0.7);
+      --color-err-bar: #ff6b6b;
+      --color-err-bg: #3a1716;
+      --color-err-text: #ff8b80;
+    }
+    @variant light {
+      --color-bg: #ffffff;
+      --color-paper: #ffffff;
+      --color-ink: #15140e;
+      --color-ink-2: rgba(21,20,14,0.55);
+      --color-ink-3: rgba(21,20,14,0.35);
+      --color-ink-4: rgba(21,20,14,0.15);
+      --color-subtle: rgba(21,20,14,0.5);
+      --color-rule: rgba(21,20,14,0.06);
+      --color-accent: #6b7280;
+      --color-accent-soft: rgba(107,114,128,0.08);
+      --color-accent-text: #ffffff;
+      --color-chip-bg: rgba(21,20,14,0.05);
+      --color-chip-text: rgba(21,20,14,0.55);
+      --color-err-bar: #c8342a;
+      --color-err-bg: #fde2e1;
+      --color-err-text: #c8342a;
+    }
+  }
+}

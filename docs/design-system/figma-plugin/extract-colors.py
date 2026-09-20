@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ThemeProvider.tsx 의 4개 팔레트를 tokens.colors.{json,js} 로 뽑는다.
+"""ThemeProvider.tsx 의 4개 팔레트를 tokens.colors.{json,js} 와 theme.colors.css 로 뽑는다.
 
 색값을 손으로 옮겨 적지 않기 위한 스크립트다. 저장소 루트에서 실행한다:
 
@@ -12,7 +12,7 @@
 import re, json, io, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-SRC = os.path.join(ROOT, "apps/ch-life/src/theme/ThemeProvider.tsx")
+SRC = os.path.join(ROOT, "apps/ch-life/src/shared/ui/ThemeProvider.tsx")
 OUT = os.path.dirname(os.path.abspath(__file__))
 
 src = io.open(SRC, encoding="utf-8").read()
@@ -74,10 +74,29 @@ for tname, K in THEMES:
 io.open(os.path.join(OUT, "tokens.colors.json"), "w", encoding="utf-8").write(
     json.dumps(colors, ensure_ascii=False, indent=1))
 io.open(os.path.join(OUT, "tokens.colors.js"), "w", encoding="utf-8").write(
-    "// 자동 생성 — apps/ch-life/src/theme/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.\n"
+    "// 자동 생성 — apps/ch-life/src/shared/ui/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.\n"
     "// 재생성: python3 docs/design-system/figma-plugin/extract-colors.py\n"
     "const COLOR_TOKENS = " + json.dumps(colors, ensure_ascii=False, indent=1) + ";\n")
 
+# Tailwind(uniwind) 테마 — 클래스 이름은 Figma 변수 이름과 같다(minimal/ink-2 → --color-ink-2 → text-ink-2).
+# @theme 의 기본값은 focus(DEFAULT_SETTINGS.variation)이고, 4변형은 @variant 로 덮어쓴다.
+CSS = os.path.join(ROOT, "apps/ch-life/src/theme.colors.css")
+def var_line(figname, K, indent):
+    field = next(f for n, f, _ in FIELDS if n == figname)
+    return f"{indent}--color-{figname}: {pals[K][field]};"
+css = ["/* 자동 생성 — apps/ch-life/src/shared/ui/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.",
+       "   재생성: python3 docs/design-system/figma-plugin/extract-colors.py */",
+       "@theme {"]
+css += [var_line(n, "FOCUS", "  ") for n, _, _ in FIELDS]
+css += ["}", "", "@layer theme {", "  :root {"]
+# uniwind는 내장 light 테마에도 같은 변수를 요구한다. 쓰지 않지만 focus 값으로 채운다.
+for tname, K in THEMES + [("light", "FOCUS")]:
+    css.append(f"    @variant {tname} {{")
+    css += [var_line(n, K, "      ") for n, _, _ in FIELDS]
+    css.append("    }")
+css += ["  }", "}", ""]
+io.open(CSS, "w", encoding="utf-8").write("\n".join(css))
+
 print(f"색 토큰 {len(colors)}개 ({len(THEMES)}테마 × {len(FIELDS)}필드)")
 print("중복이라 제외한 레거시 필드:", ", ".join(DUPES))
-print("→ tokens.colors.json / tokens.colors.js")
+print("→ tokens.colors.json / tokens.colors.js / apps/ch-life/src/theme.colors.css")

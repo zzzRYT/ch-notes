@@ -28,7 +28,7 @@ source:
 
 ## 귀결
 
-- **OS 다크모드를 따라가지 않는다.** 시스템이 다크여도 `focus`를 골라 뒀으면 밝은 화면이다. `app.config.ts`의 `userInterfaceStyle: "automatic"`은 실질 효과가 없다.
+- **OS 다크모드를 따라가지 않는다.** 시스템이 다크여도 `focus`를 골라 뒀으면 밝은 화면이다. `app.config.ts`의 `userInterfaceStyle: "automatic"`은 실질 효과가 없다. 단 dark 변형만은 [`ADR-0025`](ADR-0025-tailwind-uniwind-tokens.md) 이후 네이티브 외양도 어둡게 고정된다(`Uniwind.setTheme` → `Appearance.setColorScheme`).
 - `themePreference`는 설정 파일의 필수 필드로 남아 있지만 **화면에 노출되지도, 색에 영향을 주지도 않는다**([`RULE-SET-003`](../rules/settings-theme.md)).
 - 예배실 조명 대응은 사용자가 dark 변형을 직접 고르는 것으로 충족한다([`POL-A11Y-001`](../policy/POL-ACCESSIBILITY.md)).
 - 팔레트에 구 필드(`bg/surface/text/…`)와 신 토큰(`ink/paper/rule/accent…`)이 함께 남아 있다. 정리되지 않은 중간 상태다.

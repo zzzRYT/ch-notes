@@ -19,6 +19,7 @@
 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | [마크다운 공유](#5-마크다운-내보내기가져오기) |
 | `src/widgets/scripture-browser/**`, `src/pages/bible-reader/**`, `src/pages/notes/ui/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
 | `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
+| `src/global.css`, `src/theme.colors.css`, `metro.config.js`, `docs/design-system/figma-plugin/**` | [디자인 시스템·Figma](#7-1-디자인-시스템figma) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
 | `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
@@ -217,9 +218,15 @@
 
 ## 7-1. 디자인 시스템·Figma
 
-**먼저 읽는다** — [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B30 · E19 · E21 · E22
+**먼저 읽는다** — [ADR-0025](decisions/ADR-0025-tailwind-uniwind-tokens.md)(className으로 쓰는 법·클래스 표) · [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B31 · E19 · E21 · E22
 
-**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본)
+**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본 + uniwind 브리지) · `apps/ch-life/src/global.css`(수치 토큰) · `apps/ch-life/src/theme.colors.css`(생성됨) · `apps/ch-life/metro.config.js`
+**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지
+
+**같은 변경에서 함께 고친다**
+1. **색 토큰을 더하면** `ThemeProvider.tsx` 팔레트 4개 + `extract-colors.py`의 `FIELDS` → `python3 docs/design-system/figma-plugin/extract-colors.py`. `tokens.colors.*`와 `theme.colors.css`가 같이 나온다. CSS를 손으로 고치지 않는다.
+2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`(B31).
+3. `global.css`는 `src/` 루트를 떠나면 안 된다 — Tailwind가 그 폴더 아래만 스캔한다.
 
 **토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
 

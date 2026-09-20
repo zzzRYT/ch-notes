@@ -1,6 +1,7 @@
 # 씀씀 (ch-life) 디자인 토큰 Figma 플러그인
 
-`apps/ch-life/src/theme/ThemeProvider.tsx`의 값을 Figma 파일에 반영하는 로컬 플러그인이다.
+`apps/ch-life/src/shared/ui/ThemeProvider.tsx`의 값을 Figma 파일에 반영하는 로컬 플러그인이다.
+`extract-colors.py`는 같은 원본에서 앱의 Tailwind 테마 `apps/ch-life/src/theme.colors.css`도 함께 생성한다(ADR-0025).
 **Figma MCP를 전혀 쓰지 않는다** — Starter 플랜의 MCP 호출 한도(월 20회)를 우회하기 위한 경로다.
 
 ## 쓰는 법

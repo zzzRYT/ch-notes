@@ -1,4 +1,4 @@
-// 자동 생성 — apps/ch-life/src/theme/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.
+// 자동 생성 — apps/ch-life/src/shared/ui/ThemeProvider.tsx 에서 추출. 직접 수정하지 말 것.
 // 재생성: python3 docs/design-system/figma-plugin/extract-colors.py
 const COLOR_TOKENS = [
  {
