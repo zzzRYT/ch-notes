@@ -10,13 +10,13 @@
 
 | 파일 | ID | 무엇을 약속하나 | 이럴 때 먼저 본다 |
 |---|---|---|---|
-| [POL-SCRIPTURE.md](POL-SCRIPTURE.md) | POL-SCRIPTURE-001<br>POL-SCRIPTURE-002 | 참조만 치면 오프라인으로 본문이 들어온다 · 성경 자체도 읽을 수 있다 | `src/parser/**`, `src/editor/useAutocomplete.ts`, `src/browser/**` |
+| [POL-SCRIPTURE.md](POL-SCRIPTURE.md) | POL-SCRIPTURE-001<br>POL-SCRIPTURE-002 | 참조만 치면 오프라인으로 본문이 들어온다 · 성경 자체도 읽을 수 있다 | `src/entities/scripture/**`, `src/features/scripture/insert/**`, `src/widgets/scripture-browser/**` |
 | [POL-NOTE.md](POL-NOTE.md) | POL-NOTE-001<br>POL-NOTE-002<br>POL-NOTE-003 | 즉시 쓰고 자동 저장된다 · 설교 맥락을 남긴다 · 다시 찾을 수 있다 | 새 노트 흐름, 자동저장, 설교 메타 헤더, 목록·검색 |
 | [POL-PRIVACY.md](POL-PRIVACY.md) | POL-PRIVACY-001 | 콘텐츠·식별정보·사용기록이 기기 밖으로 나가지 않는다 | **네트워크 호출·SDK를 하나라도 추가할 때** |
 | [POL-ACCESSIBILITY.md](POL-ACCESSIBILITY.md) | POL-A11Y-001 | 글자 크기 4단계, 손가락으로 누를 수 있는 크기, 색만으로 뜻을 전하지 않음 | 새 화면·컴포넌트, `fontScale`, 터치 타깃 |
-| [POL-PORTABILITY.md](POL-PORTABILITY.md) | POL-PORT-001 | 노트는 표준 Markdown으로 나가고 다시 들어온다 | `src/markdown/**`, `src/share/**` |
-| [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 | `assets/bible.json` 교체, `app/licenses.tsx`, 내보내기 포맷 |
-| [POL-RELEASE.md](POL-RELEASE.md) | POL-RELEASE-001<br>POL-RELEASE-002<br>POL-RELEASE-003 | CI를 통과한 커밋만 자동 OTA로 나간다 · 설치한 그대로도 완전하다 · 업데이트가 이미 쓴 노트를 잃게 하지 않는다 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `app/_layout.tsx` |
+| [POL-PORTABILITY.md](POL-PORTABILITY.md) | POL-PORT-001 | 노트는 표준 Markdown으로 나가고 다시 들어온다 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` |
+| [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 | `assets/bible.json` 교체, `src/pages/licenses/ui/LicensesPage.tsx`, 내보내기 포맷 |
+| [POL-RELEASE.md](POL-RELEASE.md) | POL-RELEASE-001<br>POL-RELEASE-002<br>POL-RELEASE-003 | CI를 통과한 커밋만 자동 OTA로 나간다 · 설치한 그대로도 완전하다 · 업데이트가 이미 쓴 노트를 잃게 하지 않는다 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/app/_layout.tsx` |
 
 ## 이 계층에서 사고 나는 지점
 

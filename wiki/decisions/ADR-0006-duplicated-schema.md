@@ -24,7 +24,8 @@ source:
 
 ## 귀결 (이미 발생한 것)
 
-- **두 파일은 이미 어긋나 있다.** `db/index.ts`에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있다.
+- **두 파일은 이미 어긋나 있다.** 인라인 쪽에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있다.
+- 2026-09-20 FSD 전환([ADR-0024](ADR-0024-fsd-ddd-architecture.md)) 뒤 두 사본은 같은 폴더에 있다 — `apps/ch-life/src/entities/note/api/`의 `schema.sql`과 `sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL`. 이 ADR의 `db/index.ts`는 그 상수를 가리킨다. 중복 자체는 그대로다.
 - 따라서 **테스트가 검증하는 스키마는 프로덕션이 실행하는 스키마가 아니다.** 오라클과 실물이 다르다([`drift.md`](../drift.md) C절).
 - 규율은 사람이 지켜야 하고, 어겨도 CI가 잡지 못한다.
 

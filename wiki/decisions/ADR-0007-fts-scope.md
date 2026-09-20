@@ -7,7 +7,7 @@ supersedes: docs/plans/2026-05-17-ch-life-v1-spec.md 5.3 (body_text 색인)
 statement: FTS 색인에는 title과 cited_refs만 채우고, body_text 컬럼은 구조만 남긴 채 빈 문자열로 둔다.
 confidence: 확인필요
 source:
-  - apps/ch-life/src/db/schema.sql (notes_ai 트리거가 '' 삽입)
+  - apps/ch-life/src/entities/note/api/schema.sql (notes_ai 트리거가 '' 삽입)
   - apps/ch-life/CLAUDE.md (알려진 제약으로 명시)
   - docs/plans/2026-05-24-sermon-meta-header.md ("범위 밖 (YAGNI): FTS 인덱스에 설교자/생명양식 추가")
 ```

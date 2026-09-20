@@ -6,8 +6,8 @@ status: accepted
 statement: 스토어의 최신 버전은 GitHub Pages로 이미 발행 중인 website/app-version.json에 플랫폼별로 적고, 앱은 콜드 런치 뒤 한 번 읽어 설치본보다 높을 때만 닫을 수 있는 다이어로그를 띄운다. 강제 업데이트는 두지 않고, 같은 버전은 한 번만 안내한다.
 confidence: 기록됨
 source:
-  - apps/ch-life/src/update/latest-store-version.ts
-  - apps/ch-life/src/update/StoreUpdateDialog.tsx
+  - apps/ch-life/src/features/app-update/notice/model/latest-store-version.ts
+  - apps/ch-life/src/features/app-update/notice/ui/StoreUpdateDialog.tsx
   - website/app-version.json
   - .github/workflows/pages.yml
 ```
@@ -61,13 +61,13 @@ OTA로 닿지 않는 변경이 실재한다. 네이티브 의존성·`app.config
 - **스토어 API를 직접 읽는다.** iTunes Lookup은 iOS만 되고 Play는 공식 API가 없다. 절반만 되는 방법이다.
 - **R2 정적 JSON.** Pages와 성격이 같은데 자격증명과 배포 경로가 하나 더 는다. `website/`는 이미
   `pages.yml`이 자동으로 발행한다.
-- **배너로 안내한다**([`ActionBannerHost`](../../apps/ch-life/src/feedback/ActionBannerHost.tsx)).
+- **배너로 안내한다**([`ActionBannerHost`](../../apps/ch-life/src/shared/ui/ActionBannerHost.tsx)).
   `feedback.expiresAt`으로 **스스로 사라진다.** 나중에 눌러야 할 안내에는 맞지 않는다.
   만료 없는 항목까지 담도록 feedback 스토어를 넓히는 대신, 성격이 다른 표면(모달)을 따로 뒀다.
 
 ## 귀결
 
-- **손으로 옮겨 적는 자리가 하나 더 늘었다.** `app.config.ts`의 `version`, `src/version.ts`의
+- **손으로 옮겨 적는 자리가 하나 더 늘었다.** `app.config.ts`의 `version`, `src/shared/config/version.ts`의
   `OTA_RELEASE`, `website/app-version.json` — 이제 셋이다. 어긋나면 조용히 틀린다.
 - **`app-version.json`은 스토어 심사가 끝난 뒤에 올린다.** 버전 bump PR에 같이 넣으면 심사 중인
   버전을 스토어에 없는데도 안내하게 된다. 별도 PR을 `main`에 낸다 — `pages.yml`은 `main` 푸시에만 돈다.

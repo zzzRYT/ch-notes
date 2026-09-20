@@ -22,7 +22,7 @@ Expo SDK 54 기반 React Native 앱이다. 이 디렉터리에서는 루트 `AGE
 
 ## 구현 불변조건
 
-- DB 스키마는 `src/db/index.ts`와 `src/db/schema.sql` 두 곳에 있다. 컬럼 변경 시 둘과 `src/db/migrate.ts`를 함께 수정한다.
+- DB 스키마는 `src/entities/note/api/sqlite-note-repo.ts`와 `src/entities/note/api/schema.sql` 두 곳에 있다. 컬럼 변경 시 둘과 `src/entities/note/api/migrate.ts`를 함께 수정한다.
 - 테스트는 Node의 `better-sqlite3`, 프로덕션은 `expo-sqlite`를 사용한다. 한 어댑터만 검증했다고 전체 경로가 검증된 것으로 보지 않는다.
 - `Note` 업데이트에서 `null`은 필드 비움, `undefined`는 기존값 유지다.
 - 테마의 실제 색상 분기는 `themePreference`가 아니라 `variation`이다.

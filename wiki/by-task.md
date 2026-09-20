@@ -12,17 +12,39 @@
 
 | 건드릴 곳 | 영역 |
 |---|---|
-| `src/parser/**` | [성경 참조 해석](#1-성경-참조-해석표기) |
-| `src/editor/**`, `app/note/[id].tsx` | [에디터·인용 삽입](#2-에디터인용-삽입) |
-| `src/db/**`, `src/domain/types.ts` | [노트 저장·DB 스키마](#3-노트-저장db-스키마) |
-| `src/db/note-repo.ts` (searchNotes), `src/workspace/NoteListSidebar.tsx` | [검색](#4-검색) |
-| `src/markdown/**`, `src/share/**` | [마크다운 공유](#5-마크다운-내보내기가져오기) |
-| `src/browser/**`, `src/workspace/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
-| `src/theme/**`, `src/state/**`, `src/workspace/**`, `src/chrome/**`, `app/settings.tsx` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
-| `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/update/**`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `src/entities/scripture/**` | [성경 참조 해석](#1-성경-참조-해석표기) |
+| `src/widgets/note-editor/**`, `src/features/scripture/insert/**`, `src/features/note/autosave/**`, `src/pages/note-editor/**` | [에디터·인용 삽입](#2-에디터인용-삽입) |
+| `src/entities/note/{model,api}/**`, `src/shared/lib/sqlite.ts`, `src/app/_layout.tsx` | [노트 저장·DB 스키마](#3-노트-저장db-스키마) |
+| `src/entities/note/api/sqlite-note-repo.ts` (searchNotes), `src/features/note/search/**`, `src/pages/notes/ui/NoteListSidebar.tsx` | [검색](#4-검색) |
+| `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | [마크다운 공유](#5-마크다운-내보내기가져오기) |
+| `src/widgets/scripture-browser/**`, `src/pages/bible-reader/**`, `src/pages/notes/ui/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
+| `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
+| `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
 경로는 모두 `apps/ch-life/` 기준이다(릴리스 영역의 `.github/**` 제외).
+
+---
+
+## 0. 구조·레이어
+
+`src/`는 FSD 레이어다 — `app → pages → widgets → features → entities → shared`, 의존은 이 방향으로만. Slice 밖에서는 그 Slice의 `index.ts`만 import한다. 어기면 `pnpm lint`가 실패한다.
+
+**먼저 읽는다** — [ADR-0024](decisions/ADR-0024-fsd-ddd-architecture.md)
+
+**코드** `src/app/_layout.tsx`(Composition Root — 저장소·마이그레이션·테마·업데이트 안내를 여기서만 조립한다) · `eslint.config.js`(경계 규칙)
+**테스트** 없음 — 경계는 린트가 지킨다. 규칙이 실제로 잡는지 의심되면 위반 파일을 하나 만들어 `pnpm lint`를 돌려 본다.
+
+**같은 변경에서 함께 고친다**
+1. 새 Slice를 만들면 `index.ts`를 같이 만든다. `export *`는 린트가 거부한다.
+2. 파일을 옮기면 이 문서와 `rules/**`·`contracts/**`의 `implemented_by`/`verified_by` 경로를 같이 옮긴다 — `node wiki/check.mjs`가 잡는다.
+3. 노트 엔티티는 성경 엔티티를 import하지 못한다. 둘을 잇는 코드(인용 표시·삽입·마크다운 참조 해석)는 `src/features/scripture/insert`·`src/widgets/note-editor`에 있거나 주입받는다.
+
+**함정**
+- `shared`는 위 레이어를 모른다. `ThemeProvider`가 스토어 대신 `settings` prop을 받는 이유다.
+- 유스케이스는 `repo`를 인자로 받는다. 화면은 `useNoteRepo()`(Composition Root가 넣어 준 것)로 꺼내 넘긴다. 기본 인자로 어댑터를 숨기지 않는다.
+- `useNoteRepo()`는 `NoteRepoProvider` 밖에서 부르면 던진다. 테스트에서 화면을 렌더하려면 Provider부터.
 
 ---
 
@@ -32,11 +54,11 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · RULE-REF-001 · RULE-REF-002 · RULE-REF-003 · RULE-REF-004 · RULE-REF-005 · [CONTRACT-BIBLE-JSON](contracts/CONTRACT-BIBLE-JSON.md)
 
-**코드** `src/parser/{ref-parser,book-map,verse-lookup,format-ref}.ts` · 소비자: `src/editor/useAutocomplete.ts`, `src/browser/browser-search.ts`, `src/browser/books-meta.ts`
-**테스트** `src/parser/__tests__/*.test.ts` (5/5 자동 증거)
+**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
+**테스트** `src/entities/scripture/model/__tests__/*.test.ts` · `src/entities/scripture/api/__tests__/*.test.ts` (5/5 자동 증거)
 
 **같은 변경에서 함께 고친다**
-1. **책 토큰 정규식이 세 곳에 있다** — `ref-parser.ts`, `useAutocomplete.ts`, `browser-search.ts`. 공유 상수가 없고 이미 서로 다르다([`drift.md`](drift.md) B12).
+1. **책 토큰 정규식이 세 곳에 있다** — `ref-parser.ts`, `autocomplete.ts`, `browser-search.ts`. 공유 상수가 없고 이미 서로 다르다([`drift.md`](drift.md) B12).
 2. **66권 목록이 세 곳에 있다** — `book-map.ts`의 `ALIAS_TABLE`, `books-meta.ts`의 `BOOKS_META.nameKo`, `assets/bible.json`의 최상위 키. 교차 검증 테스트 없음(B13).
 3. 테스트 `describe`/`it` 이름을 바꾸면 RULE-REF-002의 `verified_by` `#조각`도 같이 고친다 — 안 그러면 `check.mjs`가 실패한다.
 
@@ -54,19 +76,19 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
 
-**코드** `src/editor/{useAutocomplete,NoteEditor,ParagraphInput,QuoteBlock,cited-refs,useAutoSave}.ts(x)` · `app/note/[id].tsx` · `src/workspace/TabletWorkspace.tsx`
-**테스트** `src/editor/__tests__/{useAutocomplete,cited-refs,useAutoSave-payload}.test.ts` (9/13)
+**코드** `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock,SermonMetaHeader}.tsx` · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
+**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,scripture-field}.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (9/13)
 
 **같은 변경에서 함께 고친다**
-1. **인용 블록을 만드는 곳이 네 군데다** — `src/editor/NoteEditor.tsx`, `app/note/[id].tsx`, `src/workspace/TabletWorkspace.tsx`, `src/markdown/parse.ts`. 공유 팩토리가 없다. RULE-EDIT-007의 "`status`는 항상 `loaded`"는 이 넷이 리터럴을 유지해야만 성립하고 **타입이 강제하지 않는다**([`drift.md`](drift.md) B14).
-2. **폰과 태블릿이 쌍둥이다** — `app/note/[id].tsx`의 `insertVerseFromBrowser`와 `TabletWorkspace.tsx`의 `insertRef`가 사실상 같은 코드다. 하나만 고치면 삽입 동작이 갈린다.
+1. **인용 블록은 `makeQuoteBlock`(`src/entities/note/model/citation.ts`) 한 곳에서만 만든다.** 인용의 모양(`status`·`editionId`)을 바꾸면 여기와 마크다운 파서(`src/entities/note/api/markdown-parse.ts`)를 같이 본다 — 파서는 형식 판별자 때문에 리터럴이 남아 있다.
+2. 폰과 태블릿은 `useNoteDraft` 하나를 쓴다. 삽입·자동저장 동작을 바꾸면 그 훅에서 바꾸고, 두 화면이 각자 가진 것은 **삭제 순서**(flush→delete)와 오류 문구뿐이다.
 3. 트리거 정규식을 고치면 `ref-parser.ts`도 함께(1번 영역 참조).
 4. 동작을 바꿨으면 `rules/editor-insert.md`의 해당 블록을 같은 커밋에서.
 
 **함정**
 - 자동완성 문법이 `parseRef`보다 좁다(B10).
 - 브라우저에서 넣는 인용은 커서 자리가 아니라 **본문 맨 끝**에 붙는다(A21).
-- 죽은 코드가 섞여 있다 — `QuoteBlock`의 `loading`/`error`, `InsertMode`의 `"newNote"`, `pendingInsertRef`(B6).
+- 죽은 코드가 남아 있다 — `QuoteBlock`의 `loading`/`error`(B6). `pendingInsertRef`·`"newNote"`는 지웠다.
 - 범위 인용은 붙여 써야 한다(`1:1-3`). space가 트리거라 `1:1 - 3`은 `1:1`에서 이미 확정된다.
 - 삽입 후 원본 참조 텍스트를 지우기로 한 이유는 기록이 없다(E5).
 - **자동 증거 없음** — 캐럿 이동, backspace 병합, 힌트 칩, 인용 불변은 전부 수동(C3).
@@ -79,18 +101,18 @@
 
 **먼저 읽는다** — POL-NOTE-001 · POL-PRIVACY-001 · RULE-NOTE-002 · RULE-NOTE-005 · RULE-NOTE-003 · [CONTRACT-DB-NOTES](contracts/CONTRACT-DB-NOTES.md) · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [CONTRACT-NOTE-REPO](contracts/CONTRACT-NOTE-REPO.md) · [ADR-0005](decisions/ADR-0005-idempotent-migration.md) · [ADR-0006](decisions/ADR-0006-duplicated-schema.md)
 
-**코드** `src/db/{schema.sql,index.ts,migrate.ts,note-repo.ts,expo-adapter.ts}` · `src/domain/types.ts`
-**테스트** `src/db/__tests__/{note-repo,note-repo-search,migrate,migrations}.test.ts` (6/8)
+**코드** `src/entities/note/api/{schema.sql,sqlite-note-repo.ts,migrate.ts}` · `src/entities/note/model/{types,note-repo}.ts` · `src/shared/lib/sqlite.ts`(연결·지연 열기) · `src/app/_layout.tsx`(마이그레이션 순서 조립)
+**테스트** `src/entities/note/api/__tests__/{note-repo,note-repo-search,migrate,migrations}.test.ts` (6/8)
 **스킬** `.claude/skills/db-schema-change/SKILL.md` — 체크리스트가 이미 있다. 그것부터.
 
 **같은 변경에서 함께 고친다** (컬럼 하나를 더한다면)
-1. `src/db/schema.sql`의 `CREATE TABLE` **그리고** `src/db/index.ts`의 인라인 DDL — 두 곳 다.
-2. `src/db/migrate.ts`의 `ADDED_NOTE_COLUMNS` — 빠뜨리면 **기존 사용자에게서만** 깨진다.
-3. `src/db/note-repo.ts` 네 곳 — `Row` 타입, `rowToNote`, `create`의 INSERT 목록, `update`의 `patch` 타입·`next` 병합 객체·UPDATE 문 컬럼 목록. 조회는 전부 `SELECT *`라 손댈 것이 없고, 그래서 **컬럼을 빠뜨려도 읽기는 조용히 성공한다** — 빠진 필드는 `rowToNote`에서 `undefined`가 된다.
-4. `src/domain/types.ts`의 `Note`.
+1. `src/entities/note/api/schema.sql`의 `CREATE TABLE` **그리고** `src/entities/note/api/sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL` — 두 곳 다.
+2. `src/entities/note/api/migrate.ts`의 `ADDED_NOTE_COLUMNS` — 빠뜨리면 **기존 사용자에게서만** 깨진다.
+3. `src/entities/note/api/sqlite-note-repo.ts` 세 곳 — `Row` 타입, `rowToNote`, `create`·`restore`의 INSERT 목록, `update`의 `next` 병합 객체·UPDATE 문 컬럼 목록. 그리고 `src/entities/note/model/note-repo.ts`의 `NoteInput`/`NotePatch`. 조회는 전부 `SELECT *`라 손댈 것이 없고, 그래서 **컬럼을 빠뜨려도 읽기는 조용히 성공한다** — 빠진 필드는 `rowToNote`에서 `undefined`가 된다.
+4. `src/entities/note/model/types.ts`의 `Note`.
 5. 검색 대상이라면 `notes_fts` 컬럼 + 트리거 3개(두 파일 다).
-6. `src/markdown/{serialize,parse}.ts`의 frontmatter 매핑 — 빠뜨리면 그 필드가 내보내기에서 조용히 사라진다.
-7. `makeId()`가 `src/db/note-repo.ts`와 `src/markdown/parse.ts`에 복제되어 있다(B3).
+6. `src/entities/note/api/markdown-{serialize,parse}.ts`의 frontmatter 매핑 — 빠뜨리면 그 필드가 내보내기에서 조용히 사라진다.
+7. `src/entities/note/index.ts`에서 새 타입을 내보낸다 — 안 하면 화면에서 import할 수 없다.
 
 **함정**
 - ⚠️ **테스트가 검증하는 DDL이 프로덕션이 실행하는 DDL이 아니다**(B1·C1). `migrations.test.ts`는 `schema.sql`만 읽는다.
@@ -105,13 +127,13 @@
 
 **먼저 읽는다** — POL-NOTE-003 · RULE-SEARCH-001 · RULE-SEARCH-005 · RULE-SEARCH-002 · RULE-SEARCH-006 · RULE-SEARCH-007 · [ADR-0007](decisions/ADR-0007-fts-scope.md) · [ADR-0008](decisions/ADR-0008-created-at-ordering.md)
 
-**코드** `src/db/note-repo.ts`(`searchNotes`) · `src/db/schema.sql`(FTS 트리거) · `app/index.tsx`(검색창) · `src/workspace/NoteListSidebar.tsx`(태블릿)
-**테스트** `src/db/__tests__/note-repo-search.test.ts` (5/7)
+**코드** `src/entities/note/api/sqlite-note-repo.ts`(`searchNotes`) · `src/entities/note/api/schema.sql`(FTS 트리거) · `src/pages/notes/ui/NotesPage.tsx`(검색창) · `src/pages/notes/ui/NoteListSidebar.tsx`(태블릿)
+**테스트** `src/entities/note/api/__tests__/note-repo-search.test.ts` (5/7)
 
 **같은 변경에서 함께 고친다**
 1. **검색 구현이 둘이다** — 폰은 FTS, 태블릿 사이드바는 메모리 필터. 검색 범위를 바꾸면 두 곳 다.
-2. FTS 트리거는 `src/db/schema.sql`과 `src/db/index.ts` 양쪽에.
-3. 본문 검색을 실제로 켠다면: 트리거 + `src/db/note-repo.ts`(트리거만으로는 `body_json`을 못 푼다) + 기존 노트 재색인 + placeholder 문구 + RULE-SEARCH-001·[ADR-0007](decisions/ADR-0007-fts-scope.md) + [`drift.md`](drift.md) A8/D2/E3까지 전부.
+2. FTS 트리거는 `src/entities/note/api/schema.sql`과 `src/entities/note/api/sqlite-note-repo.ts`(`NOTE_SCHEMA_SQL`) 양쪽에.
+3. 본문 검색을 실제로 켠다면: 트리거 + `src/entities/note/api/sqlite-note-repo.ts`(트리거만으로는 `body_json`을 못 푼다) + 기존 노트 재색인 + placeholder 문구 + RULE-SEARCH-001·[ADR-0007](decisions/ADR-0007-fts-scope.md) + [`drift.md`](drift.md) A8/D2/E3까지 전부.
 
 **함정**
 - placeholder는 "본문"을 검색한다고 안내하지만 안 된다(D2).
@@ -127,21 +149,22 @@
 
 **먼저 읽는다** — POL-PORT-001 · POL-LICENSE-001 · RULE-MD-003 · RULE-MD-006 · RULE-MD-004 · RULE-NOTE-002 · [CONTRACT-MD-NOTE](contracts/CONTRACT-MD-NOTE.md) · [ADR-0003](decisions/ADR-0003-sqlite-markdown-hybrid.md) · [ADR-0009](decisions/ADR-0009-bible-source.md)
 
-**코드** `src/markdown/{serialize,parse}.ts` · `src/share/{export-note,import-note,import-decision,use-note-import}.ts`
-**테스트** `src/markdown/__tests__/{serialize,roundtrip,rich-blocks}.test.ts` · `src/share/__tests__/import-decision.test.ts` (6/8)
+**코드** `src/entities/note/api/markdown-{serialize,parse}.ts` · `src/features/note/export/model/export-note.ts` · `src/features/note/import/model/{import-note,import-decision,use-note-import}.ts`
+**테스트** `src/entities/note/api/__tests__/{serialize,roundtrip,rich-blocks}.test.ts` · `src/features/note/import/model/__tests__/import-decision.test.ts` (6/8)
 
 **같은 변경에서 함께 고친다**
-1. `src/markdown/serialize.ts`와 `src/markdown/parse.ts`는 **거울 쌍**이다 — `(KRV)` 리터럴 ↔ `VERSE_HEADER` 정규식, `- [x]` ↔ TODO 정규식, `#` ↔ HEADING 정규식. 한쪽 토큰을 바꾸면 반대쪽도.
-2. `src/share/import-note.ts`의 `repo.create` **그리고** `repo.update` — 둘 다. 하나만 고치면 신규 삽입과 덮어쓰기 중 한쪽만 새 필드를 반영한다.
-3. `handleExport`가 `app/note/[id].tsx`와 `TabletWorkspace.tsx`에 복제되어 있다(B14).
-4. **비대칭 주의** — `src/markdown/serialize.ts`의 `blockToMarkdown`은 exhaustive switch라 새 블록 타입에서 컴파일 에러가 나지만, `src/markdown/parse.ts`의 `parseBody`는 정규식 나열이라 **복원 코드를 빠뜨려도 컴파일러가 안 잡는다.**
+1. `markdown-serialize.ts`와 `markdown-parse.ts`는 **거울 쌍**이다 — `(KRV)` 리터럴 ↔ `VERSE_HEADER` 정규식, `- [x]` ↔ TODO 정규식, `#` ↔ HEADING 정규식. 한쪽 토큰을 바꾸면 반대쪽도.
+2. `src/features/note/import/model/import-note.ts`의 `repo.create` **그리고** `repo.update` — 둘 다. 하나만 고치면 신규 삽입과 덮어쓰기 중 한쪽만 새 필드를 반영한다.
+3. 내보내기 페이로드는 `useNoteDraft().snapshot()`이 만든다. 폰·태블릿 `handleExport`는 그것을 `repo.findById` 결과에 덮어씌우는 두 줄이다.
+4. **비대칭 주의** — `markdown-serialize.ts`의 `blockToMarkdown`은 exhaustive switch라 새 블록 타입에서 컴파일 에러가 나지만, `markdown-parse.ts`의 `parseBody`는 정규식 나열이라 **복원 코드를 빠뜨려도 컴파일러가 안 잡는다.**
 
 **함정**
 - ⚠️ **덮어쓰기가 없는 필드를 지운다**(B16) — `parse.ts`가 `null`을 돌려주고 `repo.update`에서 `null`은 "비움"이다.
 - ⚠️ **가져온 노트가 작성 시각을 잃는다**(B17) — 목록 맨 위로 올라온다.
 - `roundtrip.test.ts`는 이름과 달리 `note-repo.ts`를 지나지 않는다(C6). 위 둘이 잡히지 않는 이유다.
 - `import-note.ts`·`export-note.ts`에는 테스트가 아예 없다(C8).
-- `(KRV)`는 잘못된 이름이지만 파서의 판별자라 못 바꾼다(B5).
+- `(KRV)`는 잘못된 이름이지만 파서의 판별자라 못 바꾼다(B5). 파서는 이 헤더를 번들 판본(`LEGACY_CITATION_EDITION_ID`)으로 읽는다 — 마크다운은 `editionId`를 싣지 않는다.
+- `markdownToNote`는 참조 해석기를 **주입받는다**(`{ resolveRef: parseRef }`). 노트 엔티티가 성경 엔티티를 import하지 못하기 때문이다.
 - `schemaVersion`은 쓰기만 하고 읽지 않는다.
 
 ---
@@ -152,14 +175,14 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-002 · RULE-BIBLE-001 · RULE-BIBLE-002 · RULE-BIBLE-003 · RULE-BIBLE-006 · RULE-UI-001 · [CONTRACT-BIBLE-JSON](contracts/CONTRACT-BIBLE-JSON.md) · [ADR-0011](decisions/ADR-0011-bible-entrypoints.md)
 
-**코드** `src/browser/**` · `src/workspace/{BiblePanel,BibleLookupPanel}.tsx` · `app/bible.tsx`
-**테스트** `src/browser/__tests__/{books-meta,browser-search,level-from-ref}.test.ts` (4/7)
+**코드** `src/widgets/scripture-browser/**` · `src/pages/notes/ui/{BiblePanel,BibleLookupPanel}.tsx` · `src/pages/bible-reader/ui/BibleReaderPage.tsx`
+**테스트** `src/entities/scripture/api/__tests__/books-meta.test.ts` · `src/widgets/scripture-browser/lib/__tests__/{browser-search,level-from-ref}.test.ts` (4/7)
 
 **같은 변경에서 함께 고친다**
-1. 책 이름은 `src/browser/books-meta.ts`(삽입용)와 `src/parser/book-map.ts`(표시용) 두 표에서 온다 — 어긋나면 **넣은 참조와 보이는 참조가 달라진다**(B13).
-2. 삽입 로직이 폰(`app/note/[id].tsx`)과 태블릿(`TabletWorkspace.tsx`)에 복제되어 있다.
-3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 세 곳이 의존한다 — 만드는 `src/browser/useBiblePosition.ts`, 쪼개는 `src/browser/browser-search.ts`, 그 결과를 쓰는 `src/browser/level-from-ref.ts`. 그리고 [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 표. `src/state/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
-4. 900px 상수가 두 곳에 복제되어 있다(B2).
+1. 책 이름은 `src/entities/scripture/api/books-meta.ts`(삽입용)와 `src/entities/scripture/model/book-map.ts`(표시용) 두 표에서 온다 — 어긋나면 **넣은 참조와 보이는 참조가 달라진다**(B13).
+2. 삽입 로직은 `useNoteDraft().insertRef` 하나다. 세 진입점(홈 리더·에디터 시트·태블릿 패널)은 콜백을 넘길 뿐이다.
+3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 세 곳이 의존한다 — 만드는 `src/widgets/scripture-browser/model/useBiblePosition.ts`, 쪼개는 `src/widgets/scripture-browser/lib/browser-search.ts`, 그 결과를 쓰는 `src/widgets/scripture-browser/lib/level-from-ref.ts`. 그리고 [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 표. `src/features/settings/change/model/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
+4. 900px는 `src/shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT` 한 곳이다.
 
 **함정**
 - 절까지 입력해도 **장까지만** 이동한다(A19). 삽입 토스트도 없다(A20).
@@ -174,13 +197,13 @@
 
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
-**코드** `src/theme/ThemeProvider.tsx` · `src/state/{settings-validator,settings-persist,app-store}.ts` · `app/settings.tsx` · `src/workspace/**` · `src/chrome/**` · `src/browser/useResponsiveLayout.ts`
-**테스트** `src/state/__tests__/{settings-validator,app-store}.test.ts` (4/6, RULE-UI는 **0/6**)
+**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
+**테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**)
 
 **같은 변경에서 함께 고친다**
-1. ⚠️ **`fontScale`에 값을 더한다면 세 곳 전부** — `src/domain/types.ts` 유니온 → `src/state/settings-validator.ts`의 `ALLOWED_FONT` → `app/settings.tsx`의 `FONT_OPTIONS`(사용자가 실제로 고르는 목록). `src/state/app-store.ts`의 기본값 `1.2`는 그대로 둔다 — 형제 필드들과 같은 3단 구조다(B15). validator를 빠뜨리면 사용자가 그 값을 고른 순간 **다음 실행에서 `settings.json` 전체가 버려지고 기본값으로 리셋된다.**
-2. `variation`·`blockStyle`·`fontFamily`·`accentChoice`도 같은 3중 구조다. `accentChoice`의 hex 6개는 세 파일에 리터럴로 박혀 있다(B15).
-3. 900px 상수 두 곳(B2).
+1. ⚠️ **`fontScale`에 값을 더한다면 세 곳 전부** — `src/features/settings/change/model/settings-store.ts`의 `Settings` 유니온 → 같은 폴더 `settings-validator.ts`의 `ALLOWED_FONT` → `src/pages/settings/ui/SettingsPage.tsx`의 `FONT_OPTIONS`(사용자가 실제로 고르는 목록). `settings-store.ts`의 기본값 `1.2`는 그대로 둔다 — 형제 필드들과 같은 3단 구조다(B15). validator를 빠뜨리면 사용자가 그 값을 고른 순간 **다음 실행에서 `settings.json` 전체가 버려지고 기본값으로 리셋된다.**
+2. `variation`·`blockStyle`·`fontFamily`·`accentChoice`도 같은 3중 구조다 — 다만 이 넷의 **타입은 `src/shared/ui/ThemeProvider.tsx`가 정본**이고 `Settings`가 가져다 쓴다. `accentChoice`의 hex 6개는 세 파일에 리터럴로 박혀 있다(B15).
+3. 테마는 `ThemeProvider settings={…}` prop으로 받는다. 설정 필드가 테마에 영향을 주면 `ThemeSettings` 타입에도 넣는다.
 4. [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 스키마 표와 `rules/settings-theme.md`도 같은 커밋에서.
 
 **함정**
@@ -196,7 +219,7 @@
 
 **먼저 읽는다** — [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B30 · E19 · E21 · E22
 
-**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/theme/ThemeProvider.tsx` (팔레트 원본)
+**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본)
 
 **토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
 
@@ -214,14 +237,14 @@
 
 **번들을 발행하기 전에는 [rules/release.md](rules/release.md)를 먼저 본다.** 오프라인이 기본인 앱에 OTA를 얹었기 때문에, 다른 앱에서는 안전한 변경이 여기서는 되돌릴 수 없는 변경이 된다.
 
-**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `app/_layout.tsx` · `scripts/deploy-ota.mjs` · `src/update/{compare-version,latest-store-version,store-link,StoreUpdateDialog}.ts(x)` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
+**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `src/app/_layout.tsx` · `scripts/deploy-ota.mjs` · `src/features/app-update/notice/model/{compare-version,latest-store-version,store-link}.ts` · `src/features/app-update/notice/ui/StoreUpdateDialog.tsx` · `src/shared/config/version.ts` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
 **스킬** `.claude/skills/eas-release/SKILL.md`(릴리스), `.claude/skills/start-feature/SKILL.md`(새 작업)
-**테스트** `src/update/__tests__/{compare-version,latest-store-version}.test.ts` — 이 영역의 **유일한** 자동 증거다. CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`는 열어 보지 않는다.
+**테스트** `src/features/app-update/notice/model/__tests__/{compare-version,latest-store-version}.test.ts` — 이 영역의 **유일한** 자동 증거다. CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`는 열어 보지 않는다.
 
 **같은 변경에서 함께 고친다**
 1. `eas.json`은 [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md)의 `implemented_by`에 올라 있다 — 동작을 바꾸면 같은 커밋에서 계약도.
 2. **고정 식별자 표는 손으로 옮겨 적은 사본이다.** EAS project UUID는 `app.config.ts`에 두 번, 계약 표에 세 번째로 있다. `bundleIdentifier`·`scheme`·채널 이름도 같다.
-3. **버전이 사는 자리가 셋이다** — `app.config.ts`의 `version`(스토어), `src/version.ts`의 `OTA_RELEASE`(번들 순번, 스토어 버전이 오르면 0으로), `website/app-version.json`(앱이 읽는 최신 스토어 버전). 앞의 둘은 릴리스 PR에서, 셋째는 **심사 통과 뒤 `main`으로 따로** 올린다([`RULE-OTA-010`](rules/release.md)). 어긋나면 조용히 틀린다.
+3. **버전이 사는 자리가 셋이다** — `app.config.ts`의 `version`(스토어), `src/shared/config/version.ts`의 `OTA_RELEASE`(번들 순번, 스토어 버전이 오르면 0으로), `website/app-version.json`(앱이 읽는 최신 스토어 버전). 앞의 둘은 릴리스 PR에서, 셋째는 **심사 통과 뒤 `main`으로 따로** 올린다([`RULE-OTA-010`](rules/release.md)). 어긋나면 조용히 틀린다.
 4. `version`을 올리는 것과 새 빌드를 내는 것은 한 세트다.
 5. `eas.json`에 프로필을 더하면 두 워크플로의 `options` 드롭다운도.
 

@@ -7,9 +7,9 @@ supersedes: docs/plans/2026-05-17-ch-life-v1-spec.md 2.2 (updatedAt DESC)
 statement: 노트 목록·그룹핑·검색 결과는 모두 created_at 기준으로 정렬한다. updated_at은 저장 시각 기록으로만 남는다.
 confidence: 확인필요
 source:
-  - apps/ch-life/src/db/index.ts ("DROP INDEX IF EXISTS idx_notes_updated_at")
-  - apps/ch-life/src/db/note-repo.ts (listRecent / searchNotes)
-  - apps/ch-life/src/list/group-notes.ts
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (NOTE_SCHEMA_SQL의 "DROP INDEX IF EXISTS idx_notes_updated_at")
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (listRecent / searchNotes)
+  - apps/ch-life/src/entities/note/lib/group-notes.ts
 ```
 
 ## 맥락

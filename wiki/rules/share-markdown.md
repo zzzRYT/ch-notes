@@ -14,10 +14,10 @@ policy: POL-PORT-001
 requirement: MUST
 statement: 내보내기는 현재 노트 하나를 YYYY-MM-DD-{제목슬러그 또는 id뒷자리}.md 파일로 만들어 OS 공유 시트에 넘긴다.
 implemented_by:
-  - apps/ch-life/src/share/export-note.ts
-  - apps/ch-life/src/markdown/serialize.ts (noteFileName)
+  - apps/ch-life/src/features/note/export/model/export-note.ts
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts (noteFileName)
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/serialize.test.ts#noteFileName
+  - test: apps/ch-life/src/entities/note/api/__tests__/serialize.test.ts#noteFileName
 confidence: 코드추론
 ```
 
@@ -33,9 +33,9 @@ policy: POL-PORT-001
 requirement: MUST
 statement: id/createdAt/updatedAt/citedRefs/schemaVersion은 항상 쓰고, title·sermonDate·preacher·location·scripture는 값이 있을 때만 키를 만든다.
 implemented_by:
-  - apps/ch-life/src/markdown/serialize.ts
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/serialize.test.ts#title 없으면 frontmatter에 title 키 자체가 없음
+  - test: apps/ch-life/src/entities/note/api/__tests__/serialize.test.ts#title 없으면 frontmatter에 title 키 자체가 없음
 confidence: 코드추론
 ```
 
@@ -49,11 +49,11 @@ policy: POL-PORT-001
 requirement: MUST
 statement: 성경 인용 블록은 첫 줄이 "> **{참조}** (KRV)"인 blockquote로 직렬화한다. 이 머리줄이 없는 blockquote는 사용자가 쓴 일반 인용으로 복원한다.
 implemented_by:
-  - apps/ch-life/src/markdown/serialize.ts (blockToMarkdown)
-  - apps/ch-life/src/markdown/parse.ts (VERSE_HEADER)
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts (blockToMarkdown)
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts (VERSE_HEADER)
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/rich-blocks.test.ts#plain blockquote is not mistaken for a scripture quote
-  - test: apps/ch-life/src/markdown/__tests__/rich-blocks.test.ts#scripture quote header is still recognized
+  - test: apps/ch-life/src/entities/note/api/__tests__/rich-blocks.test.ts#plain blockquote is not mistaken for a scripture quote
+  - test: apps/ch-life/src/entities/note/api/__tests__/rich-blocks.test.ts#scripture quote header is still recognized
 confidence: 코드추론
 ```
 
@@ -69,11 +69,11 @@ policy: POL-PORT-001
 requirement: MUST
 statement: DB → 마크다운 → DB 왕복 후 id·제목·설교 메타·블록 구조·인용 참조가 보존된다.
 implemented_by:
-  - apps/ch-life/src/markdown/serialize.ts
-  - apps/ch-life/src/markdown/parse.ts
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/roundtrip.test.ts
-  - test: apps/ch-life/src/markdown/__tests__/rich-blocks.test.ts#body round trips through markdown
+  - test: apps/ch-life/src/entities/note/api/__tests__/roundtrip.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/rich-blocks.test.ts#body round trips through markdown
 confidence: 코드추론
 ```
 
@@ -94,10 +94,10 @@ policy: POL-PORT-001
 requirement: MUST
 statement: frontmatter가 없거나 일부만 있는 파일도 노트로 받는다. id가 없으면 새로 발급하고, citedRefs가 없으면 본문 인용 블록에서 추출하며, 따옴표 없는 날짜(YAML Date)는 달력 문자열로 정규화한다.
 implemented_by:
-  - apps/ch-life/src/markdown/parse.ts
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/roundtrip.test.ts#frontmatter 없는 외부 MD도 새 노트로 받음
-  - test: apps/ch-life/src/markdown/__tests__/roundtrip.test.ts#따옴표 없는 날짜(외부 파일)도 sermonDate 문자열로 받음
+  - test: apps/ch-life/src/entities/note/api/__tests__/roundtrip.test.ts#frontmatter 없는 외부 MD도 새 노트로 받음
+  - test: apps/ch-life/src/entities/note/api/__tests__/roundtrip.test.ts#따옴표 없는 날짜(외부 파일)도 sermonDate 문자열로 받음
 confidence: 코드추론
 ```
 
@@ -113,11 +113,11 @@ policy: POL-PORT-001
 requirement: MUST
 statement: 가져오는 노트의 id가 기존 노트와 같을 때만 덮어쓰기 / 새 id로 추가 / 건너뛰기를 묻는다. 겹치지 않으면 묻지 않고 그대로 삽입한다.
 implemented_by:
-  - apps/ch-life/src/share/import-decision.ts
-  - apps/ch-life/src/share/import-note.ts
-  - apps/ch-life/src/share/use-note-import.ts
+  - apps/ch-life/src/features/note/import/model/import-decision.ts
+  - apps/ch-life/src/features/note/import/model/import-note.ts
+  - apps/ch-life/src/features/note/import/model/use-note-import.ts
 verified_by:
-  - test: apps/ch-life/src/share/__tests__/import-decision.test.ts
+  - test: apps/ch-life/src/features/note/import/model/__tests__/import-decision.test.ts
 confidence: 코드추론
 ```
 
@@ -134,8 +134,8 @@ id: RULE-MD-007
 policy: POL-PORT-001
 statement: 내보낼 때 schemaVersion: 1을 기록하지만, 가져올 때 그 값을 검사하지 않는다. 버전이 달라도 거부하지 않는다.
 implemented_by:
-  - apps/ch-life/src/markdown/serialize.ts (SCHEMA_VERSION)
-  - apps/ch-life/src/markdown/parse.ts
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts (SCHEMA_VERSION)
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts
 confidence: 코드추론
 ```
 
@@ -148,7 +148,7 @@ id: RULE-MD-008
 policy: POL-PORT-001
 statement: 노트 전체를 zip으로 묶는 백업, 그리고 다른 앱에서 .md 파일을 씀씀으로 "공유"해 여는 흐름은 구현되어 있지 않다.
 implemented_by:
-  - apps/ch-life/app/settings.tsx (내보내기 절 — 노트 화면 버튼으로 안내만)
+  - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx (내보내기 절 — 노트 화면 버튼으로 안내만)
 confidence: 코드추론
 ```
 

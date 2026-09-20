@@ -5,12 +5,12 @@ id: CONTRACT-MD-NOTE
 policy: POL-PORT-001
 statement: 노트 하나는 YAML frontmatter + 표준 Markdown 본문을 가진 .md 파일 하나로 표현된다. 이 형식은 앱 밖으로 나가므로 하위 호환을 깨면 이미 내보낸 파일을 다시 읽을 수 없다.
 implemented_by:
-  - apps/ch-life/src/markdown/serialize.ts
-  - apps/ch-life/src/markdown/parse.ts
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts
 verified_by:
-  - test: apps/ch-life/src/markdown/__tests__/roundtrip.test.ts
-  - test: apps/ch-life/src/markdown/__tests__/serialize.test.ts
-  - test: apps/ch-life/src/markdown/__tests__/rich-blocks.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/roundtrip.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/serialize.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/rich-blocks.test.ts
 confidence: 기록됨
 source:
   - docs/plans/2026-05-17-ch-life-v1-spec.md 5.8
@@ -53,6 +53,10 @@ scripture: 요 3:16
 | `**` / `_` / `++` | 굵게 / 기울임 / 밑줄 |
 
 `(KRV)`는 데이터 출처가 Open Bible로 바뀐 뒤에도 남은 표기다. **지금의 본문은 개역한글이 아니다.** 그럼에도 이 문자열이 파서의 판별자이므로 바꿀 수 없다([`RULE-MD-003`](../rules/share-markdown.md)).
+
+**이 형식은 인용의 `editionId`를 싣지 않는다.** 내보내기는 블록의 `editionId`를 버리고 `(KRV)` 헤더만 쓰며, 가져오기는 그 헤더를 번들 판본(`LEGACY_CITATION_EDITION_ID`)으로 읽는다([`CONTRACT-DOMAIN-NOTE`](CONTRACT-DOMAIN-NOTE.md)). 판본이 둘 이상이 되면 헤더 문법을 늘리고 `schemaVersion`을 올려야 한다 — 지금은 판본이 하나라 손실이 없다.
+
+`markdownToNote(md, { resolveRef })`는 참조 해석기를 **주입받는다.** 인용 헤더의 `{ref}`를 책·장·절로 푸는 것은 성경 엔티티의 일이고, 노트 엔티티는 성경 엔티티를 import하지 않는다([`ADR-0024`](../decisions/ADR-0024-fsd-ddd-architecture.md)). 가져오기 기능(`features/note/import`)이 `parseRef`를 넘긴다.
 
 ## 블록 ↔ 마크다운 대응
 

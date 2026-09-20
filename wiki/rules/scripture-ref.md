@@ -19,9 +19,9 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 참조는 "책 장:절" 또는 "책 장:절-끝절" 형태만 인식한다. 책과 장 사이 공백은 있어도 없어도 되고, 장·절은 각각 1~3자리 숫자다.
 implemented_by:
-  - apps/ch-life/src/parser/ref-parser.ts
+  - apps/ch-life/src/entities/scripture/model/ref-parser.ts
 verified_by:
-  - test: apps/ch-life/src/parser/__tests__/ref-parser.test.ts
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/ref-parser.test.ts
 confidence: 코드추론
 ```
 
@@ -37,12 +37,12 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 66권 각각에 대해 한국어 정식명·한국어 축약·영어 정식명·영어 축약을 모두 같은 책 코드로 해석한다.
 implemented_by:
-  - apps/ch-life/src/parser/book-map.ts
+  - apps/ch-life/src/entities/scripture/model/book-map.ts
 verified_by:
-  - test: apps/ch-life/src/parser/__tests__/book-map.test.ts#resolveBookCode — 한국어 정식 66권
-  - test: apps/ch-life/src/parser/__tests__/book-map.test.ts#resolveBookCode — 한국어 축약 66권
-  - test: apps/ch-life/src/parser/__tests__/book-map.test.ts#resolveBookCode — 영어 정식
-  - test: apps/ch-life/src/parser/__tests__/book-map.test.ts#resolveBookCode — 영어 축약
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/book-map.test.ts#resolveBookCode — 한국어 정식 66권
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/book-map.test.ts#resolveBookCode — 한국어 축약 66권
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/book-map.test.ts#resolveBookCode — 영어 정식
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/book-map.test.ts#resolveBookCode — 영어 축약
 confidence: 기록됨
 source:
   - DESIGN.md "자동완성 UX 디테일" (책명 매핑), Success Criteria (66권 × 3형태)
@@ -64,10 +64,10 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 본문은 번들된 bible.json에서만 조회한다. 범위 중 한 절이라도 없거나 끝 절이 시작 절보다 작으면 부분 결과를 주지 않고 전체를 null로 반환한다.
 implemented_by:
-  - apps/ch-life/src/parser/verse-lookup.ts
+  - apps/ch-life/src/entities/scripture/api/verse-lookup.ts
 verified_by:
-  - test: apps/ch-life/src/parser/__tests__/verse-lookup.test.ts
-  - test: apps/ch-life/src/data/__tests__/bible-data.test.ts
+  - test: apps/ch-life/src/entities/scripture/api/__tests__/verse-lookup.test.ts
+  - test: apps/ch-life/src/entities/scripture/api/__tests__/bible-data.test.ts
 confidence: 코드추론
 ```
 
@@ -83,9 +83,9 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 화면에 보이는 참조 라벨은 축약·영어 입력이라도 정식 한국어 책 이름으로 확장한다. 파싱할 수 없는 문자열은 공백만 정리해 그대로 보여준다.
 implemented_by:
-  - apps/ch-life/src/parser/format-ref.ts
+  - apps/ch-life/src/entities/scripture/model/format-ref.ts
 verified_by:
-  - test: apps/ch-life/src/parser/__tests__/format-ref.test.ts
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/format-ref.test.ts
 confidence: 코드추론
 ```
 
@@ -101,10 +101,10 @@ policy: POL-SCRIPTURE-001
 requirement: MUST NOT
 statement: 본문 조회에 실패한 참조는 힌트 칩을 띄우지 않고, 인용 블록도 만들지 않으며, 오류 메시지도 표시하지 않는다.
 implemented_by:
-  - apps/ch-life/src/editor/useAutocomplete.ts
-  - apps/ch-life/src/editor/NoteEditor.tsx
+  - apps/ch-life/src/features/scripture/insert/model/autocomplete.ts
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/useAutocomplete.test.ts#데드 ref (존재하지 않는 절)도 null — 칩 안 뜸 정책
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/autocomplete.test.ts#데드 ref (존재하지 않는 절)도 null — 칩 안 뜸 정책
 confidence: 기록됨
 source:
   - DESIGN.md "자동완성 UX 디테일" (데드 ref)

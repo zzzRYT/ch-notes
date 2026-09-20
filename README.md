@@ -36,8 +36,7 @@
 ```text
 ch-life/
 ├── apps/ch-life/        # Expo 앱 본체
-│   ├── app/             # expo-router 라우트 (index, note/[id], bible, settings, ...)
-│   └── src/             # feature/domain별 모듈
+│   └── src/             # FSD 레이어 — app(라우트)/pages/widgets/features/entities/shared
 ├── wiki/                # 정본 위키 — 정책·규칙·계약·결정 (POL/RULE/CONTRACT/ADR)
 │   ├── workflow.md      #   작업 절차 — 코드를 열기 전에 정본을 확인한다
 │   └── by-task.md       #   작업 유형·코드 경로별 진입점
@@ -53,18 +52,16 @@ ch-life/
 
 ### 앱 내부 모듈 (`apps/ch-life/src/`)
 
-| 폴더 | 역할 |
+| 레이어 | 역할 |
 |------|------|
-| `parser/` | 성경 구절 파싱·포맷·룩업 |
-| `editor/` | 노트 에디터 — 자동완성·자동저장, 설교 메타 헤더, 구절 자동삽입 |
-| `browser/` | 성경 뷰어 (책/장/절) |
-| `db/` | SQLite repo + 멱등 마이그레이션 |
-| `markdown/` | 공유 포맷 — frontmatter / parse / serialize |
-| `share/` | 노트 import/export, import 충돌 결정 |
-| `workspace/` | 태블릿 3-pane 레이아웃 |
-| `list/` | 노트 카드·그룹핑 |
-| `state/` | zustand 스토어 + 설정 영속화 |
-| `theme/`, `chrome/` | 테마 / 앱 헤더 |
+| `app/` | Expo Router 라우트 + `_layout.tsx`(Composition Root — 저장소·마이그레이션·테마·업데이트 안내 조립) |
+| `pages/` | 라우트 단위 화면 — `notes`(폰 목록 + 태블릿 3-pane), `note-editor`, `bible-reader`, `settings`, `licenses` |
+| `widgets/` | 둘 이상의 화면이 쓰는 큰 UI — `note-editor`(편집기 + `useNoteDraft`), `scripture-browser`(성경 리더·시트) |
+| `features/` | 사용자 의도 — `note/{create,search,autosave,delete,import,export}`, `scripture/insert`, `settings/change`, `support/contact`, `app-update/notice` |
+| `entities/` | 도메인 — `note`(타입·저장소 인터페이스·SQLite/마크다운 어댑터), `scripture`(참조 파싱·책 표·번들 본문) |
+| `shared/` | 도메인 없는 기반 — `ui`(테마·헤더·배너), `lib`(sqlite 연결·피드백 스토어·900px), `config`(OTA 번호) |
+
+의존은 `app → pages → widgets → features → entities → shared` 한 방향이고, Slice 밖에서는 `index.ts`만 import한다. **`pnpm lint`가 이를 강제한다**(`eslint.config.js`). 노트 엔티티와 성경 엔티티는 서로 import하지 않는다 — 둘을 잇는 코드는 `features/scripture/insert`·`widgets/note-editor`에 있다.
 
 ---
 
@@ -108,7 +105,7 @@ Expo 개발 화면에서 실행할 플랫폼을 선택하거나 아래 명령을
 
 - 앱 코드는 `apps/ch-life` 아래에 있으며, 기능별 위치는 위의 [저장소 구조](#저장소-구조)를 참고합니다.
 - 새 기능이나 버그 수정에는 가능한 한 관련 테스트를 함께 추가하거나 수정합니다.
-- 데이터베이스 스키마를 바꿀 때는 `db/index.ts`의 인라인 스키마와 `db/schema.sql`을 함께 수정합니다.
+- 데이터베이스 스키마를 바꿀 때는 `src/entities/note/api/`의 `sqlite-note-repo.ts`(`NOTE_SCHEMA_SQL`)와 `schema.sql`을 함께 수정합니다.
 - 패키지를 추가하거나 명령을 실행할 때는 npm이나 yarn 대신 pnpm을 사용합니다.
 
 ---
@@ -143,7 +140,7 @@ git switch -c feat/작업명
 
 - `Note.body = BlockNode[]` → `body_json` TEXT로 저장.
 - repo `update` = **read-then-merge**: `null`은 필드 비움, `undefined`는 기존값 유지.
-- ⚠️ **스키마가 두 곳에 중복**: `db/index.ts` 인라인 스키마 + `db/schema.sql` — 동시 수정 필수.
+- ⚠️ **스키마가 두 곳에 중복**: `entities/note/api/sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL` + 같은 폴더 `schema.sql` — 동시 수정 필수.
 - 마이그레이션은 **버전 추적 없는 멱등** — `migrate.ts`가 `PRAGMA table_info`로 누락 컬럼만 ALTER.
 - FTS 검색은 **title + cited_refs만** 대상 (본문 검색 미지원).
 - `isDark = variation === "dark"` (`themePreference` 아님).
@@ -157,7 +154,7 @@ git switch -c feat/작업명
 - **네이티브 의존성 / `version` 변경** → EAS Build.
 - ⚠️ `updateStrategy: appVersion` — 대상 버전을 명시해 배포하며, 버전이나 네이티브 계약을 바꾸면 **새 네이티브 빌드 필요**.
 
-- 버전은 네 자리로 읽는다 — `1.0.2+3`의 앞 세 자리는 스토어 빌드, `+3`은 그 버전에 낸 OTA 순번(`src/version.ts`).
+- 버전은 네 자리로 읽는다 — `1.0.2+3`의 앞 세 자리는 스토어 빌드, `+3`은 그 버전에 낸 OTA 순번(`src/shared/config/version.ts`).
 - `production` 채널 OTA는 `release/<버전>` 가지에서 수동 실행으로만 나간다.
 - ⚠️ **자동 OTA는 현재 실패한다** — R2 자격증명이 잘못돼 있다(`wiki/drift.md` B19). 스토어의 1.0.1 설치본은 hot-updater가 없어 어떤 OTA도 받지 못한다.
 

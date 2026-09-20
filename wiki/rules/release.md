@@ -22,14 +22,14 @@ policy: POL-RELEASE-002
 requirement: MUST
 statement: 스토어 빌드에 들어간 임베디드 번들은 OTA가 한 번도 도착하지 않아도 모든 기능이 동작해야 한다. 기능·자산·데이터를 OTA 번들에만 두지 않는다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - apps/ch-life/hot-updater.config.ts
 verified_by:
   - manual: 비행기 모드에서 설치 직후 실행 — 노트 작성·성경 조회·검색·내보내기가 모두 동작
 waiver: 코드의 *부재*로 성립하는 규칙이라 자동으로 증명할 수단이 없다. POL-PRIVACY-001과 같은 성격이다.
 confidence: 코드추론
 source:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - wiki/decisions/ADR-0012-local-only.md
 ```
 
@@ -45,13 +45,13 @@ policy: POL-RELEASE-002
 requirement: MUST
 statement: 네트워크가 없거나 OTA 서버가 응답하지 않아도 앱은 즉시 렌더되고, 확인 실패는 경고 로그 한 줄로 끝난다. 로딩 화면이나 오류 화면을 띄우지 않는다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 verified_by:
   - manual: 비행기 모드 콜드 런치 — 첫 화면까지 지연이나 오류 표시가 없다
 waiver: RN 컴포넌트 통합 테스트 도구가 없다(drift C3).
 confidence: 코드추론
 source:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 ```
 
 `HotUpdater.wrap`에 **`fallbackComponent`를 주지 않은 것이 이 규칙의 구현**이다. 주는 순간 확인이 끝날 때까지 그 컴포넌트가 화면을 잡고, 오프라인 기기는 매 실행마다 그 화면을 먼저 본다. `onError`도 `console.warn` 한 줄이다 — 사용자에게 아무것도 알리지 않는다([`POL-A11Y-001`](../policy/POL-ACCESSIBILITY.md)의 "조용함").
@@ -68,23 +68,23 @@ policy: POL-RELEASE-002
 requirement: MUST
 statement: 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다.
 implemented_by:
-  - apps/ch-life/src/update/compare-version.ts
-  - apps/ch-life/src/update/latest-store-version.ts
-  - apps/ch-life/src/update/store-link.ts
-  - apps/ch-life/src/update/StoreUpdateDialog.tsx
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/features/app-update/notice/model/compare-version.ts
+  - apps/ch-life/src/features/app-update/notice/model/latest-store-version.ts
+  - apps/ch-life/src/features/app-update/notice/model/store-link.ts
+  - apps/ch-life/src/features/app-update/notice/ui/StoreUpdateDialog.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - website/app-version.json
 verified_by:
-  - test: apps/ch-life/src/update/__tests__/compare-version.test.ts#숫자로 비교한다 — 1.0.10이 1.0.9보다 크다
-  - test: apps/ch-life/src/update/__tests__/compare-version.test.ts#형식이 어긋나면 null이다 — 비교하지 않는다
-  - test: apps/ch-life/src/update/__tests__/latest-store-version.test.ts#빠졌거나 문자열이 아니면 null이다
+  - test: apps/ch-life/src/features/app-update/notice/model/__tests__/compare-version.test.ts#숫자로 비교한다 — 1.0.10이 1.0.9보다 크다
+  - test: apps/ch-life/src/features/app-update/notice/model/__tests__/compare-version.test.ts#형식이 어긋나면 null이다 — 비교하지 않는다
+  - test: apps/ch-life/src/features/app-update/notice/model/__tests__/latest-store-version.test.ts#빠졌거나 문자열이 아니면 null이다
   - manual: 비행기 모드 콜드 런치 — 지연·오류 표시·다이어로그가 없다
   - manual: 서버가 설치본보다 낮거나 같은 버전을 돌려줄 때 다이어로그가 없다
   - manual: 닫은 뒤 다시 켜도 같은 버전은 뜨지 않고, 값을 올리면 다시 뜬다
 waiver: 순수 함수(비교·응답 파싱)에만 자동 증거를 붙일 수 있다. 네트워크·다이어로그·스토어 이동은 실기기와 실제 발행 없이는 재현되지 않는다(drift C3).
 confidence: 기록됨
 source:
-  - apps/ch-life/src/update/StoreUpdateDialog.tsx
+  - apps/ch-life/src/features/app-update/notice/ui/StoreUpdateDialog.tsx
   - wiki/decisions/ADR-0022-store-update-notice.md
 ```
 
@@ -114,13 +114,13 @@ policy: POL-RELEASE-003
 requirement: MUST
 statement: reloadOnForceUpdate가 false이므로 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 화면을 갈아치우지 않고 다음 콜드 런치까지 기다린다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 verified_by:
   - manual: 앱을 켜 둔 채 번들을 발행해도 화면이 바뀌지 않고, 완전 종료 후 재실행에서 적용된다
 waiver: 실제 발행과 실기기 없이는 재현되지 않는다.
 confidence: 기록됨
 source:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - wiki/decisions/ADR-0016-cold-launch-apply.md
 ```
 
@@ -141,7 +141,7 @@ id: RULE-OTA-004
 policy: POL-RELEASE-003
 statement: 업데이트 확인은 (platform, appVersion, channel, minBundleId, bundleId)로 한 번 질의해 목표 번들 하나를 받는다. 오래 오프라인이던 기기는 그 사이 발행된 번들을 순서대로 밟지 않고 최신 하나로 바로 건너뛴다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - apps/ch-life/hot-updater.config.ts
 confidence: 코드추론
 source:
@@ -159,7 +159,7 @@ id: RULE-OTA-005
 policy: POL-RELEASE-003
 statement: 기기는 임베디드 번들, 마지막으로 정상 기동한 stable 번들, 검증 중인 staging 번들만 가진다. 자동 롤백의 착지점은 stable 하나이고 그것이 없으면 임베디드다. 두 칸 전 번들로는 돌아갈 수 없다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 confidence: 코드추론
 source:
   - hot-updater 공식 문서 — automatic rollback (staging/stable, 실패 시 이전 stable 또는 임베디드로 복귀)
@@ -181,7 +181,7 @@ implemented_by:
 confidence: 코드추론
 source:
   - docs/store/ota-deploy.md 롤백
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 ```
 
 **롤백에 걸리는 시간의 하한이 없다.** 오프라인 기기에게 롤백은 "다음에 인터넷에 닿고, 그다음에 앱을 껐다 켰을 때" 일어난다. 몇 주가 될 수 있다.
@@ -200,10 +200,10 @@ policy: POL-RELEASE-003
 requirement: MUST
 statement: 스키마 변경은 PRAGMA table_info로 현재 상태를 읽어 없는 컬럼만 추가하는 방식이어야 한다. 버전 카운터가 아니라 상태에서 유도되므로 번들을 몇 개 건너뛰어도 결과가 같다.
 implemented_by:
-  - apps/ch-life/src/db/migrate.ts
+  - apps/ch-life/src/entities/note/api/migrate.ts
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/migrate.test.ts#구버전 테이블에 누락된 메타 컬럼을 추가한다
-  - test: apps/ch-life/src/db/__tests__/migrate.test.ts#멱등하다 — 두 번 실행해도 오류 없음
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrate.test.ts#구버전 테이블에 누락된 메타 컬럼을 추가한다
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrate.test.ts#멱등하다 — 두 번 실행해도 오류 없음
 confidence: 코드추론
 source:
   - wiki/decisions/ADR-0005-idempotent-migration.md
@@ -221,13 +221,13 @@ policy: POL-RELEASE-003
 requirement: MUST NOT
 statement: OTA로 내보내는 번들은 기존 컬럼을 삭제·개명·타입변경하지 않는다. 마이그레이션에 되돌리는 경로가 없어, 번들을 되돌려도 스키마는 되돌아가지 않고 이전 번들이 바뀐 DB를 그대로 읽는다.
 implemented_by:
-  - apps/ch-life/src/db/migrate.ts
+  - apps/ch-life/src/entities/note/api/migrate.ts
 verified_by:
   - manual: 마이그레이션 목록이 ALTER TABLE ... ADD COLUMN 뿐인지 발행 전 확인
 waiver: "하지 않았음"을 자동으로 증명할 수 없다. 발행 전 사람이 diff를 본다.
 confidence: 코드추론
 source:
-  - apps/ch-life/src/db/migrate.ts
+  - apps/ch-life/src/entities/note/api/migrate.ts
   - wiki/decisions/ADR-0005-idempotent-migration.md
 ```
 
@@ -243,17 +243,17 @@ policy: POL-RELEASE-003
 requirement: MUST NOT
 statement: body_json에 새 BlockNode type을 기록하는 번들은 OTA로 발행하지 않는다. 되돌아간 이전 번들에서 그 노트를 열면, text 필드가 없는 블록은 에디터와 목록 미리보기를 즉시 깨뜨리고 있더라도 Markdown 내보내기에서 조용히 사라진다.
 implemented_by:
-  - apps/ch-life/src/editor/NoteEditor.tsx
-  - apps/ch-life/src/editor/ParagraphInput.tsx
-  - apps/ch-life/src/markdown/serialize.ts
-  - apps/ch-life/src/list/group-notes.ts
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx
+  - apps/ch-life/src/entities/note/api/markdown-serialize.ts
+  - apps/ch-life/src/entities/note/lib/group-notes.ts
 verified_by:
   - manual: 발행 전 BlockNode 유니온에 새 멤버가 들어갔는지 확인
 waiver: 아직 존재하지 않는 타입에 대한 규칙이라 재현할 대상이 없다. 발행 전 사람이 타입 정의 diff를 본다.
 confidence: 코드추론
 source:
-  - apps/ch-life/src/domain/types.ts
-  - apps/ch-life/src/editor/NoteEditor.tsx
+  - apps/ch-life/src/entities/note/model/types.ts
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
 ```
 
 컬럼과 달리 **블록 타입은 앞으로 호환되지 않는다.** 어느 코드도 모르는 `type`을 다룰 준비가 되어 있지 않다([`../drift.md`](../drift.md) B20):
