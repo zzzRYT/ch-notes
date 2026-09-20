@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Trash2 } from "lucide-react-native";
 import {
   extractCitedRefs,
@@ -15,7 +16,11 @@ import {
   type Note,
 } from "@/entities/note";
 import { createBlankNote } from "@/features/note/create";
-import { deleteNoteWithUndo, useNoteDeleteStore } from "@/features/note/delete";
+import {
+  confirmNoteDelete,
+  deleteNoteWithUndo,
+  useNoteDeleteStore,
+} from "@/features/note/delete";
 import { exportNote } from "@/features/note/export";
 import { useNoteImport } from "@/features/note/import";
 import { showFeedback } from "@/shared/lib";
@@ -48,6 +53,7 @@ export function TabletWorkspace() {
   const { runImport } = useNoteImport(repo);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -182,7 +188,12 @@ export function TabletWorkspace() {
   const citedRefs = useMemo(() => extractCitedRefs(body), [body]);
 
   return (
-    <View className="flex-1 flex-row bg-bg">
+    // 세 pane이 각자 헤더를 그리므로 상태바·홈 인디케이터 여백은 여기서 한 번만 준다.
+    // 폰은 AppHeader가 insets.top을 처리한다.
+    <View
+      className="flex-1 flex-row bg-bg"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
       {leftOpen ? (
         <View className="w-pane-left">
           <NoteListSidebar
@@ -237,7 +248,9 @@ export function TabletWorkspace() {
           <View className="flex-row gap-1">
             {selectedId && (
               <Pressable
-                onPress={() => void handleDelete(selectedId)}
+                onPress={() =>
+                  confirmNoteDelete(() => void handleDelete(selectedId))
+                }
                 disabled={deletingId !== null}
                 accessibilityRole="button"
                 accessibilityLabel="현재 노트 삭제"

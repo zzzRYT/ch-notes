@@ -16,7 +16,7 @@ import {
   useSettingsPersistence,
   useSettingsStore,
 } from '@/features/settings/change';
-import { openSqliteDatabase } from '@/shared/lib';
+import { openSqliteDatabase, useHardwareKeyboardDismiss } from '@/shared/lib';
 import { ActionBannerHost, ThemeProvider, useTheme } from '@/shared/ui';
 
 // Composition Root(ADR-0024). 어댑터와 마이그레이션 순서는 여기서만 조립한다.
@@ -60,6 +60,7 @@ function StoreUpdateNotice() {
 
 function RootLayout() {
   useSettingsPersistence();
+  useHardwareKeyboardDismiss();
   const settings = useSettingsStore((s) => s.settings);
 
   return (
