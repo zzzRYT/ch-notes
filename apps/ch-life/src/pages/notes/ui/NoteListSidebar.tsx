@@ -1,12 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Download, Settings } from "lucide-react-native";
 import {
   groupNotesByDay,
@@ -15,7 +8,7 @@ import {
   type Note,
 } from "@/entities/note";
 import { formatRef } from "@/entities/scripture";
-import { SwipeToDelete, useTheme, scaled } from "@/shared/ui";
+import { SwipeToDelete, useTheme } from "@/shared/ui";
 
 type Props = {
   notes: readonly Note[];
@@ -38,7 +31,8 @@ export function NoteListSidebar({
   onSettings,
   onCollapse,
 }: Props) {
-  const { colors, fontScale } = useTheme();
+  // lucide 아이콘 색만 prop으로.
+  const { colors } = useTheme();
   const [query, setQuery] = useState("");
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
@@ -56,32 +50,27 @@ export function NoteListSidebar({
   const groups = useMemo(() => groupNotesByDay(filtered), [filtered]);
 
   return (
-    <View
-      style={[
-        styles.root,
-        { backgroundColor: colors.paper, borderRightColor: colors.rule },
-      ]}
-    >
-      <View style={styles.head}>
-        <Text style={[styles.title, { color: colors.ink }]}>노트</Text>
-        <View style={styles.headActions}>
+    <View className="flex-1 border-r-hairline bg-paper border-rule">
+      <View className="flex-row items-center justify-between px-4 pt-4 pb-2.5">
+        <Text className="text-body-large font-bold tracking-[-0.2px] text-ink">
+          노트
+        </Text>
+        <View className="flex-row gap-1">
           <Pressable
             onPress={onCreate}
             accessibilityRole="button"
             accessibilityLabel="새 노트"
             hitSlop={10}
-            style={styles.iconBtn}
+            className={ICON_BTN}
           >
-            <Text style={[styles.iconBtnText, { color: colors.accent }]}>
-              ＋
-            </Text>
+            <Text className="text-[16px] font-semibold text-accent">＋</Text>
           </Pressable>
           <Pressable
             onPress={onImport}
             accessibilityRole="button"
             accessibilityLabel="마크다운 노트 가져오기"
             hitSlop={10}
-            style={styles.iconBtn}
+            className={ICON_BTN}
           >
             <Download size={16} color={colors.ink2} strokeWidth={1.8} />
           </Pressable>
@@ -90,7 +79,7 @@ export function NoteListSidebar({
             accessibilityRole="button"
             accessibilityLabel="설정"
             hitSlop={10}
-            style={styles.iconBtn}
+            className={ICON_BTN}
           >
             <Settings size={16} color={colors.ink2} strokeWidth={1.8} />
           </Pressable>
@@ -99,39 +88,34 @@ export function NoteListSidebar({
             accessibilityRole="button"
             accessibilityLabel="노트 목록 접기"
             hitSlop={10}
-            style={styles.iconBtn}
+            className={ICON_BTN}
           >
-            <Text style={[styles.iconBtnText, { color: colors.ink2 }]}>‹</Text>
+            <Text className="text-[16px] font-semibold text-ink-2">‹</Text>
           </Pressable>
         </View>
       </View>
-      <View
-        style={[styles.searchWrap, { backgroundColor: colors.chipBg }]}
-      >
-        <Text style={[styles.searchIcon, { color: colors.ink3 }]}>⌕</Text>
+      <View className="flex-row items-center gap-2 mx-3 px-3 rounded-8 min-h-9 bg-chip-bg">
+        <Text className="text-[13px] text-ink-3">⌕</Text>
         <TextInput
-          style={[
-            styles.searchInput,
-            { color: colors.ink, fontSize: scaled(13, fontScale) },
-          ]}
+          className="flex-1 py-1.5 text-ink text-label"
           value={query}
           onChangeText={setQuery}
           placeholder="검색 — 제목, 인용"
-          placeholderTextColor={colors.ink3}
+          placeholderTextColorClassName="text-ink-3"
           autoCorrect={false}
           autoCapitalize="none"
           accessibilityLabel="노트 검색"
         />
       </View>
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerClassName="pt-2 pb-10"
         keyboardShouldPersistTaps="handled"
       >
         {groups.map((g) => (
-          <View key={g.key} style={styles.group}>
+          <View key={g.key} className="mb-3">
             <Text
-              style={[styles.groupLabel, { color: colors.ink3 }]}
+              className="text-caption font-semibold tracking-[0.4px] uppercase px-4 py-1.5 text-ink-3"
               numberOfLines={1}
             >
               {g.date} · {g.dow}
@@ -167,51 +151,24 @@ export function NoteListSidebar({
                         onDelete(n.id);
                       }
                     }}
-                    style={[
-                      styles.item,
-                      {
-                        backgroundColor: active
-                          ? colors.accentSoft
-                          : colors.paper,
-                      },
-                    ]}
+                    className={`px-4 py-2 gap-0.5 ${
+                      active ? "bg-accent-soft" : "bg-paper"
+                    }`}
                   >
                     <Text
-                      style={[
-                        styles.itemTitle,
-                        {
-                          color: colors.ink,
-                          fontSize: scaled(13, fontScale),
-                        },
-                      ]}
+                      className="font-semibold text-ink text-label"
                       numberOfLines={1}
                     >
                       {title}
                     </Text>
-                    <View style={styles.itemMeta}>
-                      <Text
-                        style={[
-                          styles.itemMetaText,
-                          {
-                            color: colors.ink3,
-                            fontSize: scaled(11, fontScale),
-                          },
-                        ]}
-                      >
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="font-medium text-ink-3 text-caption">
                         {formatTime(n.createdAt)}
                       </Text>
                       {n.citedRefs[0] && (
                         <>
-                          <Text style={{ color: colors.ink4 }}>·</Text>
-                          <Text
-                            style={[
-                              styles.itemPassage,
-                              {
-                                color: colors.accent,
-                                fontSize: scaled(11, fontScale),
-                              },
-                            ]}
-                          >
+                          <Text className="text-ink-4">·</Text>
+                          <Text className="font-semibold text-accent text-caption">
                             {formatRef(n.citedRefs[0])}
                           </Text>
                         </>
@@ -224,7 +181,7 @@ export function NoteListSidebar({
           </View>
         ))}
         {groups.length === 0 && (
-          <Text style={[styles.emptyText, { color: colors.ink3 }]}>
+          <Text className="text-label text-center pt-[30px] text-ink-3">
             노트가 없습니다
           </Text>
         )}
@@ -233,56 +190,5 @@ export function NoteListSidebar({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, borderRightWidth: StyleSheet.hairlineWidth },
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 10,
-  },
-  title: { fontSize: 16, fontWeight: "700", letterSpacing: -0.2 },
-  headActions: { flexDirection: "row", gap: 4 },
-  iconBtn: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 6,
-  },
-  iconBtnText: { fontSize: 16, fontWeight: "600" },
-  searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginHorizontal: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    minHeight: 36,
-  },
-  searchIcon: { fontSize: 13 },
-  searchInput: { flex: 1, paddingVertical: 6 },
-  scroll: { flex: 1 },
-  scrollContent: { paddingTop: 8, paddingBottom: 40 },
-  group: { marginBottom: 12 },
-  groupLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  item: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 2,
-  },
-  itemTitle: { fontWeight: "600" },
-  itemMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
-  itemMetaText: { fontWeight: "500" },
-  itemPassage: { fontWeight: "600" },
-  emptyText: { fontSize: 13, textAlign: "center", paddingTop: 30 },
-});
+// ⚠️ 28px — 44px 기준 미달(drift B22). 값을 옮기기만 했다.
+const ICON_BTN = "size-7 items-center justify-center rounded-6";

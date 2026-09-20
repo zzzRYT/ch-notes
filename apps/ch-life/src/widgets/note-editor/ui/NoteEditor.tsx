@@ -138,15 +138,16 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
     : null;
 
   return (
-    <View style={styles.root}>
+    <View className="flex-1">
       <KeyboardAwareScrollView
+        // 서드파티 컴포넌트라 className이 닿지 않는다 — 배경만 style로.
         style={{ backgroundColor: colors.bg }}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         bottomOffset={KEYBOARD_BOTTOM_OFFSET}
       >
         {header}
-        <View style={styles.body}>
+        <View className="px-6 pt-3 gap-1">
           {body.map((block, idx) => {
             if (block.type === 'quote') {
               return <QuoteBlock key={`q-${idx}`} {...block} />;
@@ -170,22 +171,19 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
       </KeyboardAwareScrollView>
       {liveHint && (
         <View
-          style={[styles.hintWrap, { bottom: 25 + insets.bottom }]}
+          className="absolute left-0 right-0 items-center"
+          style={{ bottom: 25 + insets.bottom }}
           pointerEvents="none"
         >
-          <View style={[styles.hint, { backgroundColor: colors.accentSoft }]}>
-            <View
-              style={[styles.hintDot, { backgroundColor: colors.accent }]}
-            />
-            <Text style={[styles.hintLabel, { color: colors.accent }]}>
+          <View className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-accent-soft">
+            <View className="size-1.5 rounded-3 bg-accent" />
+            <Text className="text-caption font-semibold text-accent">
               {liveHint.ref}
             </Text>
-            <View style={[styles.hintKbd, { backgroundColor: colors.paper }]}>
-              <Text style={[styles.hintKbdText, { color: colors.ink2 }]}>
-                space
-              </Text>
+            <View className="px-[5px] py-px rounded-4 ml-1 bg-paper">
+              <Text className="text-caption font-medium text-ink-2">space</Text>
             </View>
-            <Text style={[styles.hintArrow, { color: colors.ink3 }]}>↵</Text>
+            <Text className="text-caption text-ink-3">↵</Text>
           </View>
         </View>
       )}
@@ -196,43 +194,5 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
 const KEYBOARD_BOTTOM_OFFSET = 56;
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   content: { paddingBottom: 80 },
-  body: { paddingHorizontal: 24, paddingTop: 12, gap: 4 },
-  hintWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  hint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  hintDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  hintLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  hintKbd: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-    marginLeft: 4,
-  },
-  hintKbdText: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  hintArrow: {
-    fontSize: 11,
-  },
 });

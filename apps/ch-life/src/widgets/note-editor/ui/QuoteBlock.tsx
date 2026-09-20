@@ -1,59 +1,40 @@
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  View,
-  StyleSheet,
-} from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { CitationVerse, QuoteBlockNode } from "@/entities/note";
 import { formatRef } from "@/entities/scripture";
-import { useTheme, scaled, type Theme } from "@/shared/ui";
+import { useTheme } from "@/shared/ui";
 
 type Props = QuoteBlockNode;
 
 export function QuoteBlock(props: Props) {
-  const theme = useTheme();
+  const { blockStyle } = useTheme();
   const refLabel = formatRef(props.ref);
-  switch (theme.blockStyle) {
+  switch (blockStyle) {
     case "quote":
-      return <QuoteVariant {...props} theme={theme} refLabel={refLabel} />;
+      return <QuoteVariant {...props} refLabel={refLabel} />;
     case "collapse":
-      return <CollapseVariant {...props} theme={theme} refLabel={refLabel} />;
+      return <CollapseVariant {...props} refLabel={refLabel} />;
     case "card":
     default:
-      return <CardVariant {...props} theme={theme} refLabel={refLabel} />;
+      return <CardVariant {...props} refLabel={refLabel} />;
   }
 }
 
-type VariantProps = Props & { theme: Theme; refLabel: string };
+type VariantProps = Props & { refLabel: string };
+
+const LABEL_CLASS = "text-accent text-caption font-semibold";
 
 function HeaderLabel({
   refLabel,
-  theme,
   prefixDot = true,
 }: {
   refLabel: string;
-  theme: Theme;
   prefixDot?: boolean;
 }) {
-  const { colors, fontScale } = theme;
   return (
-    <View style={styles.head}>
-      {prefixDot && (
-        <View style={[styles.dot, { backgroundColor: colors.accent }]} />
-      )}
-      <Text
-        style={[
-          styles.label,
-          {
-            color: colors.accent,
-            fontSize: scaled(12, fontScale),
-          },
-        ]}
-      >
-        {refLabel}
-      </Text>
+    <View className="flex-row items-center gap-2 mb-1.5">
+      {prefixDot && <View className="size-1.5 rounded-3 bg-accent" />}
+      <Text className={LABEL_CLASS}>{refLabel}</Text>
     </View>
   );
 }
@@ -61,56 +42,34 @@ function HeaderLabel({
 function Body({
   verses,
   status,
-  theme,
 }: {
   verses: CitationVerse[];
   status: Props["status"];
-  theme: Theme;
 }) {
-  const { colors, fontScale, fontStack } = theme;
+  const { colors } = useTheme();
   if (status === "loading") {
     return (
-      <View style={styles.loadingRow}>
+      <View className="flex-row items-center gap-2">
         <ActivityIndicator size="small" color={colors.ink3} />
-        <Text style={{ color: colors.ink3 }}>불러오는 중…</Text>
+        <Text className="text-ink-3">불러오는 중…</Text>
       </View>
     );
   }
   if (status === "error") {
-    return (
-      <Text style={{ color: colors.errText }}>본문을 찾을 수 없습니다</Text>
-    );
+    return <Text className="text-err-text">본문을 찾을 수 없습니다</Text>;
   }
+  // 행간은 실측값(primitives.js) — 절 번호 1.82, 인용 본문 1.6
   return (
     <>
       {verses.map((v) => (
         <View
           key={`${v.book}-${v.chapter}-${v.verse}`}
-          style={styles.verseRow}
+          className="flex-row gap-2 mt-0.5"
         >
-          <Text
-            style={[
-              styles.verseNum,
-              {
-                color: colors.ink3,
-                fontSize: scaled(11, fontScale),
-                lineHeight: scaled(20, fontScale),
-              },
-            ]}
-          >
+          <Text className="min-w-4 pt-0.5 font-semibold text-left text-ink-3 text-caption leading-[1.82]">
             {v.verse}
           </Text>
-          <Text
-            style={[
-              styles.verseText,
-              {
-                color: colors.ink,
-                fontFamily: fontStack,
-                fontSize: scaled(15, fontScale),
-                lineHeight: scaled(24, fontScale),
-              },
-            ]}
-          >
+          <Text className="flex-1 text-ink font-body text-body leading-[1.6]">
             {v.text}
           </Text>
         </View>
@@ -119,50 +78,42 @@ function Body({
   );
 }
 
-function CardVariant({ verses, status, theme, refLabel }: VariantProps) {
-  const { colors } = theme;
-  const borderColor = status === "error" ? colors.errBar : colors.rule;
+function CardVariant({ verses, status, refLabel }: VariantProps) {
   return (
     <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.paper, borderColor },
-      ]}
+      className={`my-2.5 border-hairline rounded-12 p-3.5 bg-paper ${
+        status === "error" ? "border-err-bar" : "border-rule"
+      }`}
       accessibilityRole="text"
       accessibilityLabel={`인용 ${refLabel}`}
     >
-      <HeaderLabel refLabel={refLabel} theme={theme} />
-      <Body verses={verses} status={status} theme={theme} />
+      <HeaderLabel refLabel={refLabel} />
+      <Body verses={verses} status={status} />
     </View>
   );
 }
 
-function QuoteVariant({ verses, status, theme, refLabel }: VariantProps) {
-  const { colors } = theme;
+function QuoteVariant({ verses, status, refLabel }: VariantProps) {
   return (
     <View
-      style={[styles.quoteWrap, { backgroundColor: colors.accentSoft }]}
+      className="flex-row my-2.5 rounded-8 overflow-hidden bg-accent-soft"
       accessibilityRole="text"
       accessibilityLabel={`인용 ${refLabel}`}
     >
-      <View style={[styles.quoteBar, { backgroundColor: colors.accent }]} />
-      <View style={styles.quoteBody}>
-        <HeaderLabel refLabel={refLabel} theme={theme} prefixDot={false} />
-        <Body verses={verses} status={status} theme={theme} />
+      <View className="w-[3px] bg-accent" />
+      <View className="flex-1 px-3.5 py-3">
+        <HeaderLabel refLabel={refLabel} prefixDot={false} />
+        <Body verses={verses} status={status} />
       </View>
     </View>
   );
 }
 
-function CollapseVariant({ verses, status, theme, refLabel }: VariantProps) {
+function CollapseVariant({ verses, status, refLabel }: VariantProps) {
   const [open, setOpen] = useState(true);
-  const { colors, fontScale } = theme;
   return (
     <View
-      style={[
-        styles.collapse,
-        { borderColor: colors.rule, backgroundColor: colors.bg },
-      ]}
+      className="my-2 rounded-10 border-hairline border-rule overflow-hidden bg-bg"
       accessibilityRole="text"
       accessibilityLabel={`인용 ${refLabel}`}
     >
@@ -171,102 +122,18 @@ function CollapseVariant({ verses, status, theme, refLabel }: VariantProps) {
         accessibilityRole="button"
         accessibilityLabel={`${refLabel} ${open ? "접기" : "펼치기"}`}
         accessibilityState={{ expanded: open }}
-        style={styles.collapseHead}
+        className="flex-row items-center gap-2 px-3 py-2.5 min-h-9"
       >
-        <Text
-          style={[
-            styles.collapseChev,
-            { color: colors.accent, fontSize: scaled(11, fontScale) },
-          ]}
-        >
+        <Text className="font-semibold w-3 text-center text-accent text-caption">
           {open ? "▾" : "▸"}
         </Text>
-        <Text
-          style={[
-            styles.label,
-            {
-              color: colors.accent,
-              fontSize: scaled(12, fontScale),
-            },
-          ]}
-        >
-          {refLabel}
-        </Text>
+        <Text className={LABEL_CLASS}>{refLabel}</Text>
       </Pressable>
       {open && (
-        <View style={styles.collapseBody}>
-          <Body verses={verses} status={status} theme={theme} />
+        <View className="px-3 pb-3 gap-1">
+          <Body verses={verses} status={status} />
         </View>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginVertical: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
-    padding: 14,
-  },
-  quoteWrap: {
-    flexDirection: "row",
-    marginVertical: 10,
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  quoteBar: { width: 3 },
-  quoteBody: { flex: 1, paddingHorizontal: 14, paddingVertical: 12 },
-  collapse: {
-    marginVertical: 8,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
-  },
-  collapseHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 36,
-  },
-  collapseChev: { fontWeight: "600", width: 12, textAlign: "center" },
-  collapseBody: {
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    gap: 4,
-  },
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  label: {
-    fontWeight: "600",
-    letterSpacing: 0,
-  },
-  loadingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  verseRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 2,
-  },
-  verseNum: {
-    minWidth: 16,
-    paddingTop: 2,
-    fontWeight: "600",
-    textAlign: "left",
-  },
-  verseText: { flex: 1 },
-});

@@ -23,13 +23,7 @@ import { deleteNoteWithUndo, useNoteDeleteStore } from "@/features/note/delete";
 import { useNoteImport } from "@/features/note/import";
 import { useNoteSearch } from "@/features/note/search";
 import { TABLET_BREAKPOINT } from "@/shared/lib";
-import {
-  AppHeader,
-  HeaderBrand,
-  HeaderIconButton,
-  scaled,
-  useTheme,
-} from "@/shared/ui";
+import { AppHeader, HeaderBrand, HeaderIconButton } from "@/shared/ui";
 import { NoteCard } from "./NoteCard";
 import { TabletWorkspace } from "./TabletWorkspace";
 
@@ -57,7 +51,6 @@ export function NotesPage() {
 
 function PhoneNotesList() {
   const router = useRouter();
-  const { colors, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
   const searchRef = useRef<TextInput>(null);
   const repo = useNoteRepo();
@@ -128,7 +121,7 @@ function PhoneNotesList() {
   }, [data.length]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 bg-bg">
       <AppHeader
         left={<HeaderBrand label="설교 노트" />}
         right={
@@ -160,40 +153,23 @@ function PhoneNotesList() {
         sections={sections}
         keyExtractor={(n) => n.id}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: 120 + insets.bottom },
-        ]}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
         ListHeaderComponent={
           <View>
-            <View style={styles.listHead}>
-              <Text
-                style={[
-                  styles.listTitle,
-                  { color: colors.ink, fontSize: scaled(30, fontScale) },
-                ]}
-              >
+            <View className="px-5.5 pt-3 pb-3">
+              <Text className="font-extrabold tracking-[-0.5px] text-ink text-display">
                 노트
               </Text>
-              <Text
-                style={[
-                  styles.listSub,
-                  { color: colors.ink3, fontSize: scaled(13, fontScale) },
-                ]}
-              >
-                {subtitleText}
-              </Text>
+              <Text className="mt-1 text-ink-3 text-label">{subtitleText}</Text>
             </View>
-            <View
-              style={[styles.searchBar, { backgroundColor: colors.chipBg }]}
-            >
+            <View className="mx-5.5 mb-[18px] px-3 rounded-10 min-h-10 justify-center bg-chip-bg">
               <TextInput
                 ref={searchRef}
-                style={[styles.searchInput, { color: colors.ink }]}
+                className="py-2 text-label min-h-10 text-ink"
                 value={query}
                 onChangeText={setQuery}
                 placeholder="검색 — 제목, 본문, 인용"
-                placeholderTextColor={colors.ink3}
+                placeholderTextColorClassName="text-ink-3"
                 accessibilityLabel="노트 검색"
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -203,32 +179,13 @@ function PhoneNotesList() {
           </View>
         }
         renderSectionHeader={({ section }) => (
-          <View style={styles.groupHead}>
-            <Text
-              style={[
-                styles.groupDate,
-                { color: colors.ink, fontSize: scaled(22, fontScale) },
-              ]}
-            >
+          <View className="flex-row items-baseline px-5.5 pt-5.5 pb-2 gap-2.5">
+            <Text className="font-bold tracking-[-0.4px] text-ink text-title">
               {section.date}
             </Text>
-            <Text
-              style={[
-                styles.groupDow,
-                { color: colors.ink3, fontSize: scaled(13, fontScale) },
-              ]}
-            >
-              {section.dow}
-            </Text>
-            <View
-              style={[styles.groupCount, { backgroundColor: colors.chipBg }]}
-            >
-              <Text
-                style={[
-                  styles.groupCountText,
-                  { color: colors.ink3, fontSize: scaled(11, fontScale) },
-                ]}
-              >
+            <Text className="text-ink-3 text-label">{section.dow}</Text>
+            <View className="ml-auto px-2 py-0.5 rounded-full self-center bg-chip-bg">
+              <Text className="font-semibold text-ink-3 text-caption">
                 {section.data.length}
               </Text>
             </View>
@@ -251,23 +208,19 @@ function PhoneNotesList() {
         )}
         ListEmptyComponent={
           isSearching ? (
-            <View style={styles.empty}>
-              <Text style={[styles.emptyText, { color: colors.ink3 }]}>
-                검색 결과 없음
-              </Text>
+            <View className={EMPTY}>
+              <Text className={EMPTY_TEXT}>검색 결과 없음</Text>
             </View>
           ) : (
-            <View style={styles.empty}>
-              <Text style={[styles.emptyText, { color: colors.ink3 }]}>
-                첫 번째 설교 노트를 시작하세요
-              </Text>
+            <View className={EMPTY}>
+              <Text className={EMPTY_TEXT}>첫 번째 설교 노트를 시작하세요</Text>
               <Pressable
-                style={[styles.startBtn, { backgroundColor: colors.ink }]}
+                className="px-6 py-3 rounded-full min-h-12 justify-center bg-ink"
                 onPress={createNote}
                 accessibilityRole="button"
                 accessibilityLabel="시작하기"
               >
-                <Text style={[styles.startBtnText, { color: colors.paper }]}>
+                <Text className="text-body font-semibold text-paper">
                   시작하기
                 </Text>
               </Pressable>
@@ -276,89 +229,29 @@ function PhoneNotesList() {
         }
       />
       <Pressable
-        style={[
-          styles.fab,
-          { backgroundColor: colors.ink, bottom: 24 + insets.bottom },
-        ]}
+        className="absolute right-[18px] size-fab rounded-full items-center justify-center bg-ink"
+        style={[styles.fabShadow, { bottom: 24 + insets.bottom }]}
         onPress={createNote}
         accessibilityRole="button"
         accessibilityLabel="새 노트"
       >
-        <Text style={[styles.fabText, { color: colors.paper }]}>＋</Text>
+        {/* ＋ 글리프는 icon/glyph/fab 28 고정 */}
+        <Text className="text-[28px] leading-[32px] font-light text-paper">＋</Text>
       </Pressable>
     </View>
   );
 }
 
+const EMPTY = "items-center pt-[120px] gap-4";
+const EMPTY_TEXT = "text-body-large text-ink-3";
+
+// 그림자는 iOS(shadow*)와 Android(elevation)가 갈려 style로 남긴다.
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  listContent: { paddingBottom: 120 },
-  listHead: {
-    paddingHorizontal: 22,
-    paddingTop: 12,
-    paddingBottom: 12,
-  },
-  listTitle: {
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  listSub: {
-    marginTop: 4,
-  },
-  searchBar: {
-    marginHorizontal: 22,
-    marginBottom: 18,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    minHeight: 40,
-    justifyContent: "center",
-  },
-  searchInput: {
-    paddingVertical: 8,
-    fontSize: 14,
-    minHeight: 40,
-  },
-  groupHead: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    paddingHorizontal: 22,
-    paddingTop: 22,
-    paddingBottom: 8,
-    gap: 10,
-  },
-  groupDate: { fontWeight: "700", letterSpacing: -0.4 },
-  groupDow: {},
-  groupCount: {
-    marginLeft: "auto",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-    alignSelf: "center",
-  },
-  groupCountText: { fontWeight: "600" },
-  empty: { alignItems: "center", paddingTop: 120, gap: 16 },
-  emptyText: { fontSize: 18 },
-  startBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 999,
-    minHeight: 48,
-    justifyContent: "center",
-  },
-  startBtnText: { fontSize: 16, fontWeight: "600" },
-  fab: {
-    position: "absolute",
-    right: 18,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
+  fabShadow: {
     shadowColor: "#000",
     shadowOpacity: 0.22,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
   },
-  fabText: { fontSize: 28, lineHeight: 32, fontWeight: "300" },
 });

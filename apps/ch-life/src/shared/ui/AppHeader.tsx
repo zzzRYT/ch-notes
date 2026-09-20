@@ -1,7 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme, scaled } from "./ThemeProvider";
 
 type Props = {
   /** Leading slot — brand eyebrow, back button, etc. */
@@ -20,65 +19,28 @@ type Props = {
  * background, leading + trailing slots, no rule by default.
  */
 export function AppHeader({ left, right, title, showRule = false }: Props) {
-  const { colors, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View
-      style={[
-        styles.container,
-        {
-          paddingTop: insets.top + 8,
-          backgroundColor: colors.bg,
-          borderBottomColor: showRule ? colors.rule : "transparent",
-          borderBottomWidth: showRule ? StyleSheet.hairlineWidth : 0,
-        },
-      ]}
+      className={`bg-bg pl-5 pr-3 pb-2 ${
+        showRule ? "border-b-hairline border-rule" : ""
+      }`}
+      style={{ paddingTop: insets.top + 8 }}
     >
-      <View style={styles.row}>
-        <View style={styles.leading}>{left}</View>
+      <View className="flex-row items-center min-h-10">
+        <View className="flex-row items-center">{left}</View>
         {title ? (
           <Text
             numberOfLines={1}
-            style={[
-              styles.title,
-              { color: colors.ink, fontSize: scaled(17, fontScale) },
-            ]}
+            className="text-ink text-body-large font-bold tracking-title ml-1.5"
           >
             {title}
           </Text>
         ) : null}
-        <View style={styles.spacer} />
-        <View style={styles.trailing}>{right}</View>
+        <View className="flex-1" />
+        <View className="flex-row items-center gap-0.5">{right}</View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingLeft: 20,
-    paddingRight: 12,
-    paddingBottom: 8,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 40,
-  },
-  leading: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  title: {
-    fontWeight: "700",
-    letterSpacing: -0.3,
-    marginLeft: 6,
-  },
-  spacer: { flex: 1 },
-  trailing: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-});

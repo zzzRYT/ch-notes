@@ -25,7 +25,7 @@ const NUMBER_TOKENS = [
 
   // ── 타입 스케일 6단계 (base 값만. ×fontScale 곱셈은 앱의 scaled()가 한다 — 결정 #5) ──
   ["text/size/display", 30, ["FONT_SIZE"], "홈 화면 제목", "scaled(30, fontScale)"],
-  ["text/size/title", 20, ["FONT_SIZE"], "그룹 헤더·패널 제목. 현재 20/22/16이 섞여 있다", "scaled(20, fontScale)"],
+  ["text/size/title", 20, ["FONT_SIZE"], "그룹 헤더·패널 제목·설교 제목 입력. 2026-09-20 className 전환으로 22→20 정리(ADR-0025)", "scaled(20, fontScale)"],
   ["text/size/body-large", 17, ["FONT_SIZE"], "노트 카드 제목·본문 에디터", "scaled(17, fontScale)"],
   ["text/size/body", 15, ["FONT_SIZE"], "인용 본문·설정 라벨", "scaled(15, fontScale)"],
   ["text/size/label", 13, ["FONT_SIZE"], "메타·칩·부제. census 최빈값(16건)", "scaled(13, fontScale)"],

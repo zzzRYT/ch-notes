@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTheme, scaled } from "@/shared/ui";
+import { Modal, Pressable, Text, View } from "react-native";
 import {
   addMonths,
   buildMonthGrid,
@@ -18,7 +17,6 @@ type Props = {
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
-  const { colors, fontScale, fontStack } = useTheme();
   const initial = parseYmd(value ?? "") ?? parseYmd(todayYmd())!;
   const [view, setView] = useState({
     year: initial.getFullYear(),
@@ -42,27 +40,25 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable
+        className="flex-1 bg-black/35 items-center justify-center p-6"
+        onPress={onClose}
+      >
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.paper }]}
+          className="w-full max-w-[360px] rounded-16 p-4 bg-paper"
           onPress={(e) => e.stopPropagation()}
         >
-          <View style={styles.head}>
+          <View className="flex-row items-center justify-between mb-2">
             <Pressable
               onPress={() => goMonth(-1)}
               accessibilityRole="button"
               accessibilityLabel="이전 달"
               hitSlop={12}
-              style={styles.navBtn}
+              className={NAV_BTN}
             >
-              <Text style={[styles.navText, { color: colors.ink2 }]}>‹</Text>
+              <Text className={NAV_GLYPH}>‹</Text>
             </Pressable>
-            <Text
-              style={[
-                styles.headTitle,
-                { color: colors.ink, fontFamily: fontStack, fontSize: scaled(17, fontScale) },
-              ]}
-            >
+            <Text className="font-bold text-ink font-body text-body-large">
               {view.year}년 {view.month0 + 1}월
             </Text>
             <Pressable
@@ -70,23 +66,26 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
               accessibilityRole="button"
               accessibilityLabel="다음 달"
               hitSlop={12}
-              style={styles.navBtn}
+              className={NAV_BTN}
             >
-              <Text style={[styles.navText, { color: colors.ink2 }]}>›</Text>
+              <Text className={NAV_GLYPH}>›</Text>
             </Pressable>
           </View>
 
-          <View style={styles.weekRow}>
+          <View className="flex-row">
             {WEEKDAYS.map((w) => (
-              <Text key={w} style={[styles.weekday, { color: colors.ink3 }]}>
+              <Text
+                key={w}
+                className={`${COL} text-center text-caption py-1 text-ink-3`}
+              >
                 {w}
               </Text>
             ))}
           </View>
 
-          <View style={styles.grid}>
+          <View className="flex-row flex-wrap">
             {grid.map((ymd, i) => {
-              if (!ymd) return <View key={`pad-${i}`} style={styles.cell} />;
+              if (!ymd) return <View key={`pad-${i}`} className={CELL} />;
               const day = Number(ymd.slice(8, 10));
               const selected = ymd === value;
               const isToday = ymd === today;
@@ -99,29 +98,25 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={isToday ? `${day}일 오늘` : `${day}일`}
-                  style={styles.cell}
+                  className={CELL}
                 >
                   <View
-                    style={[
-                      styles.cellInner,
-                      isToday &&
-                        !selected && {
-                          borderWidth: 1.5,
-                          borderColor: colors.accent,
-                        },
-                      selected && { backgroundColor: colors.accent },
-                    ]}
+                    className={`size-full rounded-full items-center justify-center ${
+                      selected
+                        ? "bg-accent"
+                        : isToday
+                          ? "border-[1.5px] border-accent"
+                          : ""
+                    }`}
                   >
                     <Text
-                      style={{
-                        color: selected
-                          ? colors.accentText
+                      className={`text-body ${
+                        selected
+                          ? "text-accent-text font-bold"
                           : isToday
-                            ? colors.accent
-                            : colors.ink,
-                        fontSize: scaled(15, fontScale),
-                        fontWeight: selected || isToday ? "700" : "400",
-                      }}
+                            ? "text-accent font-bold"
+                            : "text-ink font-normal"
+                      }`}
                     >
                       {day}
                     </Text>
@@ -138,9 +133,9 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
             }}
             accessibilityRole="button"
             accessibilityLabel="오늘 선택"
-            style={styles.todayBtn}
+            className="self-center mt-2 p-3"
           >
-            <Text style={[styles.todayText, { color: colors.accent }]}>오늘</Text>
+            <Text className="text-label font-semibold text-accent">오늘</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -148,59 +143,8 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
   );
 }
 
-const COLS = 7;
-const COL_WIDTH = `${100 / COLS}%` as const;
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  sheet: {
-    width: "100%",
-    maxWidth: 360,
-    borderRadius: 16,
-    padding: 16,
-  },
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  headTitle: { fontWeight: "700" },
-  navBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  navText: { fontSize: 24 },
-  weekRow: { flexDirection: "row" },
-  weekday: {
-    width: COL_WIDTH,
-    textAlign: "center",
-    fontSize: 12,
-    paddingVertical: 4,
-  },
-  grid: { flexDirection: "row", flexWrap: "wrap" },
-  cell: {
-    width: COL_WIDTH,
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 2,
-  },
-  cellInner: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  todayBtn: { alignSelf: "center", marginTop: 8, padding: 12 },
-  todayText: { fontSize: 14, fontWeight: "600" },
-});
+// 7열 그리드. 글리프 ‹ › 는 아이콘이라 fontScale을 타지 않는다(icon/glyph 계열).
+const COL = "w-[14.2857%]";
+const CELL = `${COL} aspect-square items-center justify-center p-0.5`;
+const NAV_BTN = "size-touch items-center justify-center";
+const NAV_GLYPH = "text-[24px] text-ink-2";

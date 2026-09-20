@@ -3,7 +3,7 @@
 ```yaml
 id: ADR-0025
 status: accepted
-statement: 앱 화면은 className으로 디자인 토큰을 쓸 수 있다. Tailwind 바인딩은 uniwind이고, uniwind 테마 이름은 Variation(minimal/paper/focus/dark) 그대로이며, 색 클래스 이름은 Figma 변수 이름(minimal/ink-2 → text-ink-2)과 같다. 팔레트의 원본은 여전히 ThemeProvider.tsx 하나이고 CSS는 거기서 생성한다.
+statement: 앱 화면은 className으로 디자인 토큰을 쓴다(2026-09-20 전면 적용). Tailwind 바인딩은 uniwind이고, uniwind 테마 이름은 Variation(minimal/paper/focus/dark) 그대로이며, 색 클래스 이름은 Figma 변수 이름(minimal/ink-2 → text-ink-2)과 같다. 팔레트의 원본은 여전히 ThemeProvider.tsx 하나이고 CSS는 거기서 생성한다.
 confidence: 기록됨
 source:
   - apps/ch-life/metro.config.js
@@ -11,6 +11,7 @@ source:
   - apps/ch-life/src/theme.colors.css
   - apps/ch-life/src/shared/ui/ThemeProvider.tsx
   - apps/ch-life/src/shared/ui/__tests__/ThemeProvider.test.tsx
+  - apps/ch-life/scripts/check-classnames.mjs
   - docs/design-system/figma-plugin/extract-colors.py
 ```
 
@@ -51,7 +52,10 @@ source:
 
 | 클래스 | 값 |
 |---|---|
-| `text-display` `text-title` `text-body-large` `text-body` `text-label` `text-caption` | 30/20/17/15/13/11 × fontScale, 행간 포함 |
+| `text-display` `text-title` `text-body-large` `text-body` `text-label` `text-caption` | 30/20/17/15/13/11 × fontScale. **크기만** — 행간은 `leading-[1.6]`처럼 비율로 따로 준다(uniwind가 fontSize에 곱한다). 실측 행간은 편집기 1.625·인용 본문 1.6·절 번호 1.82 |
+| `font-body` | 설정 `fontFamily`의 글꼴 스택(런타임 갱신) |
+| `text-[16px]` | **글리프 아이콘 전용**(`‹ › ≡ ✕ ✓ ＋ ◧ ⌕ ↑ ↗ ✉`). `icon/glyph/*` 크기를 고정으로 — fontScale을 타지 않는다 |
+| `border-hairline` `border-t/b/l/r-hairline` `h-hairline` | `StyleSheet.hairlineWidth` |
 | `font-normal` `font-semibold` `font-bold` | 400/600/700 (Tailwind 기본) |
 | `tracking-eyebrow` `tracking-title` | 0.6 / -0.3 |
 | `rounded-3` … `rounded-16`, `rounded-full` | census 실측 7종 |
@@ -63,7 +67,10 @@ source:
 
 - **새 색 토큰은 `ThemeProvider.tsx` 팔레트 4개에 넣고 `extract-colors.py`를 돌린다.** 그러면 Figma 플러그인 토큰과 CSS가 함께 갱신된다. `FIELDS` 목록에도 한 줄 더한다.
 - **타입 스케일은 두 곳이다** — `src/global.css`의 `--text-*`(초기값)와 `ThemeProvider.tsx`의 `TEXT_SCALE`(×fontScale 갱신용). 단계를 더하거나 값을 바꾸면 둘 다, 그리고 `primitives.js`의 `text/size/*`도. → [`B31`](../drift.md)
-- `useTheme()`와 `style`은 그대로 유효하다. 기존 화면을 옮기는 것은 이 결정의 범위가 아니다. 새 코드나 손대는 화면부터 className을 쓴다.
+- **화면은 전부 className이다**(2026-09-20 전면 적용, 27개 파일). `useTheme()`는 세 경우에만 남는다 — ⑴ lucide 아이콘·`ActivityIndicator`처럼 색을 `color` prop으로만 받는 것, ⑵ `Animated.View`·`KeyboardAwareScrollView` 같은 서드파티/애니메이션 컴포넌트(className이 닿지 않는다), ⑶ `blockStyle`·`density` 같은 비색상 축. 그림자(`shadow*`/`elevation`)와 `insets`로 계산하는 값도 `style`에 남긴다.
+- **크기는 역할로 맞췄다.** 코드에 있던 12/14/16/18/22px는 여섯 단계 어디에도 없어서 `primitives.js`의 설명대로 역할에 붙였다 — 칩·메타·검색창 14→`label`(13), 본문 입력·설정 라벨 16→`body`(15), 노트 제목·편집기·성경 본문 16~18→`body-large`(17), 그룹 날짜 22→`title`(20), 힌트·요일·배지 10~12→`caption`(11). 애매하면 작은 쪽. 그래서 기본 fontScale 1.2에서 이 텍스트들은 **처음으로 배율을 받는다**(B27·B29 해소, E22 제안).
+- 텍스트로 그린 아이콘 글리프는 `text-[Npx]`로 **고정**한다. `primitives.js`가 `icon/glyph/*`를 텍스트와 분리한 것과 같은 선이다. 이 경계는 사용자 확정 전이다(E22).
+- 검증은 `node scripts/check-classnames.mjs`다. uniwind는 스타일시트에 없는 클래스를 **조용히 무시**하므로(`store.ts`) 오타는 typecheck·lint·jest 어느 것에도 걸리지 않는다 — 소스의 모든 className 토큰을 `--no-bytecode` 번들의 스타일시트 키와 대조한다.
 - `Uniwind.setTheme("dark")`는 `Appearance.setColorScheme("dark")`도 부른다. dark 변형에서는 네이티브 요소(키보드·알림창)도 어두워진다 — 이전에는 OS를 따랐다. 다른 세 변형은 이전과 같이 OS를 따른다.
 - `uniwind-types.d.ts`는 Metro가 생성하지만 **커밋한다.** CI의 `tsc`는 Metro 없이 돌기 때문이다.
 - Tailwind는 `global.css`가 있는 폴더 아래만 스캔한다. 그래서 CSS가 `src/app/`이 아니라 `src/` 루트에 있다. 옮기면 클래스가 조용히 사라진다.

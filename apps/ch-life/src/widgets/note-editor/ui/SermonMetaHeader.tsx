@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, type RefObject } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { Calendar } from "lucide-react-native";
 import { validateScripture } from "@/features/scripture/insert";
 import { useTheme, scaled } from "@/shared/ui";
@@ -29,7 +29,8 @@ function toNull(v: string): string | null {
 }
 
 export function SermonMetaHeader(props: SermonMetaHeaderProps) {
-  const { colors, fontScale, fontStack } = useTheme();
+  // lucide 아이콘 색·크기만 prop으로 받는다.
+  const { colors, fontScale } = useTheme();
   const [dateOpen, setDateOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -97,31 +98,17 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
   const scriptureValid =
     !!props.scripture && validateScripture(props.scripture).valid;
 
-  const labelStyle = [
-    styles.label,
-    { color: colors.ink3, fontSize: scaled(13, fontScale) },
-  ];
-  const fieldText = {
-    color: colors.ink,
-    fontFamily: fontStack,
-    fontSize: scaled(16, fontScale),
-  };
-
   return (
-    <View style={[styles.root, { borderBottomColor: colors.rule }]}>
-      <View style={styles.row}>
-        <Text style={labelStyle}>제목</Text>
+    <View className="px-6 pt-3 pb-2 border-b-hairline border-rule gap-0.5">
+      <View className={ROW}>
+        <Text className={LABEL}>제목</Text>
         <TextInput
           ref={titleRef}
-          style={[
-            styles.input,
-            fieldText,
-            { fontWeight: "700", fontSize: scaled(20, fontScale) },
-          ]}
+          className={`${INPUT} font-bold text-title`}
           value={props.title ?? ""}
           onChangeText={(t) => props.onChangeTitle(toNull(t))}
           placeholder="설교 제목"
-          placeholderTextColor={colors.ink3}
+          placeholderTextColorClassName="text-ink-3"
           accessibilityLabel="설교 제목"
           maxLength={120}
           returnKeyType="next"
@@ -130,12 +117,12 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
         />
       </View>
 
-      <View style={styles.row}>
-        <Text style={labelStyle}>날짜</Text>
-        <View style={styles.dateField}>
+      <View className={ROW}>
+        <Text className={LABEL}>날짜</Text>
+        <View className={FIELD_GROUP}>
           <TextInput
             ref={dateRef}
-            style={[styles.input, fieldText]}
+            className={`${INPUT} text-body`}
             value={dateText}
             onChangeText={setDateText}
             onFocus={() => {
@@ -146,7 +133,7 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
               commitDate();
             }}
             placeholder="예: 2026-05-30"
-            placeholderTextColor={colors.ink3}
+            placeholderTextColorClassName="text-ink-3"
             accessibilityLabel="설교 날짜"
             keyboardType="numbers-and-punctuation"
             autoCapitalize="none"
@@ -164,14 +151,7 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
             accessibilityRole="button"
             accessibilityLabel="달력에서 날짜 선택"
             hitSlop={8}
-            style={({ pressed }) => [
-              styles.dateBtn,
-              {
-                backgroundColor: colors.accentSoft,
-                borderColor: colors.rule,
-                opacity: pressed ? 0.6 : 1,
-              },
-            ]}
+            className="w-10 h-9 rounded-8 border-hairline border-rule items-center justify-center bg-accent-soft active:opacity-60"
           >
             <Calendar
               size={scaled(18, fontScale)}
@@ -182,15 +162,15 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
         </View>
       </View>
 
-      <View style={styles.row}>
-        <Text style={labelStyle}>설교자</Text>
+      <View className={ROW}>
+        <Text className={LABEL}>설교자</Text>
         <TextInput
           ref={preacherRef}
-          style={[styles.input, fieldText]}
+          className={`${INPUT} text-body`}
           value={props.preacher ?? ""}
           onChangeText={(t) => props.onChangePreacher(toNull(t))}
           placeholder="설교자 이름"
-          placeholderTextColor={colors.ink3}
+          placeholderTextColorClassName="text-ink-3"
           accessibilityLabel="설교자"
           maxLength={60}
           returnKeyType="next"
@@ -199,15 +179,15 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
         />
       </View>
 
-      <View style={styles.row}>
-        <Text style={labelStyle}>장소</Text>
+      <View className={ROW}>
+        <Text className={LABEL}>장소</Text>
         <TextInput
           ref={locationRef}
-          style={[styles.input, fieldText]}
+          className={`${INPUT} text-body`}
           value={props.location ?? ""}
           onChangeText={(t) => props.onChangeLocation(toNull(t))}
           placeholder="예배 장소"
-          placeholderTextColor={colors.ink3}
+          placeholderTextColorClassName="text-ink-3"
           accessibilityLabel="장소"
           maxLength={60}
           returnKeyType="next"
@@ -216,16 +196,16 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
         />
       </View>
 
-      <View style={[styles.row, styles.lastRow]}>
-        <Text style={labelStyle}>생명양식</Text>
-        <View style={styles.scriptureField}>
+      <View className={ROW}>
+        <Text className={LABEL}>생명양식</Text>
+        <View className={FIELD_GROUP}>
           <TextInput
             ref={scriptureRef}
-            style={[styles.input, styles.scriptureInput, fieldText]}
+            className={`${INPUT} text-body`}
             value={props.scripture ?? ""}
             onChangeText={(t) => props.onChangeScripture(toNull(t))}
             placeholder="본문 (예: 요 3:16)"
-            placeholderTextColor={colors.ink3}
+            placeholderTextColorClassName="text-ink-3"
             accessibilityLabel="생명양식 본문"
             maxLength={40}
             autoCapitalize="none"
@@ -234,7 +214,7 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
             onSubmitEditing={() => focusNext("scripture")}
           />
           {scriptureValid && (
-            <Text style={[styles.check, { color: colors.accent }]}>✓</Text>
+            <Text className="text-[16px] font-bold text-accent">✓</Text>
           )}
           <Pressable
             onPress={() => setPreviewOpen(true)}
@@ -242,13 +222,10 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
             accessibilityRole="button"
             accessibilityLabel="본문 보기"
             hitSlop={8}
-            style={styles.bookBtn}
+            className="min-w-8 min-h-8 items-center justify-center"
           >
             <Text
-              style={{
-                opacity: scriptureValid ? 1 : 0.3,
-                fontSize: 18,
-              }}
+              className={`text-[18px] ${scriptureValid ? "opacity-100" : "opacity-30"}`}
             >
               📖
             </Text>
@@ -271,49 +248,7 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 2,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 44,
-    gap: 12,
-  },
-  lastRow: {},
-  label: { width: 64, fontWeight: "600" },
-  input: { flex: 1, paddingVertical: 8 },
-  dateField: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  dateBtn: {
-    width: 40,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  scriptureField: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  scriptureInput: { flex: 1 },
-  check: { fontSize: 16, fontWeight: "700" },
-  bookBtn: {
-    minWidth: 32,
-    minHeight: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+const ROW = "flex-row items-center min-h-touch gap-3";
+const LABEL = "w-16 font-semibold text-ink-3 text-label";
+const INPUT = "flex-1 py-2 text-ink font-body";
+const FIELD_GROUP = "flex-1 flex-row items-center gap-1.5";

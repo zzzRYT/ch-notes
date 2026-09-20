@@ -1,7 +1,7 @@
 import React from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { Note } from "@/entities/note";
-import { SwipeToDelete, useTheme, scaled } from "@/shared/ui";
+import { SwipeToDelete, useTheme } from "@/shared/ui";
 import { formatNoteCard } from "../lib/format-card";
 
 type Props = {
@@ -23,7 +23,7 @@ export function NoteCard({
   onSwipeClose,
   onDelete,
 }: Props) {
-  const { colors, fontScale, density } = useTheme();
+  const { density } = useTheme();
   const compact = density === "compact";
   const { title, timeLabel, preacher, scripture } = formatNoteCard(note);
   const hasSub = !!(preacher || scripture);
@@ -42,37 +42,26 @@ export function NoteCard({
       onAccessibilityAction={(event) => {
         if (event.nativeEvent.actionName === "delete") onDelete?.();
       }}
-      style={[
-        styles.row,
-        compact ? styles.rowCompact : styles.rowRegular,
-        {
-          backgroundColor: colors.bg,
-          borderTopColor: isFirst ? "transparent" : colors.rule,
-        },
-      ]}
+      className={`flex-row px-5.5 gap-3 border-t-hairline bg-bg ${
+        compact ? "py-2.5" : "py-3.5"
+      } ${isFirst ? "border-transparent" : "border-rule"}`}
     >
-      <Text
-        style={[styles.time, { color: colors.ink3, fontSize: scaled(13, fontScale) }]}
-      >
-        {timeLabel}
-      </Text>
-      <View style={styles.body}>
+      <Text className="w-14 pt-0.5 text-ink-3 text-label">{timeLabel}</Text>
+      <View className="flex-1 gap-[3px]">
         <Text
           numberOfLines={1}
-          style={[styles.title, { color: colors.ink, fontSize: scaled(17, fontScale) }]}
+          className="font-semibold tracking-[-0.2px] text-ink text-body-large"
         >
           {title}
         </Text>
         {hasSub && (
-          <Text numberOfLines={1} style={[styles.sub, { fontSize: scaled(13, fontScale) }]}>
-            {preacher && <Text style={{ color: colors.ink3 }}>{preacher}</Text>}
+          <Text numberOfLines={1} className="text-label">
+            {preacher && <Text className="text-ink-3">{preacher}</Text>}
             {preacher && scripture && (
-              <Text style={{ color: colors.ink3 }}>{"  ·  "}</Text>
+              <Text className="text-ink-3">{"  ·  "}</Text>
             )}
             {scripture && (
-              <Text style={{ color: colors.ink2, fontWeight: "600" }}>
-                {scripture}
-              </Text>
+              <Text className="text-ink-2 font-semibold">{scripture}</Text>
             )}
           </Text>
         )}
@@ -95,17 +84,3 @@ export function NoteCard({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    paddingHorizontal: 22,
-    gap: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  rowRegular: { paddingVertical: 14 },
-  rowCompact: { paddingVertical: 10 },
-  time: { width: 56, paddingTop: 2 },
-  body: { flex: 1, gap: 3 },
-  title: { fontWeight: "600", letterSpacing: -0.2 },
-  sub: {},
-});

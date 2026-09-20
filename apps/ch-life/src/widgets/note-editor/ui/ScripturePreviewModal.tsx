@@ -1,9 +1,8 @@
 import React from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text } from "react-native";
 import { makeQuoteBlock, type QuoteBlockNode } from "@/entities/note";
 import { BUNDLED_EDITION_ID } from "@/entities/scripture";
 import { validateScripture } from "@/features/scripture/insert";
-import { useTheme } from "@/shared/ui";
 import { QuoteBlock } from "./QuoteBlock";
 
 type Props = {
@@ -17,7 +16,6 @@ export function ScripturePreviewModal({
   scripture,
   onClose,
 }: Props) {
-  const { colors } = useTheme();
   const verses = scripture ? validateScripture(scripture).verses : null;
   const previewBlock: QuoteBlockNode | null =
     scripture && verses
@@ -31,16 +29,19 @@ export function ScripturePreviewModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      <Pressable
+        className="flex-1 bg-black/35 items-center justify-center p-6"
+        onPress={onClose}
+      >
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.paper }]}
+          className="w-full max-w-[420px] max-h-[70%] rounded-16 p-4 bg-paper"
           onPress={(e) => e.stopPropagation()}
         >
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView contentContainerClassName="py-2">
             {previewBlock ? (
               <QuoteBlock {...previewBlock} />
             ) : (
-              <Text style={[styles.empty, { color: colors.ink3 }]}>
+              <Text className="text-center py-6 text-label text-ink-3">
                 본문을 찾을 수 없습니다
               </Text>
             )}
@@ -49,11 +50,9 @@ export function ScripturePreviewModal({
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel="닫기"
-            style={styles.closeBtn}
+            className="self-center mt-2 p-3"
           >
-            <Text style={[styles.closeText, { color: colors.accent }]}>
-              닫기
-            </Text>
+            <Text className="text-label font-semibold text-accent">닫기</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -61,36 +60,3 @@ export function ScripturePreviewModal({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  sheet: {
-    width: "100%",
-    maxWidth: 420,
-    maxHeight: "70%",
-    borderRadius: 16,
-    padding: 16,
-  },
-  content: {
-    paddingVertical: 8,
-  },
-  empty: {
-    textAlign: "center",
-    paddingVertical: 24,
-    fontSize: 14,
-  },
-  closeBtn: {
-    alignSelf: "center",
-    marginTop: 8,
-    padding: 12,
-  },
-  closeText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-});
