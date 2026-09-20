@@ -34,6 +34,7 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
 - **자동**: `main` CI가 통과하면 `eas-update.yml`이 Hot Updater `preview` 채널로 발행한다.
 - **수동 production**: GitHub Actions → "Hot Updater (OTA)" → `production` 선택. **`release/<버전>` 가지에서만** 된다 — 다른 ref면 워크플로가 거부한다.
 - **발행 전 `src/shared/config/version.ts`의 `OTA_RELEASE`를 +1** 하고, 그 변경도 릴리스 가지로 PR을 열어 CI를 통과시킨 뒤 병합한다. 발행 후 `v<버전>+<번호>` 태그를 붙인다.
+- 발행에 성공하면 해당 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 OTA가 끝난다.
 - 로컬: `pnpm exec hot-updater deploy --channel production --target-app-version <version>`.
 - `--force-update`는 사용하지 않는다. 현재 세션은 재시작하지 않는다.
 
@@ -43,6 +44,7 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
   `development`) + platform(`all`/`ios`/`android`) 선택. 크레딧 절약 위해 `--no-wait`로
   큐에 넣고 빌드 URL만 반환한다.
 - `production` 프로필은 `autoIncrement: true`(빌드번호 자동 증가).
+- 스토어 공개와 태그 뒤, 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 릴리스가 끝난다.
 
 ## 스토어 업데이트 안내 (빌드 뒤 마지막 단계)
 
@@ -57,6 +59,7 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
 
 - [ ] `pnpm typecheck && pnpm lint && pnpm test:ci` 로컬 통과 (CI와 동일).
 - [ ] 발행할 커밋이 **릴리스 가지에 PR로 병합되어 CI를 통과한** 커밋인가.
+- [ ] 릴리스 가지의 버전 bump·핫픽스·`OTA_RELEASE`를 임시 역머지 PR로 `main`에 반영했는가 (`wiki/git.md` 5절). 이것까지가 배포 완료 조건이다.
 - [ ] OTA면 `OTA_RELEASE` 를 올렸는가. 새 스토어 버전이면 `0`으로 되돌렸는가.
 - [ ] 스토어에 새 버전이 실제로 올라갔다면 `website/app-version.json`을 올렸는가 (심사 통과 **뒤**, `main`으로 별도 PR).
 - [ ] 네이티브 변경이면 OTA 아님 → Build 경로 확인.
