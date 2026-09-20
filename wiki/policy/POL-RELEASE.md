@@ -35,7 +35,7 @@ requirement: MUST
 statement: 네트워크에 한 번도 닿지 않아도 스토어에서 설치한 앱은 모든 기능이 동작하고, 업데이트 확인의 실패나 지연이 사용을 막지 않는다.
 confidence: 코드추론
 source:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
   - wiki/decisions/ADR-0012-local-only.md
 verified_by:
   - manual: 비행기 모드에서 설치 직후 실행
@@ -59,9 +59,9 @@ requirement: MUST
 statement: 업데이트는 진행 중인 작성을 끊지 않고, 그 업데이트를 되돌리더라도 사이에 저장된 노트를 열 수 없거나 내보낼 수 없게 만들지 않는다.
 confidence: 코드추론
 source:
-  - apps/ch-life/src/db/migrate.ts
-  - apps/ch-life/src/domain/types.ts
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/entities/note/api/migrate.ts
+  - apps/ch-life/src/entities/note/model/types.ts
+  - apps/ch-life/src/app/_layout.tsx
 verified_by:
   - manual: 번들 되돌린 뒤 그 사이 작성한 노트를 열고 내보내기
 waiver: 실제 발행 두 번과 실기기 없이는 재현되지 않는다(drift C3).

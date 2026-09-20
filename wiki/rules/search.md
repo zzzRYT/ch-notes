@@ -14,11 +14,11 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 노트 검색은 title과 cited_refs만 대상으로 한다. body_text 컬럼은 색인 구조상 존재하지만 언제나 빈 문자열이 들어가므로, 본문 검색은 동작하지 않는다.
 implemented_by:
-  - apps/ch-life/src/db/schema.sql (notes_ai / notes_au 트리거)
-  - apps/ch-life/src/db/index.ts (인라인 스키마)
+  - apps/ch-life/src/entities/note/api/schema.sql (notes_ai / notes_au 트리거)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (NOTE_SCHEMA_SQL 인라인 스키마)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/migrations.test.ts#notes 인서트 시 FTS 트리거가 행을 동기화한다
-  - test: apps/ch-life/src/db/__tests__/note-repo-search.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrations.test.ts#notes 인서트 시 FTS 트리거가 행을 동기화한다
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts
 confidence: 기록됨
 source:
   - apps/ch-life/CLAUDE.md ("body_text는 빈 문자열로 색인됨 → 본문 검색 안 됨")
@@ -38,9 +38,9 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 검색어는 FTS 접두 질의(query*)로 변환된다. 토큰의 앞부분과만 일치하며, 단어 중간 일치는 되지 않는다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (searchNotes)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (searchNotes)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo-search.test.ts#제목 prefix 검색
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts#제목 prefix 검색
 confidence: 코드추론
 ```
 
@@ -56,9 +56,9 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 검색어에서 작은따옴표와 큰따옴표를 제거한 뒤 질의한다. 제거 후 남는 것이 없으면 빈 결과를 반환한다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (searchNotes)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (searchNotes)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo-search.test.ts#따옴표는 sanitize되어 SQL 오류 없이 빈 결과
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts#따옴표는 sanitize되어 SQL 오류 없이 빈 결과
 confidence: 코드추론
 ```
 
@@ -72,7 +72,7 @@ policy: POL-NOTE-003
 requirement: SHOULD
 statement: 검색창 입력이 멈춘 뒤 200ms에 질의하고, 입력이 비면 즉시 전체 목록으로 되돌아간다. 결과가 없으면 "검색 결과 없음"을 보여준다.
 implemented_by:
-  - apps/ch-life/app/index.tsx
+  - apps/ch-life/src/pages/notes/ui/NotesPage.tsx
 verified_by:
   - manual: 검색어 입력 시 결과 갱신, 지우면 전체 목록 복귀
 confidence: 코드추론
@@ -87,10 +87,10 @@ id: RULE-SEARCH-005
 policy: POL-NOTE-003
 statement: cited_refs에는 인용을 만든 경로에 따라 서로 다른 표기가 저장된다. 따라서 같은 절이라도 검색어 형태에 따라 찾히기도 하고 찾히지 않기도 한다.
 implemented_by:
-  - apps/ch-life/src/editor/cited-refs.ts
-  - apps/ch-life/src/browser/VerseList.tsx
+  - apps/ch-life/src/entities/note/model/cited-refs.ts
+  - apps/ch-life/src/widgets/scripture-browser/ui/VerseList.tsx
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo-search.test.ts#citedRefs 검색
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts#citedRefs 검색
 confidence: 코드추론
 ```
 
@@ -112,9 +112,9 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 검색 결과는 created_at 내림차순으로 정렬된다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (searchNotes)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (searchNotes)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo-search.test.ts#최신 updated_at 우선
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts#최신 updated_at 우선
 confidence: 코드추론
 ```
 
@@ -129,7 +129,7 @@ id: RULE-SEARCH-007
 policy: POL-NOTE-003
 statement: 검색 결과는 최대 200건까지만 반환된다. 그 뒤는 조용히 잘린다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (searchNotes — LIMIT 200)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (searchNotes — LIMIT 200)
 confidence: 코드추론
 ```
 

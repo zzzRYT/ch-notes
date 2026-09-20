@@ -41,8 +41,8 @@ id: POL-NOTE-003
 statement: 노트는 날짜별로 묶여 최신순으로 보이고, 제목과 인용한 구절로 찾을 수 있어야 한다.
 confidence: 코드추론
 source:
-  - apps/ch-life/src/list/group-notes.ts
-  - apps/ch-life/src/db/note-repo.ts (searchNotes)
+  - apps/ch-life/src/entities/note/lib/group-notes.ts
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (searchNotes)
 ```
 
 목록은 작성일 기준으로 그룹핑되고 최신 날짜가 위에 온다. 검색은 **제목과 인용된 참조만** 대상으로 한다 — 본문 검색은 현재 동작하지 않으며, 이는 알려진 제약이다([`RULE-SEARCH-001`](../rules/search.md), [`ADR-0007`](../decisions/ADR-0007-fts-scope.md)).

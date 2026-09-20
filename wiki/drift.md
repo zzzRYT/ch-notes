@@ -42,13 +42,13 @@
 의도된 설계가 아니라, 고치지 않으면 언젠가 조용히 깨지는 지점이다.
 
 ### B1. 스키마 DDL이 두 곳에 있고 이미 다르다
-`apps/ch-life/src/db/index.ts`의 인라인 스키마에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있고 `schema.sql`에는 없다. 프로덕션은 인라인을, 테스트는 파일을 쓴다. → [`ADR-0006`](decisions/ADR-0006-duplicated-schema.md)
+`apps/ch-life/src/entities/note/api/sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL`에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있고 `schema.sql`에는 없다. 프로덕션은 인라인을, 테스트는 파일을 쓴다. → [`ADR-0006`](decisions/ADR-0006-duplicated-schema.md)
 
-### B2. 900px 분기 상수가 두 곳에 복제
-`apps/ch-life/app/index.tsx`의 `TABLET_BREAKPOINT = 900`과 `apps/ch-life/src/browser/useResponsiveLayout.ts`의 `width >= 900`. 한쪽만 바꾸면 목록은 태블릿인데 성경은 시트로 뜬다. → [`RULE-UI-001`](rules/layout-a11y.md)
+### B2. ~~900px 분기 상수가 두 곳에 복제~~ (2026-09-20 해소)
+FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps/ch-life/src/shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT` 하나로 합쳤다. 목록 화면도 그 상수를 읽는다. → [`RULE-UI-001`](rules/layout-a11y.md)
 
-### B3. `makeId()`가 두 곳에 복제
-`apps/ch-life/src/db/note-repo.ts`와 `apps/ch-life/src/markdown/parse.ts`. 한쪽만 바꾸면 가져오기로 만든 노트와 앱에서 만든 노트의 id 형식이 갈린다. → [`RULE-NOTE-003`](rules/note-persistence.md)
+### B3. ~~`makeId()`가 두 곳에 복제~~ (2026-09-20 해소)
+`apps/ch-life/src/entities/note/lib/make-id.ts` 하나를 저장소와 마크다운 파서가 같이 쓴다. → [`RULE-NOTE-003`](rules/note-persistence.md)
 
 ### B4. `citedRefs` 표기가 경로마다 다르다
 자동완성은 사용자가 친 그대로(`창1:1`), 브라우저 삽입은 정식 이름(`창세기 1:1`), 가져오기는 파일에 있던 값. 화면에는 모두 정식 이름으로 보이지만 **검색 결과가 달라진다.** → [`RULE-SEARCH-005`](rules/search.md)
@@ -58,9 +58,8 @@
 
 ### B6. 도달할 수 없는 코드
 - `QuoteBlock`의 `loading` / `error` 분기 — 생성하는 경로가 없다.
-- `InsertMode`의 `"newNote"` — 쓰는 화면이 없다([`ADR-0011`](decisions/ADR-0011-bible-entrypoints.md) 이후).
-- `app-store`의 `pendingInsertRef` / `requestInsertRef` — 넣는 쪽이 사라졌다.
-- `settings.lastOpenedNoteId` — 읽는 곳이 없다.
+- ~~`InsertMode`의 `"newNote"`~~, ~~`app-store`의 `pendingInsertRef` / `requestInsertRef`~~, ~~`currentNoteId`~~ — 2026-09-20 FSD 전환에서 지웠다([`ADR-0011`](decisions/ADR-0011-bible-entrypoints.md) 이후 사문이었다).
+- `settings.lastOpenedNoteId` — 읽는 곳이 없다. 파일 형식 호환 때문에 `Settings` 타입에는 남긴다([`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md)).
 - `settings.themePreference` — 색에 영향을 주지 않는다([`RULE-SET-003`](rules/settings-theme.md)).
 - `repo.delete` — UI에서 호출되지 않는다([`RULE-NOTE-007`](rules/note-persistence.md)).
 
@@ -81,7 +80,7 @@
 ### B9. 테마 토큰이 두 세대 공존
 `ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다. 성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`)는 아직 **테마를 쓰지 않고 하드코딩된 색**(`#f4f4f4`, `#222`)을 쓴다 → 다크 변형에서 이 화면들만 밝다.
 
-**범위는 이보다 넓다.** `useTheme`을 쓰지 않는 파일은 셋이 아니라 **다섯**이다 — 위 셋에 `src/browser/ChapterGrid.tsx`와 `src/list/SwipeToDelete.tsx`가 더 있다. 그리고 미적용은 색에 그치지 않는다: 이 다섯 파일은 `scaled()`도 쓰지 않아 **성경 본문이 글자 크기 설정과 무관하게 항상 16px 고정**이다(`src/browser/VerseList.tsx:140`).
+**범위는 이보다 넓다.** `useTheme`을 쓰지 않는 파일은 셋이 아니라 **다섯**이다 — 위 셋에 `src/widgets/scripture-browser/ui/ChapterGrid.tsx`와 `src/shared/ui/SwipeToDelete.tsx`가 더 있다. 그리고 미적용은 색에 그치지 않는다: 이 다섯 파일은 `scaled()`도 쓰지 않아 **성경 본문이 글자 크기 설정과 무관하게 항상 16px 고정**이다(`src/widgets/scripture-browser/ui/VerseList.tsx:140`).
 
 두 세대의 관계도 균일하지 않다. 레거시 필드를 읽는 파일 18개, 신 토큰을 읽는 파일 17개, **양쪽을 동시에 쓰는 파일이 15개**다. 값으로 보면 `surface`·`text`·`line`·`quoteBar` 네 필드는 4개 팔레트 **전부에서** `paper`·`ink`·`rule`·`ink4`와 바이트 단위로 동일해 순수 개명으로 지울 수 있지만, `bg`·`subtle`·`chipBg`·`chipText`·`accentText`는 대응하는 신 토큰이 없거나 값이 달라 그대로 살려야 한다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
 
@@ -102,25 +101,23 @@
 ### B12. 책 토큰 정규식이 세 곳에 복제되어 서로 다르다
 | 파일 | 영문 책 토큰 |
 |---|---|
-| `parser/ref-parser.ts` | `[A-Za-z][A-Za-z\s]{0,20}` |
-| `editor/useAutocomplete.ts` | `[A-Za-z]{2,20}` (공백 불가, 2자 이상) |
-| `browser/browser-search.ts` | `[A-Za-z][A-Za-z\s]{0,20}` |
+| `entities/scripture/model/ref-parser.ts` | `[A-Za-z][A-Za-z\s]{0,20}` |
+| `features/scripture/insert/model/autocomplete.ts` | `[A-Za-z]{2,20}` (공백 불가, 2자 이상) |
+| `widgets/scripture-browser/lib/browser-search.ts` | `[A-Za-z][A-Za-z\s]{0,20}` |
 
 셋을 묶는 공유 상수도, 일치를 검증하는 테스트도 없다. 이미 어긋나 있고(B10) 성경 브라우저 검색창도 같은 17권 한계를 갖는다.
 
 ### B13. 66권 한국어 정식명이 두 표에 따로 있다
-`parser/book-map.ts`의 `ALIAS_TABLE[].aliases[0]`(= `bookDisplayName`)과 `browser/books-meta.ts`의 `BOOKS_META[].nameKo`. 지금은 66권 전부 일치하지만 교차 검증 테스트가 없다. 어긋나면 **삽입되는 참조 문자열**(`nameKo` 사용)과 **화면에 보이는 참조**(`bookDisplayName` 사용)가 갈린다.
+`entities/scripture/model/book-map.ts`의 `ALIAS_TABLE[].aliases[0]`(= `bookDisplayName`)과 `entities/scripture/api/books-meta.ts`의 `BOOKS_META[].nameKo`. 지금은 66권 전부 일치하지만 교차 검증 테스트가 없다. 어긋나면 **삽입되는 참조 문자열**(`nameKo` 사용)과 **화면에 보이는 참조**(`bookDisplayName` 사용)가 갈린다.
 
-### B14. 인용 삽입 로직이 네 곳에 손으로 복제되어 있다
-`{type:'quote', ref, verses, status:'loaded'}` 리터럴을 만드는 곳이 공유 팩토리 없이 네 군데다 — `editor/NoteEditor.tsx`(자동완성), `app/note/[id].tsx`(폰 브라우저 삽입), `workspace/TabletWorkspace.tsx`(태블릿, 폰 코드와 사실상 동일), `markdown/parse.ts`(가져오기). [`RULE-EDIT-007`](rules/editor-insert.md)의 "status는 항상 loaded"는 이 네 곳이 계속 리터럴을 유지해야만 성립하고 타입이 강제하지 않는다.
-
-`handleExport`(fresh 조회 → 화면 state 덮어쓰기 → `citedRefs` 재계산)도 `app/note/[id].tsx`와 `TabletWorkspace.tsx`에 같은 방식으로 복제되어 있다.
+### B14. ~~인용 삽입 로직이 네 곳에 손으로 복제되어 있다~~ (2026-09-20 대부분 해소)
+FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/citation.ts`의 `makeQuoteBlock` 하나로 모았고(자동완성·브라우저 삽입·미리보기·태블릿 인용 패널 전부), 폰·태블릿의 불러오기→자동저장→삽입→내보내기 페이로드는 `apps/ch-life/src/widgets/note-editor/model/useNoteDraft.ts` 한 훅이 된다. **남은 리터럴은 하나** — `entities/note/api/markdown-parse.ts`의 가져오기 경로. `(KRV)` 헤더 판별 뒤 `editionId`를 채워야 해서 팩토리를 거치지 않는다. [`RULE-EDIT-007`](rules/editor-insert.md)의 "status는 항상 loaded"는 여전히 타입이 아니라 이 두 곳의 리터럴이 지킨다.
 
 ### B15. 설정 enum 값이 세 파일에 중복
-`variation`·`blockStyle`·`fontFamily`·`accentChoice` 모두 `domain/types.ts` 유니온 → `state/settings-validator.ts`의 `ALLOWED_*` → `app/settings.tsx`의 옵션 배열 순으로 값이 반복된다. `accentChoice`의 hex 6개는 세 파일에 각각 리터럴로 박혀 있다. `fontScale`은 **전체 거부** 필드라([`RULE-SET-002`](rules/settings-theme.md)) 유니온에만 값을 더하고 validator를 빠뜨리면 사용자의 `settings.json` 전체가 버려지고 기본값으로 리셋된다.
+`variation`·`blockStyle`·`fontFamily`·`accentChoice` 모두 `shared/ui/ThemeProvider.tsx` 유니온 → `features/settings/change/model/settings-validator.ts`의 `ALLOWED_*` → `src/pages/settings/ui/SettingsPage.tsx`의 옵션 배열 순으로 값이 반복된다. `accentChoice`의 hex 6개는 세 파일에 각각 리터럴로 박혀 있다. `fontScale`은 **전체 거부** 필드라([`RULE-SET-002`](rules/settings-theme.md)) 유니온에만 값을 더하고 validator를 빠뜨리면 사용자의 `settings.json` 전체가 버려지고 기본값으로 리셋된다.
 
 ### B16. 가져오기 "덮어쓰기"가 없는 필드를 지운다
-`markdown/parse.ts`의 `toStringOrNull`/`toDateString`은 frontmatter에 키가 없을 때 `undefined`가 아니라 **`null`**을 반환하고, `share/import-note.ts`는 그대로 `repo.update` 패치에 넣는다. `repo.update`에서 `null`은 "비움"이다([`RULE-NOTE-002`](rules/note-persistence.md)). `preacher:`가 없는 외부 `.md`로 덮어쓰면 **기존 설교자 값이 사라진다.** 자동 테스트 없음.
+`entities/note/api/markdown-parse.ts`의 `toStringOrNull`/`toDateString`은 frontmatter에 키가 없을 때 `undefined`가 아니라 **`null`**을 반환하고, `features/note/import/model/import-note.ts`는 그대로 `repo.update` 패치에 넣는다. `repo.update`에서 `null`은 "비움"이다([`RULE-NOTE-002`](rules/note-persistence.md)). `preacher:`가 없는 외부 `.md`로 덮어쓰면 **기존 설교자 값이 사라진다.** 자동 테스트 없음.
 
 ### B17. 가져온 노트가 작성 시각을 잃는다
 `repo.create`의 입력 타입에 `createdAt`/`updatedAt`이 없고 두 컬럼 모두 `Date.now()`로 채운다. 가져온 노트는 "가져오기를 실행한 시각"을 갖게 되고, 목록이 `created_at` 내림차순이라 오래된 설교 노트가 맨 위로 올라온다. → [`RULE-MD-004`](rules/share-markdown.md)
@@ -151,10 +148,10 @@
 
 | 경로 | 모르는 타입을 만나면 |
 |---|---|
-| `src/editor/NoteEditor.tsx` | `quote`가 아니면 전부 `ParagraphInput`으로 보낸다 |
-| `src/editor/ParagraphInput.tsx` | `initialText.length`를 읽는다 — `text`가 없으면 크래시 |
-| `src/list/group-notes.ts` (`notePreview`) | `stripInlineMarks(block.text)` — `text`가 없으면 크래시 |
-| `src/markdown/serialize.ts` (`blockToMarkdown`) | `switch`에 `default`가 없다. `undefined`를 돌려주고 `join`이 삼킨다 — **내보내기에서 소리 없이 사라진다** |
+| `src/widgets/note-editor/ui/NoteEditor.tsx` | `quote`가 아니면 전부 `ParagraphInput`으로 보낸다 |
+| `src/widgets/note-editor/ui/ParagraphInput.tsx` | `initialText.length`를 읽는다 — `text`가 없으면 크래시 |
+| `src/entities/note/lib/group-notes.ts` (`notePreview`) | `stripInlineMarks(block.text)` — `text`가 없으면 크래시 |
+| `src/entities/note/api/markdown-serialize.ts` (`blockToMarkdown`) | `switch`에 `default`가 없다. `undefined`를 돌려주고 `join`이 삼킨다 — **내보내기에서 소리 없이 사라진다** |
 
 `rowToNote`의 `JSON.parse(body_json)`에도 검증이 없어 무엇이든 그대로 통과한다.
 
@@ -165,13 +162,13 @@
 
 | 요소 | 크기 | hitSlop | 유효 폭 |
 |---|--:|--:|--:|
-| `src/editor/QuoteBlock.tsx:226-233` collapse 토글 | 36 | 없음 | 36 |
-| `src/workspace/PanelRail.tsx:47-54` 접힌 레일 | 38 | 없음 | 38 |
-| `src/workspace/TabletWorkspace.tsx:502-508` 노트 삭제 | 40×40 | 없음 | 40 |
-| `src/workspace/BibleLookupPanel.tsx:263-269` 검색어 지우기 | 22 | 6 | 34 |
-| `src/workspace/BibleLookupPanel.tsx:277-286` 책 추천 칩 | 세로 ~26 | 없음 | ~26 |
-| `src/workspace/BibleLookupPanel.tsx:322-328` 최근 참조 칩 | 세로 ~26 | 없음 | ~26 |
-| `src/editor/DatePickerModal.tsx:190-196` 날짜 셀 | 화면폭÷7 | 없음 | 360dp에서 ~40 |
+| `src/widgets/note-editor/ui/QuoteBlock.tsx:226-233` collapse 토글 | 36 | 없음 | 36 |
+| `src/pages/notes/ui/PanelRail.tsx:47-54` 접힌 레일 | 38 | 없음 | 38 |
+| `src/pages/notes/ui/TabletWorkspace.tsx:502-508` 노트 삭제 | 40×40 | 없음 | 40 |
+| `src/pages/notes/ui/BibleLookupPanel.tsx:263-269` 검색어 지우기 | 22 | 6 | 34 |
+| `src/pages/notes/ui/BibleLookupPanel.tsx:277-286` 책 추천 칩 | 세로 ~26 | 없음 | ~26 |
+| `src/pages/notes/ui/BibleLookupPanel.tsx:322-328` 최근 참조 칩 | 세로 ~26 | 없음 | ~26 |
+| `src/widgets/note-editor/ui/DatePickerModal.tsx:190-196` 날짜 셀 | 화면폭÷7 | 없음 | 360dp에서 ~40 |
 
 collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사실상 기본 경험**에 들어 있다. → [`RULE-UI-004`](rules/layout-a11y.md)
 
@@ -180,14 +177,14 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 | 위치 | 명목 | gap | 배타적 폭 |
 |---|---|--:|--:|
-| `app/index.tsx` 헤더 아이콘 4개(안쪽 2개) | 40 + hitSlop 8 | 2 | 최대 42 |
-| `src/workspace/NoteListSidebar.tsx` 헤더 아이콘 4개(전부) | 28 + hitSlop 10 | 4 | 32~40 |
+| `src/pages/notes/ui/NotesPage.tsx` 헤더 아이콘 4개(안쪽 2개) | 40 + hitSlop 8 | 2 | 최대 42 |
+| `src/pages/notes/ui/NoteListSidebar.tsx` 헤더 아이콘 4개(전부) | 28 + hitSlop 10 | 4 | 32~40 |
 
 → [`RULE-UI-004`](rules/layout-a11y.md)
 
 ### B23. RULE-UI-005를 문장은 지키고 취지는 못 지키는 선택 표시가 둘 있다
-- `src/workspace/NoteListSidebar.tsx:171-178` 선택된 노트 행 — `accentSoft`(알파 8~14%) 배경 + `accessibilityState`뿐. 규칙 문장은 통과하지만 **규칙 자신의 `verified_by`("흑백 모드에서 구분")를 통과하지 못한다.** 제목 굵기도 선택 여부와 무관하게 항상 `600`이다(`:284`).
-- `src/editor/DatePickerModal.tsx:93-113` 선택 날짜 셀 — 시각 신호(불투명 `accent` 배경 + 굵기)는 충분하나 **`accessibilityState`가 아예 없다.** 위와 정반대 방향의 결함이다.
+- `src/pages/notes/ui/NoteListSidebar.tsx:171-178` 선택된 노트 행 — `accentSoft`(알파 8~14%) 배경 + `accessibilityState`뿐. 규칙 문장은 통과하지만 **규칙 자신의 `verified_by`("흑백 모드에서 구분")를 통과하지 못한다.** 제목 굵기도 선택 여부와 무관하게 항상 `600`이다(`:284`).
+- `src/widgets/note-editor/ui/DatePickerModal.tsx:93-113` 선택 날짜 셀 — 시각 신호(불투명 `accent` 배경 + 굵기)는 충분하나 **`accessibilityState`가 아예 없다.** 위와 정반대 방향의 결함이다.
 
 → [`RULE-UI-005`](rules/layout-a11y.md)
 
@@ -199,34 +196,34 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 웹(react-native-web)에서는 CSS 문법이 그대로 동작해 제네릭 `serif`/`monospace` 차이는 난다 — **네이티브와 웹의 동작이 갈린다**(E7과 연결). → [`RULE-SET-005`](rules/settings-theme.md)
 
 ### B25. `theme.isDark`는 계산만 되고 소비처가 없다
-`src/theme/ThemeProvider.tsx:211`에서 `isDark: variation === "dark"`로 계산되어 `Theme` 타입에 실리지만, 앱 전체에서 이 필드를 읽는 코드가 **0건**이다(정의부 3줄 — `:37`, `:185`, `:211` — 이 전부). 다크 화면은 `isDark` 분기가 아니라 `DARK` 팔레트 값 자체로 렌더링된다. [`RULE-SET-003`](rules/settings-theme.md)은 `isDark`의 정의를 서술하지만 그것이 미사용이라는 사실은 적지 않는다. → [`ADR-0010`](decisions/ADR-0010-variation-theming.md)
+`src/shared/ui/ThemeProvider.tsx:211`에서 `isDark: variation === "dark"`로 계산되어 `Theme` 타입에 실리지만, 앱 전체에서 이 필드를 읽는 코드가 **0건**이다(정의부 3줄 — `:37`, `:185`, `:211` — 이 전부). 다크 화면은 `isDark` 분기가 아니라 `DARK` 팔레트 값 자체로 렌더링된다. [`RULE-SET-003`](rules/settings-theme.md)은 `isDark`의 정의를 서술하지만 그것이 미사용이라는 사실은 적지 않는다. → [`ADR-0010`](decisions/ADR-0010-variation-theming.md)
 
 ### B26. `AccentChoice`의 hex 6개는 스타일 리터럴이 아니라 저장되는 사용자 데이터다
 `AccentChoice` 유니온의 6개 값 중 **4개**(`#1e6fd9`·`#b15c2e`·`#6b7280`·`#f5b35e`)가 각 변형의 기본 `accent`와 같은 문자열이다. 팔레트를 손보며 이 리터럴을 따라 바꾸면, 그 값을 저장해 둔 사용자의 `accentChoice`가 `settings-validator.ts`의 `readEnum` 개별 폴백([`RULE-SET-002`](rules/settings-theme.md))에 걸려 **다음 실행에 조용히 `default`로 리셋된다.** 관대한 파싱이 만드는 무음 데이터 손실이다 — 값을 바꾸려면 구 hex → 신 hex 마이그레이션이 함께 필요하다.
 
-지금 세 파일(`src/domain/types.ts`·`src/state/settings-validator.ts`·`app/settings.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+지금 세 파일(`src/entities/note/model/types.ts`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
 
 ### B27. 글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다
 `fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있다. 그런데 `.tsx`의 `fontSize:` 선언 **98건 중 `scaled()`를 거치는 것은 28건**뿐이고, 나머지 70건은 리터럴 숫자다(18개 파일). 리터럴 일부는 호출부에서 인라인 `scaled()`로 덮이지만 전부는 아니다.
 
-날짜 선택 달력 하나만 봐도 덮이지 않는 것이 셋이다 — 요일 `일~토` 12px(`src/editor/DatePickerModal.tsx:186`), 이전/다음 달 `‹ ›` 24px(`:181`), '오늘' 버튼 14px(`:205`). 같은 화면에서 달 제목 17과 날짜 숫자 15만 커진다(`:63`, `:122`). 글자 크기를 1.6으로 올린 사용자에게 이 화면은 **일부만 커지고 나머지는 그대로**인 상태가 된다.
+날짜 선택 달력 하나만 봐도 덮이지 않는 것이 셋이다 — 요일 `일~토` 12px(`src/widgets/note-editor/ui/DatePickerModal.tsx:186`), 이전/다음 달 `‹ ›` 24px(`:181`), '오늘' 버튼 14px(`:205`). 같은 화면에서 달 제목 17과 날짜 숫자 15만 커진다(`:63`, `:122`). 글자 크기를 1.6으로 올린 사용자에게 이 화면은 **일부만 커지고 나머지는 그대로**인 상태가 된다.
 
 `scaled()`를 모든 텍스트에 적용하라고 못박은 `RULE`은 없다(`wiki/rules`·`wiki/contracts` 전수 확인). 그래서 이것은 규칙 위반이 아니라 **정본이 비어 있는 자리**다 — 어디까지 확대 대상인지 정한 적이 없다. → E22
 
 ### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다
-`BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/domain/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
+`BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/entities/note/model/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
 
-그런데 편집기는 둘만 안다. 렌더는 `block.type === 'quote'`면 `QuoteBlock`, **나머지는 전부 `ParagraphInput`**이다(`src/editor/NoteEditor.tsx:175-192`). `heading`의 `level`도 `todo`의 `checked`도 화면에 나타나지 않는다. 그 위에 `handleCommit`이 `if (prev?.type !== 'paragraph') return;`으로 막는다(`:105`) — **그 블록에 친 글자는 저장되지 않고 조용히 버려진다.**
+그런데 편집기는 둘만 안다. 렌더는 `block.type === 'quote'`면 `QuoteBlock`, **나머지는 전부 `ParagraphInput`**이다(`src/widgets/note-editor/ui/NoteEditor.tsx:175-192`). `heading`의 `level`도 `todo`의 `checked`도 화면에 나타나지 않는다. 그 위에 `handleCommit`이 `if (prev?.type !== 'paragraph') return;`으로 막는다(`:105`) — **그 블록에 친 글자는 저장되지 않고 조용히 버려진다.**
 
 디스크의 데이터가 파괴되지는 않는다. 마크다운으로 가져온 할 일 목록은 파일에 그대로 남는다. 사라지는 것은 **사용자가 방금 친 것**과 **그 블록이 무엇인지 알아볼 방법**이다. B20이 "알 수 없는 블록 타입"을 다뤘다면 이쪽은 **알려진 블록 타입**이 같은 취급을 받는 자리다. → B20
 
 ### B29. 글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다
-`app/settings.tsx`에 `scaled`가 **0건**이다(`useTheme`에서 `colors`만 꺼낸다 — `:71`). 그래서 '크게'·'아주 크게'를 고르는 칩(`chipText: { fontSize: 14 }`, `:371`)도, 그 위의 설명 문구도 배율을 받지 않는다.
+`src/pages/settings/ui/SettingsPage.tsx`에 `scaled`가 **0건**이다(`useTheme`에서 `colors`만 꺼낸다 — `:71`). 그래서 '크게'·'아주 크게'를 고르는 칩(`chipText: { fontSize: 14 }`, `:371`)도, 그 위의 설명 문구도 배율을 받지 않는다.
 
 어르신 친화 UX의 대표 기능을 켜는 화면이 그 기능의 밖에 있다. B27의 일반적 문제(98건 중 28건만 `scaled()`)가 가장 나쁘게 드러나는 지점이다. → B27, E22
 
 ### B30. 태블릿에서 같은 동작에 컨트롤이 둘 렌더된다
-`leftOpen === false`이면 `PanelRail`(글리프 `≡`, `onExpand → setLeftOpen(true)`, `src/workspace/TabletWorkspace.tsx:308-315`)과 브레드크럼의 `≡` 버튼(`onPress → setLeftOpen(true)`, `:321-335`)이 **동시에** 화면에 있다. 오른쪽도 같다 — `PanelRail` 글리프 `✦`(`:455-462`)와 브레드크럼 `◧`(`:380-395`).
+`leftOpen === false`이면 `PanelRail`(글리프 `≡`, `onExpand → setLeftOpen(true)`, `src/pages/notes/ui/TabletWorkspace.tsx:308-315`)과 브레드크럼의 `≡` 버튼(`onPress → setLeftOpen(true)`, `:321-335`)이 **동시에** 화면에 있다. 오른쪽도 같다 — `PanelRail` 글리프 `✦`(`:455-462`)와 브레드크럼 `◧`(`:380-395`).
 
 같은 동작인데 기호도 크기도 다르다(`PanelRail.glyph` 16px vs 브레드크럼 `crumbBtnText` 15px). 어느 쪽이 정본인지 코드에 근거가 없다. 아이콘 인벤토리에서 '펼치기/접기' 하나에 기호 체계가 넷인 것도 여기서 갈라진다.
 
@@ -235,10 +232,10 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
 
 ### C1. 테스트가 프로덕션 DDL을 검증하지 않는다
-DB 테스트는 `schema.sql`을 읽는데 프로덕션은 `db/index.ts`의 인라인 문자열을 실행한다(B1). **오라클과 실물이 다른 파일이다.**
+DB 테스트는 `schema.sql`을 읽는데 프로덕션은 `entities/note/api/sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL`을 실행한다(B1). **오라클과 실물이 다른 파일이다.**
 
 ### C2. 이름과 검증 내용이 다른 테스트
-`apps/ch-life/src/db/__tests__/note-repo-search.test.ts`의 `"최신 updated_at 우선"`은 노트를 만들기만 하고 수정하지 않으므로 실제로는 **`created_at` 정렬을 검증한다.** 이름을 믿고 "updated_at 정렬이 보장된다"고 읽으면 틀린다.
+`apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts`의 `"최신 updated_at 우선"`은 노트를 만들기만 하고 수정하지 않으므로 실제로는 **`created_at` 정렬을 검증한다.** 이름을 믿고 "updated_at 정렬이 보장된다"고 읽으면 틀린다.
 
 ### C3. UI 계층에 자동 증거가 없다
 RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디터 상호작용(포커스 이동, backspace 병합, 힌트 칩, 시트 애니메이션, 반응형 분기)은 전부 수동 확인이다. 이 위키의 UI 규칙이 `SHOULD`인 이유다.
@@ -258,7 +255,7 @@ RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디�
 [`RULE-BIBLE-006`](rules/bible-reader.md)은 `format-ref.test.ts`를 자동 증거로 달고 `MUST`였다. 그러나 `VerseList.tsx`는 `formatRef`를 import하지 않고 문자열을 직접 조립하므로 그 테스트는 해당 코드를 지나지 않는다. **`check.mjs`는 `test:` 줄의 존재와 조각 문자열만 확인할 뿐, 그 테스트가 정말 그 statement를 검증하는지는 모른다.** 증거를 떼고 `SHOULD`로 낮췄다. 같은 패턴이 다른 블록에도 있을 수 있다 — 2단계 대조에서 사람이 봐야 하는 지점이다.
 
 ### C8. import/export 경로에 테스트가 없다
-`share/import-note.ts`(`pickAndImport`)와 `share/export-note.ts`에는 테스트가 없다. `import-decision.test.ts`는 순수 함수 `resolveImportConflict`만 검증한다. 파일 → 노트 → `repo.create/update`로 이어지는 실제 경로는 자동 증거가 전혀 없다.
+`features/note/import/model/import-note.ts`(`pickAndImport`)와 `features/note/export/model/export-note.ts`에는 테스트가 없다. `import-decision.test.ts`는 순수 함수 `resolveImportConflict`만 검증한다. 파일 → 노트 → `repo.create/update`로 이어지는 실제 경로는 자동 증거가 전혀 없다.
 
 ## D. 공개 문서 ↔ 구현이 어긋난 곳
 
@@ -318,12 +315,12 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 
 | 영역 | 코드 | 상태 |
 |---|---|---|
-| G1. 피드백/배너 시스템 | `src/feedback/ActionBannerHost.tsx`, `src/state/app-store.ts`의 `Feedback`(`tone: info \| error`) | 블록 없음. POL-A11Y-001의 "조용함"과 충돌(E14) |
-| G2. 삭제 상호작용 | `src/list/SwipeToDelete.tsx`, `src/list/swipe-geometry.ts`, `src/list/NoteCard.tsx` | [`RULE-NOTE-007`](rules/note-persistence.md)이 저장소 계층만 덮는다. 스와이프 제스처·임계값은 미정본 |
-| G3. 되돌리기 경쟁 조건 | `src/notes/note-actions.ts`, `docs/solutions/logic-errors/undo-completion-must-carry-captured-note-identity.md` | 실제로 고친 버그가 있고 해결 문서까지 있는데 `RULE`이 없다 |
-| G4. 이메일 문의 | `src/support/contact-draft.ts`, `src/support/use-contact-support.ts`, `app/settings.tsx` | 블록 없음. `POL-PRIVACY-001`(기기 밖으로 안 나간다)과의 관계 미검토 |
-| G5. 삽입 결과 보고 | `src/editor/insert-verse.ts` | 블록 없음. `RULE-EDIT-*`의 삽입 규칙과 겹친다 |
-| G6. 자동저장 변경 | `src/editor/useAutoSave.ts` (+78줄) | [`RULE-EDIT-011`~`013`](rules/editor-insert.md)이 여전히 맞는지 대조하지 않았다 |
+| G1. 피드백/배너 시스템 | `src/shared/ui/ActionBannerHost.tsx`, `src/features/settings/change/model/settings-store.ts`의 `Feedback`(`tone: info \| error`) | 블록 없음. POL-A11Y-001의 "조용함"과 충돌(E14) |
+| G2. 삭제 상호작용 | `src/shared/ui/SwipeToDelete.tsx`, `src/shared/lib/swipe-geometry.ts`, `src/pages/notes/ui/NoteCard.tsx` | [`RULE-NOTE-007`](rules/note-persistence.md)이 저장소 계층만 덮는다. 스와이프 제스처·임계값은 미정본 |
+| G3. 되돌리기 경쟁 조건 | `src/features/note/delete/model/note-actions.ts`, `docs/solutions/logic-errors/undo-completion-must-carry-captured-note-identity.md` | 실제로 고친 버그가 있고 해결 문서까지 있는데 `RULE`이 없다 |
+| G4. 이메일 문의 | `src/features/support/contact/model/contact-draft.ts`, `src/features/support/contact/model/use-contact-support.ts`, `src/pages/settings/ui/SettingsPage.tsx` | 블록 없음. `POL-PRIVACY-001`(기기 밖으로 안 나간다)과의 관계 미검토 |
+| G5. 삽입 결과 보고 | `src/features/scripture/insert/model/insert-verse.ts` | 블록 없음. `RULE-EDIT-*`의 삽입 규칙과 겹친다 |
+| G6. 자동저장 변경 | `src/features/note/autosave/model/useAutoSave.ts` (+78줄) | [`RULE-EDIT-011`~`013`](rules/editor-insert.md)이 여전히 맞는지 대조하지 않았다 |
 
 각 영역에 자동 증거는 이미 있다(`note-actions.test.ts` 8건, `contact-draft.test.ts`, `insert-verse.test.ts`, `swipe-geometry.test.ts`). **정본만 없다.** 커버리지 숫자(`RULE` 60건)를 앱 전체의 커버리지로 읽으면 안 되는 이유다.
 
@@ -335,6 +332,6 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 2. **PR 템플릿** — 바뀌는 `POL/RULE/CONTRACT` ID, 새 예시, 자동 증거, 수동 QA 결과를 적게 한다.
 3. **UI 자동 증거** — `@testing-library/react-native`를 넣으면 `SHOULD` 규칙 상당수가 `MUST`로 올라간다.
 4. **회귀 fixture** — 실제로 내보낸 `.md` 파일을 테스트 자산으로 고정한다. 관측 계층이 없는 이 앱에서 유일하게 "현실"을 담은 재현 자산이다.
-5. **B절 중복 정리** — 상수·함수 중복(B2·B3)은 각각 몇 줄짜리 수정이다.
+5. ~~**B절 중복 정리** — 상수·함수 중복(B2·B3)~~ — 2026-09-20 FSD 전환에서 해소.
 
 가장 먼저 고칠 것은 위키가 아니라 코드 쪽이다. **B10(`1 John 1:1` → 요한복음 삽입)은 틀린 데이터를 조용히 넣는다.** D1·D2·D5는 이미 사용자에게 노출된 문구다.

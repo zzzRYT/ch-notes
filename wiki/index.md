@@ -61,7 +61,7 @@
 | [`RULE-EDIT-004`](rules/editor-insert.md) | SHOULD | 수동 | 코드추론 | 인용 블록 바로 아래 문단의 맨 앞에서 backspace를 누르면 인용 블록이 삭제되고, 위·아래 문단이 하나로 합쳐진다. |
 | [`RULE-EDIT-005`](rules/editor-insert.md) | SHOULD | 수동 | 기록됨 | 커서 바로 앞이 본문 조회에 성공하는 참조일 때만 화면 하단에 떠 있는 힌트 칩(참조 + space 안내)을 보여준다. |
 | [`RULE-EDIT-006`](rules/editor-insert.md) | SHOULD NOT | 수동 | 코드추론 | 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다. |
-| [`RULE-EDIT-007`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다. |
+| [`RULE-EDIT-007`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다. 인용 블록은 makeQuoteBlock으로만 만들고, 예외는 마크다운 파서 하나다. |
 | [`RULE-EDIT-008`](rules/editor-insert.md) | SHOULD | 자동 | 코드추론 | 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. |
 | [`RULE-EDIT-009`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 노트의 citedRefs는 사용자가 관리하는 값이 아니라, 저장 시점에 body의 quote 블록에서 등장 순서대로 중복 없이 추출한 결과다. |
 | [`RULE-EDIT-010`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 굵게·기울임·밑줄은 별도 스팬 모델이 아니라 블록 텍스트 안의 경량 마크다운(**굵게**, _기울임_, ++밑줄++)으로 저장한다. |
@@ -162,9 +162,9 @@
 |---|---|---|
 | [`CONTRACT-BIBLE-JSON`](contracts/CONTRACT-BIBLE-JSON.md) | 기록됨 | 성경 본문은 assets/bible.json 하나로 앱에 번들되며, 책코드 → 장 → 절 → 본문의 3단 중첩 객체다. 출처는 Open Bible 한국어판, 라이선스는 CC BY-SA 4.0이다. |
 | [`CONTRACT-DB-NOTES`](contracts/CONTRACT-DB-NOTES.md) | 기록됨 | 노트는 ch-life.db의 notes 테이블에 저장되고, 검색은 notes_fts 가상 테이블에 트리거로 동기화된다. 이 DDL은 두 파일에 중복 기록되어 있으며 항상 함께 바뀌어야 한다. |
-| [`CONTRACT-DOMAIN-NOTE`](contracts/CONTRACT-DOMAIN-NOTE.md) | 코드추론 | 앱 전체가 공유하는 Note / BlockNode / Verse / Settings 타입 정의. DB 행, 마크다운 파일, 화면 상태가 모두 이 모양으로 수렴한다. |
+| [`CONTRACT-DOMAIN-NOTE`](contracts/CONTRACT-DOMAIN-NOTE.md) | 코드추론 | 노트 엔티티가 소유하는 Note / BlockNode / CitationVerse 타입 정의. DB 행, 마크다운 파일, 화면 상태가 모두 이 모양으로 수렴한다. 인용 스냅샷은 성경 엔티티를 참조하지 않고 본문·참조·판본(editionId)을 스스로 든다. |
 | [`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md) | 기록됨 | 노트 하나는 YAML frontmatter + 표준 Markdown 본문을 가진 .md 파일 하나로 표현된다. 이 형식은 앱 밖으로 나가므로 하위 호환을 깨면 이미 내보낸 파일을 다시 읽을 수 없다. |
-| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 note-repo가 노출하는 일곱 함수만 사용한다. repo는 DbAdapter 인터페이스에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
+| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 일곱 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
 | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) | 기록됨 | 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다. |
 | [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) | 기록됨 | 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 그대로 직렬화된다. fontScale과 themePreference는 필수이며, 나머지 필드는 없거나 잘못돼도 개별 폴백한다. |
 

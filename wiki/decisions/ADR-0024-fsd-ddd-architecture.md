@@ -73,3 +73,24 @@ Settings Page는 화면과 임시 폼 상태만 소유한다. 설정 변경과 �
 - 기존 `app-store`는 Slice별 상태로 해체된다.
 - 아키텍처 규칙 위반은 코드 리뷰 관례가 아니라 자동 검사 실패가 된다.
 - 상세 작업 범위와 완료 기준은 [GitHub Issue #28](https://github.com/zzzRYT/ch-notes/issues/28)이 추적한다.
+
+## 구현 기록 (2026-09-20)
+
+전환은 커밋 하나로 들어갔고, 결정문이 정하지 않은 자리는 다음과 같이 잡았다.
+
+| 결정문의 빈 자리 | 잡은 방식 | 이유 |
+|---|---|---|
+| 설정 상태의 소유자 | `features/settings/change`가 스토어·검증·영속화를 전부 든다. `Variation` 등 테마 축의 타입은 `shared/ui/ThemeProvider.tsx`가 정본이고 `Settings`가 가져다 쓴다 | `ThemeProvider`(shared)는 위 레이어를 import하지 못하므로 `settings` prop을 받는다. Composition Root가 스토어에서 꺼내 넘긴다 |
+| `lastBibleRef`의 "Scripture 책임" | 저장은 `settings.json`에 그대로(계약 동결). **포맷을 아는 훅**(`useBiblePosition`)만 `widgets/scripture-browser`가 든다 | 파일을 쪼개면 `CONTRACT-SETTINGS-FILE`이 깨지고, feature끼리는 서로 import할 수 없다. widget → feature 방향은 허용된다 |
+| `lastOpenedNoteId`의 "Note 책임" | 옮기지 않았다. 읽는 코드가 없는 파일 호환용 필드다 | 옮길 동작이 없다([`drift.md`](../drift.md) B6) |
+| 피드백 배너 | `shared/lib/feedback.ts`. 액션은 `"undo-delete"` 같은 태그가 아니라 `{ label, onPress }` 콜백 | shared가 노트 삭제를 알면 안 된다. 삭제 기능이 저장소를 닫아 넣은 콜백을 배너에 준다 |
+| 삭제 복원 상태 | `features/note/delete`의 `useNoteDeleteStore`(스냅샷·`noteRevision`·`lastRestoredNoteId`) | [`RULE-NOTE-007`](../rules/note-persistence.md) |
+| 저장소 주입 | `entities/note/model/note-repo.ts`의 `NoteRepo` 타입 + `NoteRepoProvider`/`useNoteRepo`. 화면이 꺼내 유스케이스에 인자로 넘긴다 | 결정문의 "명시적 주입, 숨은 기본 구현 금지"를 React에서 가장 얇게 구현한 것. 컨텍스트는 Composition Root가 채우므로 서비스 로케이터가 아니다 |
+| DB 열기 | `shared/lib/sqlite.ts`의 `openSqliteDatabase(name, migrations)`가 **첫 질의 때** 연다. `_layout.tsx`가 `[runNoteMigrations]` 순서를 준다 | 부팅 렌더를 막지 않는다([`RULE-OTA-002`](../rules/release.md)) |
+| 노트 ↔ 성경 엔티티 분리의 실제 이음새 | ① 인용 생성은 `features/scripture/insert`가 `makeQuoteBlock(ref, verses, BUNDLED_EDITION_ID)`로. ② 인용 표시(`QuoteBlock`, `formatRef` 필요)는 `widgets/note-editor`가. ③ 마크다운 파서는 `resolveRef`를 주입받는다. ④ `Verse`는 성경 엔티티에, 같은 모양의 `CitationVerse`는 노트 엔티티에 | 엔티티끼리 import하지 않는다는 규칙을 타입 수준까지 지켰다 |
+| `editionId` | 타입에서는 선택, 새 인용은 항상 기록, 어댑터(SQLite·마크다운)가 읽을 때 `LEGACY_CITATION_EDITION_ID`로 채운다. 마크다운 형식은 바꾸지 않았다 | 필수로 하면 기존 데이터·테스트 픽스처를 전부 옮겨야 하고, 지금 이 값을 읽는 코드가 없다. [`CONTRACT-DOMAIN-NOTE`](../contracts/CONTRACT-DOMAIN-NOTE.md) |
+| 폰·태블릿 편집 상태 | `widgets/note-editor/model/useNoteDraft.ts` 하나. 태블릿의 목록 캐시 갱신은 `onSaved` 콜백, 오류 문구는 옵션 | "Widget이 Entity와 자동저장·삽입 Feature를 조합한다"를 문자 그대로. 두 화면의 미세한 차이(삽입 실패 시 본문 유지, 없는 id는 저장 안 함)는 안전한 쪽으로 통일했다 |
+| 경계 검사 | `eslint.config.js`의 `import/no-restricted-paths`(레이어 방향·같은 층 Slice) + `no-restricted-imports`(Deep import·2단계 이상 상대 경로) + `no-restricted-syntax`(`export *`). `__tests__/**`는 제외 | 새 의존성 없음 — expo 설정이 싣고 오는 `eslint-plugin-import`. 테스트는 Slice 공개 표면이 아니다 |
+| `shared`의 공개 인터페이스 | 세그먼트 단위 — `@/shared/ui`, `@/shared/lib`, `@/shared/config` | FSD의 shared는 Slice가 없다 |
+
+남은 것: `entities/*/ui`는 아직 없다(반복이 확인된 도메인 표현이 없다). `features/note/search`의 태블릿 사이드바 메모리 필터는 여전히 `pages/notes` 안에 있다([`drift.md`](../drift.md) B8).

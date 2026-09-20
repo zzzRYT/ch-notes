@@ -6,7 +6,7 @@ status: accepted
 statement: reloadOnForceUpdate를 false로 두어, 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 앱을 즉시 리로드하지 않고 다음 콜드 런치까지 기다린다.
 confidence: 기록됨
 source:
-  - apps/ch-life/app/_layout.tsx
+  - apps/ch-life/src/app/_layout.tsx
 ```
 
 ## 맥락

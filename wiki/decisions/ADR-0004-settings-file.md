@@ -7,7 +7,7 @@ supersedes: DESIGN.md 데이터 모델 (Settings를 MMKV에 저장)
 statement: 앱 설정은 react-native-mmkv가 아니라 expo-file-system으로 쓰는 JSON 파일 한 개에 저장한다.
 confidence: 확인필요
 source:
-  - apps/ch-life/src/state/settings-persist.ts
+  - apps/ch-life/src/features/settings/change/model/settings-persist.ts
   - docs/plans/2026-05-17-ch-life-v1-spec.md 5.2 (저장 위치 표 — settings.json)
 ```
 

@@ -7,7 +7,7 @@ statement: 스토어 버전은 major.minor.patch로 올리고 그 위에 OTA 발
 confidence: 기록됨
 source:
   - wiki/git.md 5절
-  - apps/ch-life/src/version.ts
+  - apps/ch-life/src/shared/config/version.ts
   - .github/workflows/eas-update.yml
   - apps/ch-life/scripts/deploy-ota.mjs
 ```
@@ -25,7 +25,7 @@ source:
 
 **버전은 네 자리로 읽는다** — `major.minor.patch` + OTA 발행 번호. 앞 세 자리는 스토어 빌드가 필요한 변경이고, 네 번째는 같은 스토어 버전 위에 갈아 끼운 번들의 순번이다.
 
-**OTA 번호는 `app.config.ts`의 `version`이 아니라 `src/version.ts`의 상수(`OTA_RELEASE`)에 둔다.** 설정 화면에는 `1.0.2+3`으로 합쳐 보여 준다.
+**OTA 번호는 `app.config.ts`의 `version`이 아니라 `src/shared/config/version.ts`의 상수(`OTA_RELEASE`)에 둔다.** 설정 화면에는 `1.0.2+3`으로 합쳐 보여 준다.
 
 **`production` OTA는 `release/<버전>` 가지에서 수동 실행으로만** 발행한다. 워크플로가 ref를 검사해 거부한다. 그리고 배포 전 **자격증명의 형식**을 검사한다.
 
@@ -38,7 +38,7 @@ source:
 
 ## 귀결
 
-- `src/version.ts`가 새로 생겼고 설정 화면이 그것을 읽는다. **OTA 번들에 담겨 배달되므로** 번들을 갈아탄 기기에서도 값이 바뀐다 — `app.config.ts`의 `extra`에 뒀다면 네이티브에 박혀 안 바뀌었을 것이다.
+- `src/shared/config/version.ts`가 새로 생겼고 설정 화면이 그것을 읽는다. **OTA 번들에 담겨 배달되므로** 번들을 갈아탄 기기에서도 값이 바뀐다 — `app.config.ts`의 `extra`에 뒀다면 네이티브에 박혀 안 바뀌었을 것이다.
 - OTA를 낼 때 **커밋이 하나 늘어난다**(`OTA_RELEASE` 증가). 잊으면 표시가 사실과 어긋난다. 자동화하지 않았다 — 발행이 수동인데 번호만 자동일 이유가 없다.
 - **버전 bump도 `OTA_RELEASE` 증가도 릴리스 가지에 직접 푸시하지 않는다.** [`ADR-0020`](ADR-0020-branch-strategy.md)의 룰셋이 `release/**`에 PR과 CI를 요구하기 때문이다. 직접 푸시로 넣으면 정작 **배포되는 그 커밋만** 검사를 건너뛰게 된다. 절차는 [`git.md`](../git.md) 5절에 있다.
 - 로컬 `pnpm deploy:ota`의 브랜치 가드도 `main`에서 `release/*`로 바꿨다. 워크플로만 막으면 로컬 경로로 그대로 빠져나갈 수 있다.

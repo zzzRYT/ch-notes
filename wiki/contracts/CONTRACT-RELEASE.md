@@ -6,7 +6,7 @@ policy: POL-RELEASE-001
 statement: 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다.
 implemented_by:
   - apps/ch-life/app.config.ts
-  - apps/ch-life/src/version.ts
+  - apps/ch-life/src/shared/config/version.ts
   - apps/ch-life/eas.json
   - .github/workflows/ci.yml
   - .github/workflows/eas-update.yml
@@ -27,8 +27,8 @@ source:
 | iOS bundle / Android package | `com.leejaejin.chlife` |
 | EAS project | `813691d9-f5ff-48d6-93c7-47432b44b2ce` |
 | scheme | `chlife` |
-| OTA 런타임 | `@hot-updater/react-native` — `HotUpdater.wrap`, `updateStrategy: "appVersion"` (`app/_layout.tsx`) |
-| OTA 발행 번호 | `src/version.ts`의 `OTA_RELEASE` — 설정 화면에 `1.0.2+3`으로 표시. **`version`에는 넣지 않는다** |
+| OTA 런타임 | `@hot-updater/react-native` — `HotUpdater.wrap`, `updateStrategy: "appVersion"` (`src/app/_layout.tsx`) |
+| OTA 발행 번호 | `src/shared/config/version.ts`의 `OTA_RELEASE` — 설정 화면에 `1.0.2+3`으로 표시. **`version`에는 넣지 않는다** |
 | OTA 서버 | Cloudflare R2 + D1 + Worker. `extra.hotUpdaterBaseUrl` ← `HOT_UPDATER_BASE_URL` |
 | 스토어 최신 버전 | `website/app-version.json` → `https://zzzryt.github.io/ch-notes/app-version.json`. 플랫폼별 `{"ios","android"}` ([`RULE-OTA-010`](../rules/release.md)) |
 | 스토어 페이지 | iOS `https://apps.apple.com/app/id6772700147` · Android `market://details?id=com.leejaejin.chlife` |

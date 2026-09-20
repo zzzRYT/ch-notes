@@ -6,14 +6,14 @@ policy: POL-LICENSE-001
 statement: 성경 본문은 assets/bible.json 하나로 앱에 번들되며, 책코드 → 장 → 절 → 본문의 3단 중첩 객체다. 출처는 Open Bible 한국어판, 라이선스는 CC BY-SA 4.0이다.
 implemented_by:
   - apps/ch-life/assets/bible.json
-  - apps/ch-life/src/parser/verse-lookup.ts
-  - apps/ch-life/src/browser/books-meta.ts
+  - apps/ch-life/src/entities/scripture/api/verse-lookup.ts
+  - apps/ch-life/src/entities/scripture/api/books-meta.ts
 verified_by:
-  - test: apps/ch-life/src/data/__tests__/bible-data.test.ts
-  - test: apps/ch-life/src/browser/__tests__/books-meta.test.ts
+  - test: apps/ch-life/src/entities/scripture/api/__tests__/bible-data.test.ts
+  - test: apps/ch-life/src/entities/scripture/api/__tests__/books-meta.test.ts
 confidence: 기록됨
 source:
-  - apps/ch-life/app/licenses.tsx
+  - apps/ch-life/src/pages/licenses/ui/LicensesPage.tsx
   - docs/legal/privacy-policy.md 7장
 ```
 
@@ -39,7 +39,7 @@ source:
 
 CC BY-SA 4.0은 공공도메인이 아니다.
 
-- **BY**: 출처를 표시해야 한다 → 설정 → "출처 및 라이선스" 화면(`app/licenses.tsx`)이 그 이행이다.
+- **BY**: 출처를 표시해야 한다 → 설정 → "출처 및 라이선스" 화면(`src/pages/licenses/ui/LicensesPage.tsx`)이 그 이행이다.
 - **SA**: 본문을 포함해 재배포되는 산출물은 동일 라이선스를 유지해야 한다 → 앱이 내보내는 `.md` 파일에도 적용된다.
 
 계획 문서(`DESIGN.md` P3)의 개역한글 1961(공공도메인)과 **다른 데이터**이며, 전환 근거는 기록되어 있지 않다([`ADR-0009`](../decisions/ADR-0009-bible-source.md)).
