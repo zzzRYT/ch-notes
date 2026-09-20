@@ -272,6 +272,7 @@ export function ThemeProvider({
     Uniwind.updateCSSVariables(variation, {
       "--color-accent": value.colors.accent,
       "--color-accent-soft": value.colors.accentSoft,
+      "--font-body": value.fontStack,
       ...Object.fromEntries(
         Object.entries(TEXT_SCALE).map(([k, base]) => [
           `--text-${k}`,
@@ -279,7 +280,13 @@ export function ThemeProvider({
         ]),
       ),
     });
-  }, [variation, value.colors.accent, value.colors.accentSoft, value.fontScale]);
+  }, [
+    variation,
+    value.colors.accent,
+    value.colors.accentSoft,
+    value.fontStack,
+    value.fontScale,
+  ]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -40,6 +40,7 @@ test("variation이 uniwind 테마 이름이 되고, 팔레트 accent와 ×fontSc
   expect(updateCSSVariables).toHaveBeenLastCalledWith("paper", {
     "--color-accent": "#b15c2e",
     "--color-accent-soft": "rgba(177,92,46,0.09)",
+    "--font-body": "Pretendard, -apple-system, system-ui, sans-serif",
     "--text-display": 36,
     "--text-title": 24,
     "--text-body-large": 20,
