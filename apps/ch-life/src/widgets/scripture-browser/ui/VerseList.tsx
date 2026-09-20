@@ -1,12 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, ScrollView, Text, View } from "react-native";
 import {
   chapterCount,
   chapterVerses,
@@ -46,18 +39,18 @@ export function VerseList({
   const canNext = chapter < maxChapter;
 
   return (
-    <View style={styles.root}>
-      <View style={styles.navBar}>
+    <View className="flex-1">
+      <View className="flex-row items-center justify-between px-3 py-2 border-b border-rule">
         <Pressable
           onPress={() => canPrev && onChangeChapter(chapter - 1)}
           disabled={!canPrev}
           accessibilityRole="button"
           accessibilityLabel="이전 장"
-          style={[styles.navBtn, !canPrev && styles.navBtnDisabled]}
+          className={`${NAV_BTN} ${canPrev ? "" : "opacity-30"}`}
         >
-          <Text style={styles.navText}>← 이전</Text>
+          <Text className={NAV_TEXT}>← 이전</Text>
         </Pressable>
-        <Text style={styles.navTitle}>
+        <Text className="text-body font-semibold text-ink">
           {nameKo} {chapter}장
         </Text>
         <Pressable
@@ -65,15 +58,15 @@ export function VerseList({
           disabled={!canNext}
           accessibilityRole="button"
           accessibilityLabel="다음 장"
-          style={[styles.navBtn, !canNext && styles.navBtnDisabled]}
+          className={`${NAV_BTN} ${canNext ? "" : "opacity-30"}`}
         >
-          <Text style={styles.navText}>다음 →</Text>
+          <Text className={NAV_TEXT}>다음 →</Text>
         </Pressable>
       </View>
 
       {verses.length === 0 ? (
-        <ScrollView contentContainerStyle={styles.empty}>
-          <Text style={styles.emptyText}>
+        <ScrollView contentContainerClassName="p-6 items-center">
+          <Text className="text-ink-3">
             {nameKo} {chapter}장 본문이 아직 없습니다
           </Text>
         </ScrollView>
@@ -82,18 +75,20 @@ export function VerseList({
           data={verses}
           keyExtractor={(v) => String(v.num)}
           renderItem={({ item }) => (
-            <View style={styles.row}>
-              <Text style={styles.num}>{item.num}</Text>
-              <Text style={styles.text}>{item.text}</Text>
+            <View className="flex-row items-start px-4 py-2.5 border-b border-rule gap-2">
+              <Text className="w-7 text-ink-3 tabular-nums">{item.num}</Text>
+              <Text className="flex-1 text-body-large leading-[1.5] text-ink font-body">
+                {item.text}
+              </Text>
               {insertMode !== "none" && (
                 <Pressable
                   onPress={() => onInsert?.(`${nameKo} ${chapter}:${item.num}`)}
                   accessibilityRole="button"
                   accessibilityLabel={`${nameKo} ${chapter}:${item.num} 노트에 인용`}
                   hitSlop={8}
-                  style={styles.insertBtn}
+                  className="size-8 rounded-16 bg-ink items-center justify-center"
                 >
-                  <Text style={styles.insertBtnText}>＋</Text>
+                  <Text className="text-paper text-[18px] leading-[22px]">＋</Text>
                 </Pressable>
               )}
             </View>
@@ -104,46 +99,5 @@ export function VerseList({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  navBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-  },
-  navBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    minHeight: 48,
-    justifyContent: "center",
-  },
-  navBtnDisabled: { opacity: 0.3 },
-  navText: { color: "#222", fontSize: 14 },
-  navTitle: { fontSize: 15, fontWeight: "600" },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: "#f4f4f4",
-    gap: 8,
-  },
-  num: { width: 28, color: "#888", fontVariant: ["tabular-nums"] },
-  text: { flex: 1, fontSize: 16, lineHeight: 24, color: "#111" },
-  insertBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#222",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  insertBtnText: { color: "white", fontSize: 18, lineHeight: 22 },
-  empty: { padding: 24, alignItems: "center" },
-  emptyText: { color: "#888" },
-});
+const NAV_BTN = "px-3 py-3 min-h-12 justify-center";
+const NAV_TEXT = "text-ink-2 text-label";

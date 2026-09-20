@@ -1,12 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  FlatList,
-  TextInput,
-} from "react-native";
+import { View, Text, Pressable, FlatList, TextInput } from "react-native";
 import {
   BOOKS_META,
   findBookMeta,
@@ -99,35 +92,36 @@ export function BibleReader({
   const showBackBtn = level.kind !== "books";
 
   return (
-    <View style={styles.body}>
+    <View className="flex-1">
       {showBackBtn && (
         <Pressable
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={12}
-          style={styles.inlineBack}
+          className="px-4 py-3 min-h-12 justify-center"
         >
-          <Text style={styles.inlineBackText}>← 뒤로</Text>
+          <Text className="text-body text-ink-2">← 뒤로</Text>
         </Pressable>
       )}
 
       {level.kind === "books" && (
         <>
-          <View style={styles.searchWrap}>
+          <View className="px-3 pt-3">
             <TextInput
-              style={styles.searchInput}
+              className="bg-chip-bg rounded-8 px-3 py-2 text-body min-h-10 text-ink"
               value={search}
               onChangeText={setSearch}
               onSubmitEditing={onSubmitSearch}
               placeholder="책·장·절 (예: 골 3:20)"
+              placeholderTextColorClassName="text-ink-3"
               accessibilityLabel="성경 검색"
               autoCorrect={false}
               autoCapitalize="none"
               returnKeyType="go"
             />
           </View>
-          <View style={styles.segment}>
+          <View className="flex-row px-3 py-3 gap-2">
             <SegmentBtn
               label="구약"
               active={testament === "OT"}
@@ -190,12 +184,18 @@ function SegmentBtn({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+      className={`flex-1 py-3 rounded-full items-center justify-center min-h-12 ${
+        active ? "bg-ink" : "bg-chip-bg"
+      }`}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       accessibilityLabel={label}
     >
-      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+      <Text
+        className={`text-body ${
+          active ? "text-paper font-semibold" : "text-ink-2"
+        }`}
+      >
         {label}
       </Text>
     </Pressable>
@@ -212,65 +212,12 @@ function BookRow({
   return (
     <Pressable
       onPress={onPress}
-      style={styles.bookRow}
+      className="flex-row items-center justify-between px-4 py-3.5 border-b border-rule min-h-12"
       accessibilityRole="button"
       accessibilityLabel={meta.nameKo}
     >
-      <Text style={styles.bookName}>{meta.nameKo}</Text>
-      <Text style={styles.bookCode}>{meta.code}</Text>
+      <Text className="text-body text-ink">{meta.nameKo}</Text>
+      <Text className="text-label text-ink-3">{meta.code}</Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  body: { flex: 1 },
-  inlineBack: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 48,
-    justifyContent: "center",
-  },
-  inlineBackText: { fontSize: 15, color: "#555" },
-  searchWrap: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-  },
-  searchInput: {
-    backgroundColor: "#f4f4f4",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 15,
-    minHeight: 40,
-  },
-  segment: {
-    flexDirection: "row",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 999,
-    backgroundColor: "#f0f0f0",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 48,
-  },
-  segmentBtnActive: { backgroundColor: "#222" },
-  segmentText: { color: "#555", fontSize: 15 },
-  segmentTextActive: { color: "white", fontWeight: "600" },
-  bookRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: "#f4f4f4",
-    minHeight: 48,
-  },
-  bookName: { fontSize: 16, color: "#111" },
-  bookCode: { fontSize: 13, color: "#999" },
-});

@@ -1,12 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import {
-  Animated,
-  PanResponder,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, PanResponder, Pressable, Text, View } from "react-native";
 import {
   clampSwipeOffset,
   isHorizontalSwipe,
@@ -93,16 +86,17 @@ export function SwipeToDelete({
   );
 
   return (
-    <View style={styles.root}>
+    <View className="relative overflow-hidden bg-err-bar">
       <Pressable
         onPress={onDelete}
         accessibilityRole="button"
         accessibilityLabel={deleteLabel}
         accessibilityElementsHidden={!open}
         importantForAccessibility={open ? "yes" : "no-hide-descendants"}
-        style={styles.deleteAction}
+        className="absolute top-0 right-0 bottom-0 min-h-12 items-center justify-center bg-err-bar"
+        style={{ width: ACTION_WIDTH }}
       >
-        <Text style={styles.deleteText}>삭제</Text>
+        <Text className="text-white text-label font-bold">삭제</Text>
       </Pressable>
       <Animated.View
         {...panResponder.panHandlers}
@@ -114,22 +108,3 @@ export function SwipeToDelete({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    position: "relative",
-    overflow: "hidden",
-    backgroundColor: "#c8342a",
-  },
-  deleteAction: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: ACTION_WIDTH,
-    minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#c8342a",
-  },
-  deleteText: { color: "white", fontSize: 14, fontWeight: "700" },
-});

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { FlatList, Pressable, Text, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import {
   chapterCount,
   findBookMeta,
@@ -21,8 +21,8 @@ export function ChapterGrid({ book, onSelect }: Props) {
 
   if (count === 0) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>
+      <View className="flex-1 items-center justify-center p-6">
+        <Text className="text-ink-3 text-center">
           {meta?.nameKo ?? book}의 장 데이터가 아직 없습니다
         </Text>
       </View>
@@ -34,35 +34,19 @@ export function ChapterGrid({ book, onSelect }: Props) {
       data={data}
       keyExtractor={(n) => String(n)}
       numColumns={4}
-      contentContainerStyle={styles.gridContent}
-      columnWrapperStyle={styles.columnWrap}
+      contentContainerClassName="p-3 gap-2"
+      columnWrapperClassName="gap-2"
       renderItem={({ item }) => (
         <Pressable
-          style={styles.cell}
+          className="flex-1 aspect-square bg-chip-bg rounded-8 items-center justify-center min-h-12"
           onPress={() => onSelect(item)}
           accessibilityRole="button"
           accessibilityLabel={`${meta?.nameKo ?? book} ${item}장`}
         >
-          <Text style={styles.cellText}>{item}</Text>
+          <Text className="text-body text-ink">{item}</Text>
         </Pressable>
       )}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  gridContent: { padding: 12, gap: 8 },
-  columnWrap: { gap: 8 },
-  cell: {
-    flex: 1,
-    aspectRatio: 1,
-    backgroundColor: "#f4f4f4",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 48,
-  },
-  cellText: { fontSize: 16, color: "#111" },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  emptyText: { color: "#888", textAlign: "center" },
-});
