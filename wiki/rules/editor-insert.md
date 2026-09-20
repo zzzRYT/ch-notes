@@ -170,6 +170,7 @@ statement: 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 �
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (COMMIT_DEBOUNCE_MS = 800)
   - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (delayMs = 500)
+  - apps/ch-life/src/widgets/note-editor/model/useNoteDraft.ts (폰·태블릿 공통 배선)
 verified_by:
   - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts
   - manual: 입력 중단 후 약 1.3초 뒤 저장, 앱 재시작 시 보존

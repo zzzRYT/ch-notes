@@ -14,8 +14,9 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 화면 너비 900px 이상이면 3-pane 태블릿 작업공간을, 미만이면 폰 목록·에디터 흐름을 쓴다. 같은 기준으로 성경이 사이드바가 되거나 하단 시트가 된다.
 implemented_by:
-  - apps/ch-life/src/pages/notes/ui/NotesPage.tsx (TABLET_BREAKPOINT)
-  - apps/ch-life/src/shared/lib/useResponsiveLayout.ts
+  - apps/ch-life/src/shared/lib/useResponsiveLayout.ts (TABLET_BREAKPOINT)
+  - apps/ch-life/src/pages/notes/ui/NotesPage.tsx
+  - apps/ch-life/src/widgets/scripture-browser/ui/BibleBrowser.tsx
 verified_by:
   - manual: 태블릿 가로/세로 회전 시 레이아웃 전환
 confidence: 기록됨
@@ -23,7 +24,7 @@ source:
   - apps/ch-life/CLAUDE.md ("900px가 phone/tablet 분기")
 ```
 
-**상수가 두 곳에 복제되어 있다** — `src/pages/notes/ui/NotesPage.tsx`의 `TABLET_BREAKPOINT`와 `useResponsiveLayout`의 `width >= 900`. 한쪽만 바꾸면 목록은 태블릿인데 성경은 시트로 뜨는 상태가 만들어진다([`drift.md`](../drift.md) B절).
+상수는 `shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT` **한 곳**이다. 노트 목록은 그 상수를, 성경 시트는 같은 파일의 `useResponsiveLayout()`을 읽는다. 2026-09-20 이전에는 두 곳에 복제되어 있었다([`drift.md`](../drift.md) B2).
 
 ## RULE-UI-002 · 태블릿은 접을 수 있는 3-pane
 

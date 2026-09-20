@@ -58,8 +58,9 @@ policy: POL-NOTE-001
 requirement: MUST
 statement: 노트 id는 36진수 타임스탬프 10자 + 36진수 난수 10자를 대문자로 이어붙인 20자 문자열이다. ULID가 아니다.
 implemented_by:
-  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (makeId)
-  - apps/ch-life/src/entities/note/api/markdown-parse.ts (makeId)
+  - apps/ch-life/src/entities/note/lib/make-id.ts
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (create)
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts (id 없는 파일)
 verified_by:
   - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#노트를 만들고 읽는다
 confidence: 코드추론
@@ -67,7 +68,7 @@ confidence: 코드추론
 
 시간 접두가 있어 생성 순서대로 사전식 정렬되지만, ULID의 Crockford Base32도 아니고 같은 밀리초 안의 단조 증가 보장도 없다. `DESIGN.md`와 v1 spec의 `id: string // ulid` 주석은 **현재 사실이 아니다**.
 
-같은 함수가 `note-repo.ts`와 `markdown/parse.ts`에 **복제되어 있다**([`drift.md`](../drift.md)). 한쪽만 바꾸면 가져오기로 만든 노트와 앱에서 만든 노트의 id 형식이 갈린다.
+`makeId`는 `entities/note/lib/make-id.ts` 하나이고 저장소의 `create`와 마크다운 가져오기(frontmatter에 id가 없을 때)가 같이 쓴다. 2026-09-20 이전에는 두 파일에 복제되어 있었다([`drift.md`](../drift.md) B3).
 
 ## RULE-NOTE-004 · 목록은 작성일 내림차순
 
@@ -120,6 +121,7 @@ policy: POL-NOTE-001
 requirement: MAY
 statement: 새 노트 버튼을 누르면 빈 문단 하나를 가진 노트가 즉시 DB에 생성된다. 사용자가 아무것도 쓰지 않고 나가도 그 빈 노트는 남는다.
 implemented_by:
+  - apps/ch-life/src/features/note/create/model/create-note.ts (createBlankNote)
   - apps/ch-life/src/pages/notes/ui/NotesPage.tsx (createNote)
   - apps/ch-life/src/pages/notes/ui/TabletWorkspace.tsx (createNote)
 verified_by:
