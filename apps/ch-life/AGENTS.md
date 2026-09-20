@@ -26,7 +26,8 @@ Expo SDK 54 기반 React Native 앱이다. 이 디렉터리에서는 루트 `AGE
 - 테스트는 Node의 `better-sqlite3`, 프로덕션은 `expo-sqlite`를 사용한다. 한 어댑터만 검증했다고 전체 경로가 검증된 것으로 보지 않는다.
 - `Note` 업데이트에서 `null`은 필드 비움, `undefined`는 기존값 유지다.
 - 테마의 실제 색상 분기는 `themePreference`가 아니라 `variation`이다.
-- phone/tablet 분기 기준은 900px이며 여러 파일에 중복되어 있다.
+- phone/tablet 분기 기준은 `src/shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT`(900px) 하나다. 다른 곳에 숫자를 복제하지 않는다.
+- **폰과 태블릿은 같은 기능을 쓴다.** 폰(`notes` 목록 → `note-editor` 라우트)과 태블릿(`TabletWorkspace` 한 화면)은 화면 조립만 다르고, 삭제 확인·저장·내보내기·검색 같은 동작은 `features/`·`widgets/`·`shared/`의 **한 구현**을 양쪽 `pages/`가 호출해야 한다. 동작을 추가·변경할 때는 폰과 태블릿 진입점을 모두 찾아 같은 함수로 연결하고, 한쪽 page에만 흐름을 심지 않는다. 화면 크기 때문에 UX가 달라야 하는 경우(예: 폰은 삭제 후 목록으로 돌아가고 태블릿은 다음 노트를 선택)만 예외이며, 그 이유를 해당 `RULE`에 적는다.
 - `assets/bible.json`의 성경 본문은 CC BY-SA 4.0이다. 본문이 포함된 재배포 산출물도 같은 라이선스를 유지한다.
 
 ## 배포

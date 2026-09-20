@@ -36,8 +36,8 @@ export function formatShortDate(ymd: string): string {
   return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
 }
 
-// 일요일 시작 6주(42칸) 격자. 각 칸은 YYYY-MM-DD 또는 패딩 null.
-export function buildMonthGrid(year: number, month0: number): (string | null)[] {
+// 일요일 시작 6주 × 7일 격자. 행을 고정해 화면 너비 반올림에도 요일 열이 밀리지 않는다.
+export function buildMonthWeeks(year: number, month0: number): (string | null)[][] {
   const first = new Date(year, month0, 1);
   const offset = first.getDay();
   const daysInMonth = new Date(year, month0 + 1, 0).getDate();
@@ -47,7 +47,9 @@ export function buildMonthGrid(year: number, month0: number): (string | null)[] 
     cells.push(formatYmd(new Date(year, month0, day)));
   }
   while (cells.length < 42) cells.push(null);
-  return cells;
+  return Array.from({ length: 6 }, (_, week) =>
+    cells.slice(week * 7, week * 7 + 7),
+  );
 }
 
 export function addMonths(

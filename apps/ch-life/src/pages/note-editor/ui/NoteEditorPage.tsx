@@ -3,7 +3,7 @@ import { Keyboard, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BookOpen, Share, Trash2 } from 'lucide-react-native';
 import { useNoteRepo } from '@/entities/note';
-import { deleteNoteWithUndo } from '@/features/note/delete';
+import { confirmNoteDelete, deleteNoteWithUndo } from '@/features/note/delete';
 import { exportNote } from '@/features/note/export';
 import { showFeedback } from '@/shared/lib';
 import {
@@ -62,7 +62,7 @@ export function NoteEditorPage() {
     }
   }, [repo, id, snapshot, setSaveErr]);
 
-  const handleDelete = useCallback(async () => {
+  const deleteNote = useCallback(async () => {
     if (!id || deletingRef.current) return;
     deletingRef.current = true;
     try {
@@ -80,12 +80,17 @@ export function NoteEditorPage() {
 
     setDeleting(true);
     const deleted = await deleteNoteWithUndo(repo, id);
-    if (deleted) router.replace('/');
+    if (deleted) router.back();
     else {
       deletingRef.current = false;
       setDeleting(false);
     }
   }, [repo, id, flushAutoSave, router]);
+
+  const handleDelete = useCallback(
+    () => confirmNoteDelete(() => void deleteNote()),
+    [deleteNote],
+  );
 
   // 불러오는 동안은 빈 화면 — 옛 값이 잠깐 보였다 바뀌지 않게 한다.
   if (status === 'idle' || status === 'loading') return null;
@@ -148,4 +153,3 @@ export function NoteEditorPage() {
     </View>
   );
 }
-

@@ -57,3 +57,6 @@ keys/
 .hot-updater/output
 # hot-updater
 .hot-updater/log
+
+# 로컬 Expo 모듈의 Gradle 산출물
+modules/*/android/build/
