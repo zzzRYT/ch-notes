@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { AppHeader, HeaderBack, useTheme } from "@/shared/ui";
+import { AppHeader, HeaderBack } from "@/shared/ui";
 import { BibleReader, useBiblePosition } from "@/widgets/scripture-browser";
 
 /**
@@ -12,12 +12,11 @@ import { BibleReader, useBiblePosition } from "@/widgets/scripture-browser";
  */
 export function BibleReaderPage() {
   const router = useRouter();
-  const { colors } = useTheme();
   const { initialRef, onPositionChange } = useBiblePosition();
   const [title, setTitle] = useState("성경");
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 bg-bg">
       <AppHeader
         left={<HeaderBack label="노트" onPress={() => router.back()} />}
         title={title}
@@ -32,6 +31,3 @@ export function BibleReaderPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-});

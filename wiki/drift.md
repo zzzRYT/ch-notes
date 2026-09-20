@@ -78,9 +78,9 @@ FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps
 세 번째가 특히 문제다 — [`RULE-SEARCH-001`](rules/search.md)의 "본문 검색은 동작하지 않는다"가 태블릿에서는 그대로 참이 아니다.
 
 ### B9. 테마 토큰이 두 세대 공존
-`ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다. 성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`)는 아직 **테마를 쓰지 않고 하드코딩된 색**(`#f4f4f4`, `#222`)을 쓴다 → 다크 변형에서 이 화면들만 밝다.
+`ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다.
 
-**범위는 이보다 넓다.** `useTheme`을 쓰지 않는 파일은 셋이 아니라 **다섯**이다 — 위 셋에 `src/widgets/scripture-browser/ui/ChapterGrid.tsx`와 `src/shared/ui/SwipeToDelete.tsx`가 더 있다. 그리고 미적용은 색에 그치지 않는다: 이 다섯 파일은 `scaled()`도 쓰지 않아 **성경 본문이 글자 크기 설정과 무관하게 항상 16px 고정**이다(`src/widgets/scripture-browser/ui/VerseList.tsx:140`).
+~~성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`/`ChapterGrid`)와 `SwipeToDelete`는 테마를 쓰지 않고 하드코딩된 색(`#f4f4f4`, `#222`)을 썼고, 성경 본문은 항상 16px 고정이었다 → 다크 변형에서 이 화면들만 밝았다.~~ **하드코딩 부분은 해소(2026-09-20)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용으로 다섯 파일 전부 `bg-chip-bg`·`text-ink`·`border-rule`·`bg-err-bar` 토큰을 쓰고, 본문은 `text-body-large`로 fontScale을 받는다. **구·신 필드 공존은 그대로다** — 팔레트 `ThemeColors` 타입은 손대지 않았고, `useTheme().colors`는 이제 아이콘 `color` prop·Animated·서드파티(`KeyboardAwareScrollView`) 배경에만 쓰인다.
 
 두 세대의 관계도 균일하지 않다. 레거시 필드를 읽는 파일 18개, 신 토큰을 읽는 파일 17개, **양쪽을 동시에 쓰는 파일이 15개**다. 값으로 보면 `surface`·`text`·`line`·`quoteBar` 네 필드는 4개 팔레트 **전부에서** `paper`·`ink`·`rule`·`ink4`와 바이트 단위로 동일해 순수 개명으로 지울 수 있지만, `bg`·`subtle`·`chipBg`·`chipText`·`accentText`는 대응하는 신 토큰이 없거나 값이 달라 그대로 살려야 한다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
 
@@ -203,12 +203,10 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 지금 세 파일(`src/entities/note/model/types.ts`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
 
-### B27. 글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다
-`fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있다. 그런데 `.tsx`의 `fontSize:` 선언 **98건 중 `scaled()`를 거치는 것은 28건**뿐이고, 나머지 70건은 리터럴 숫자다(18개 파일). 리터럴 일부는 호출부에서 인라인 `scaled()`로 덮이지만 전부는 아니다.
+### B27. ~~글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다~~ **해소(2026-09-20)**
+`fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있었는데, `.tsx`의 `fontSize:` 98건 중 `scaled()`를 거치는 것은 28건뿐이었다. 날짜 선택 달력 하나만 봐도 요일 `일~토`·'오늘' 버튼이 배율을 받지 않았다.
 
-날짜 선택 달력 하나만 봐도 덮이지 않는 것이 셋이다 — 요일 `일~토` 12px(`src/widgets/note-editor/ui/DatePickerModal.tsx:186`), 이전/다음 달 `‹ ›` 24px(`:181`), '오늘' 버튼 14px(`:205`). 같은 화면에서 달 제목 17과 날짜 숫자 15만 커진다(`:63`, `:122`). 글자 크기를 1.6으로 올린 사용자에게 이 화면은 **일부만 커지고 나머지는 그대로**인 상태가 된다.
-
-`scaled()`를 모든 텍스트에 적용하라고 못박은 `RULE`은 없다(`wiki/rules`·`wiki/contracts` 전수 확인). 그래서 이것은 규칙 위반이 아니라 **정본이 비어 있는 자리**다 — 어디까지 확대 대상인지 정한 적이 없다. → E22
+[`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md)의 전면 적용으로 **본문 텍스트의 `fontSize` 리터럴은 0건**이 됐다. 텍스트는 전부 `text-display … text-caption` 여섯 단계이고 이 단계는 `ThemeProvider`가 ×fontScale로 갱신한다. 남은 고정 크기는 `text-[Npx]`로 표기한 **글리프 아이콘**(`‹ › ≡ ✕ ✓ ＋ ◧ ⌕ ↑ ↗ ✉ 📖`)뿐이며, 이것은 `primitives.js`의 `icon/glyph/*`가 텍스트와 분리해 둔 것이다. 확대 경계가 어디여야 하는지는 여전히 사용자 확정이 필요하다. → E22
 
 ### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다
 `BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/entities/note/model/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
@@ -217,15 +215,16 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 디스크의 데이터가 파괴되지는 않는다. 마크다운으로 가져온 할 일 목록은 파일에 그대로 남는다. 사라지는 것은 **사용자가 방금 친 것**과 **그 블록이 무엇인지 알아볼 방법**이다. B20이 "알 수 없는 블록 타입"을 다뤘다면 이쪽은 **알려진 블록 타입**이 같은 취급을 받는 자리다. → B20
 
-### B29. 글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다
-`src/pages/settings/ui/SettingsPage.tsx`에 `scaled`가 **0건**이다(`useTheme`에서 `colors`만 꺼낸다 — `:71`). 그래서 '크게'·'아주 크게'를 고르는 칩(`chipText: { fontSize: 14 }`, `:371`)도, 그 위의 설명 문구도 배율을 받지 않는다.
-
-어르신 친화 UX의 대표 기능을 켜는 화면이 그 기능의 밖에 있다. B27의 일반적 문제(98건 중 28건만 `scaled()`)가 가장 나쁘게 드러나는 지점이다. → B27, E22
+### B29. ~~글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다~~ **해소(2026-09-20)**
+`src/pages/settings/ui/SettingsPage.tsx`에 `scaled`가 0건이어서 '크게'·'아주 크게'를 고르는 칩도 그 설명 문구도 배율을 받지 않았다. B27과 함께 해소 — 설정 화면의 텍스트는 전부 `text-label`·`text-body`·`text-caption` 토큰이다. → B27
 
 ### B30. 태블릿에서 같은 동작에 컨트롤이 둘 렌더된다
 `leftOpen === false`이면 `PanelRail`(글리프 `≡`, `onExpand → setLeftOpen(true)`, `src/pages/notes/ui/TabletWorkspace.tsx:308-315`)과 브레드크럼의 `≡` 버튼(`onPress → setLeftOpen(true)`, `:321-335`)이 **동시에** 화면에 있다. 오른쪽도 같다 — `PanelRail` 글리프 `✦`(`:455-462`)와 브레드크럼 `◧`(`:380-395`).
 
 같은 동작인데 기호도 크기도 다르다(`PanelRail.glyph` 16px vs 브레드크럼 `crumbBtnText` 15px). 어느 쪽이 정본인지 코드에 근거가 없다. 아이콘 인벤토리에서 '펼치기/접기' 하나에 기호 체계가 넷인 것도 여기서 갈라진다.
+
+### B31. 타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다
+`display 30 · title 20 · body-large 17 · body 15 · label 13 · caption 11`이 `docs/design-system/figma-plugin/primitives.js`(`text/size/*`, Figma용) · `apps/ch-life/src/global.css`(`--text-*`, Tailwind 초기값) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx`(`TEXT_SCALE`, ×fontScale 갱신용)에 각각 있다. 색 토큰은 `extract-colors.py`가 한 원본에서 생성하지만 수치 토큰에는 그런 생성기가 없다. 한 곳만 바꾸면 Figma·초기 렌더·fontScale 반영 후가 서로 다른 크기가 된다. → [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md), B9
 
 ## C. 테스트(오라클)의 신뢰도 문제
 
@@ -306,7 +305,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E21 | **Figma가 토큰 정본이 될 때 절차를 어떻게 고정하는가?** ⑴ `CLAUDE.md` 문서 지위 표에 "디자인 토큰만은 Figma가 정본"이라는 예외를 명시할 것인가, ⑵ Figma→코드 반영이 수동일 때 어긋남을 무엇으로 잡을 것인가(팔레트 스냅샷 테스트? `drift.md` 항목?), ⑶ 최초 부트스트랩(코드→Figma) 이후 코드 쪽 팔레트 직접 수정을 금지할 것인가? | E19, [`ADR-0010`](decisions/ADR-0010-variation-theming.md) |
 | E20 | **`fontFamily` 축을 살릴 것인가, 걷어낼 것인가?** 지금은 RN 제약으로 원천 무효다(B24). 살리려면 폰트 파일 번들링 + `expo-font` 로딩 + 단일 폰트명 반환이 모두 필요하고, 걷어내려면 설정 스키마에서 필드를 빼는 대신 [`RULE-SET-002`](rules/settings-theme.md)의 관대한 파싱을 지켜야 한다. | B24, [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) |
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
-| E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** `.tsx`의 `fontSize` 98건 중 28건만 `scaled()`를 거친다(B27). 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없다. 확대할 것과 고정할 것의 경계를 `RULE`로 박아야 지금처럼 파일마다 갈리지 않는다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
+| E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없었다. **제안(2026-09-20, 확인필요)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용에서 이렇게 갈랐다: 읽는 텍스트는 전부 `text-*` 토큰(확대됨), 텍스트로 그린 **아이콘 글리프만** `text-[Npx]` 고정(`primitives.js` `icon/glyph/*`와 같은 구분). 요일 머리글·보조 라벨·칩 텍스트는 확대 대상에 넣었다. 이 경계가 맞으면 `RULE-UI`로 박고, 아니면 어느 쪽을 빼야 하는지 정해야 한다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
 | E23 | **Play 트랙을 `internal`에서 `alpha`로 올린 이유는?** `eas.json`의 `submit.production.android.track`이 바뀌었는데 기록이 없다. iOS 자동제출(ASC API 키)을 붙이면서 함께 정한 것인가, 아니면 별개의 판단인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), `docs/store/android-auto-submit.md` |
 
 ## G. 아직 정본화되지 않은 구현

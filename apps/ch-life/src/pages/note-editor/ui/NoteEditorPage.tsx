@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Keyboard, Text, View, StyleSheet } from 'react-native';
+import { Keyboard, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BookOpen, Share, Trash2 } from 'lucide-react-native';
 import { useNoteRepo } from '@/entities/note';
@@ -11,7 +11,6 @@ import {
   HeaderBack,
   HeaderIconButton,
   HeaderTextButton,
-  useTheme,
 } from '@/shared/ui';
 import {
   NoteEditor,
@@ -24,7 +23,6 @@ import { BibleBrowser } from '@/widgets/scripture-browser';
 export function NoteEditorPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { colors } = useTheme();
   const repo = useNoteRepo();
   const [browserOpen, setBrowserOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -92,7 +90,7 @@ export function NoteEditorPage() {
   // 불러오는 동안은 빈 화면 — 옛 값이 잠깐 보였다 바뀌지 않게 한다.
   if (status === 'idle' || status === 'loading') return null;
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 bg-bg">
       <AppHeader
         left={<HeaderBack label="노트" onPress={() => router.back()} />}
         right={
@@ -118,8 +116,8 @@ export function NoteEditorPage() {
         }
       />
       {saveErr && (
-        <View style={[styles.errBanner, { backgroundColor: colors.errBg }]}>
-          <Text style={{ color: colors.errText }}>{saveErr}</Text>
+        <View className="p-2 bg-err-bg">
+          <Text className="text-err-text">{saveErr}</Text>
         </View>
       )}
       <NoteEditor
@@ -151,7 +149,3 @@ export function NoteEditorPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  errBanner: { padding: 8 },
-});

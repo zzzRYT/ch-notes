@@ -9,12 +9,10 @@ import React, {
 } from 'react';
 import {
   TextInput,
-  StyleSheet,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
   type TextInputSelectionChangeEventData,
 } from 'react-native';
-import { useTheme, scaled } from '@/shared/ui';
 import {
   detectTriggeredRef,
   splitAtRef,
@@ -60,7 +58,6 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
     },
     ref,
   ) {
-  const { colors, fontScale, fontStack } = useTheme();
   const [text, setText] = useState<string>(initialText);
   const textRef = useRef<string>(initialText);
   const cursorRef = useRef<number>(initialText.length);
@@ -185,15 +182,8 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
 
   return (
     <TextInput
-      style={[
-        styles.paragraph,
-        {
-          color: colors.ink,
-          fontFamily: fontStack,
-          fontSize: scaled(16, fontScale),
-          lineHeight: scaled(26, fontScale),
-        },
-      ]}
+      // 본문 에디터 = body-large, 행간은 실측 editor 1.625(primitives.js)
+      className="min-h-[30px] py-0 align-top text-ink font-body text-body-large leading-[1.625]"
       ref={inputRef}
       value={text}
       multiline
@@ -205,7 +195,7 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
       placeholder={
         isFirst ? '예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다' : ''
       }
-      placeholderTextColor={colors.ink3}
+      placeholderTextColorClassName="text-ink-3"
       autoCorrect={false}
       autoCapitalize="none"
       spellCheck={false}
@@ -216,10 +206,3 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
 
 export const ParagraphInput = memo(ParagraphInputImpl);
 
-const styles = StyleSheet.create({
-  paragraph: {
-    minHeight: 30,
-    paddingVertical: 0,
-    textAlignVertical: 'top',
-  },
-});

@@ -19,6 +19,7 @@
 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | [마크다운 공유](#5-마크다운-내보내기가져오기) |
 | `src/widgets/scripture-browser/**`, `src/pages/bible-reader/**`, `src/pages/notes/ui/BiblePanel.tsx` | [성경 리더](#6-성경-리더) |
 | `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
+| `src/global.css`, `src/theme.colors.css`, `metro.config.js`, `docs/design-system/figma-plugin/**` | [디자인 시스템·Figma](#7-1-디자인-시스템figma) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
 | `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
@@ -186,7 +187,7 @@
 
 **함정**
 - 절까지 입력해도 **장까지만** 이동한다(A19). 삽입 토스트도 없다(A20).
-- 리더 컴포넌트들은 `useTheme`을 안 쓰고 색을 하드코딩한다 — **다크 변형에서 이 화면들만 밝다**(B9).
+- 리더 컴포넌트는 `className` 토큰으로 색을 받는다(ADR-0025). 하드코딩 색은 남아 있지 않다 — 새로 넣지 않는다(B9).
 - "최근" 칩은 하드코딩 상수다(D5).
 - `BibleLookupPanel`은 문서에 없던 **네 번째** `citedRefs` 표기 경로다(B4).
 - RULE-BIBLE-006에는 자동 증거가 없다 — 붙어 있던 테스트가 실제로 그 코드를 지나지 않았다(C7).
@@ -198,7 +199,7 @@
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
 **코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
-**테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**)
+**테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**) · `node scripts/check-classnames.mjs`(소스의 className이 전부 번들에 컴파일됐는지 — uniwind는 모르는 클래스를 조용히 버린다)
 
 **같은 변경에서 함께 고친다**
 1. ⚠️ **`fontScale`에 값을 더한다면 세 곳 전부** — `src/features/settings/change/model/settings-store.ts`의 `Settings` 유니온 → 같은 폴더 `settings-validator.ts`의 `ALLOWED_FONT` → `src/pages/settings/ui/SettingsPage.tsx`의 `FONT_OPTIONS`(사용자가 실제로 고르는 목록). `settings-store.ts`의 기본값 `1.2`는 그대로 둔다 — 형제 필드들과 같은 3단 구조다(B15). validator를 빠뜨리면 사용자가 그 값을 고른 순간 **다음 실행에서 `settings.json` 전체가 버려지고 기본값으로 리셋된다.**
@@ -210,16 +211,22 @@
 - **색은 `variation`만으로 결정된다.** `themePreference`는 아무 영향이 없고 설정 화면에도 없다. OS 다크모드를 따라가지 않는다.
 - 새 설정 필드는 **개별 폴백** 쪽으로. 전체 거부는 `fontScale`·`themePreference`뿐이다.
 - 태블릿에는 메타 헤더 → 본문 포커스 핸드오프가 없다(B7).
-- 팔레트에 구 필드와 신 토큰이 공존한다(B9).
+- 팔레트에 구 필드와 신 토큰이 공존한다(B9). 화면은 전부 `className`이고 `useTheme().colors`는 아이콘 `color` prop·Animated·서드파티에만 남아 있다(ADR-0025).
 - **이 영역은 자동 증거가 전혀 없다**(C3). 그래서 RULE-UI-*는 전부 `SHOULD`다.
 
 ---
 
 ## 7-1. 디자인 시스템·Figma
 
-**먼저 읽는다** — [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B30 · E19 · E21 · E22
+**먼저 읽는다** — [ADR-0025](decisions/ADR-0025-tailwind-uniwind-tokens.md)(className으로 쓰는 법·클래스 표) · [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B31 · E19 · E21 · E22
 
-**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본)
+**코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본 + uniwind 브리지) · `apps/ch-life/src/global.css`(수치 토큰) · `apps/ch-life/src/theme.colors.css`(생성됨) · `apps/ch-life/metro.config.js`
+**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지 · `node scripts/check-classnames.mjs` — 소스의 className이 전부 번들에 있는지(오타는 다른 어떤 검사에도 안 걸린다)
+
+**같은 변경에서 함께 고친다**
+1. **색 토큰을 더하면** `ThemeProvider.tsx` 팔레트 4개 + `extract-colors.py`의 `FIELDS` → `python3 docs/design-system/figma-plugin/extract-colors.py`. `tokens.colors.*`와 `theme.colors.css`가 같이 나온다. CSS를 손으로 고치지 않는다.
+2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`(B31).
+3. `global.css`는 `src/` 루트를 떠나면 안 된다 — Tailwind가 그 폴더 아래만 스캔한다.
 
 **토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
 

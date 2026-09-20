@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import {
@@ -47,6 +41,7 @@ function dayLabel(ts: number): string {
 }
 
 export function TabletWorkspace() {
+  // lucide 아이콘 색만 prop으로.
   const { colors } = useTheme();
   const router = useRouter();
   const repo = useNoteRepo();
@@ -187,9 +182,9 @@ export function TabletWorkspace() {
   const citedRefs = useMemo(() => extractCitedRefs(body), [body]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 flex-row bg-bg">
       {leftOpen ? (
-        <View style={styles.leftPane}>
+        <View className="w-pane-left">
           <NoteListSidebar
             notes={notes}
             selectedId={selectedId}
@@ -210,53 +205,43 @@ export function TabletWorkspace() {
         />
       )}
 
-      <View style={styles.centerPane}>
-        <View style={[styles.centerHead, { borderBottomColor: colors.rule }]}>
-          <View style={styles.breadcrumb}>
+      <View className="flex-1">
+        <View className="flex-row items-center justify-between px-5 py-3 border-b-hairline border-rule gap-3">
+          <View className="flex-row items-center gap-1.5 flex-1">
             {!leftOpen && (
               <Pressable
                 onPress={() => setLeftOpen(true)}
                 accessibilityRole="button"
                 accessibilityLabel="노트 목록 펼치기"
                 hitSlop={8}
-                style={styles.crumbBtn}
+                className={CRUMB_BTN}
               >
-                <Text style={[styles.crumbBtnText, { color: colors.ink2 }]}>
-                  ≡
-                </Text>
+                <Text className={`${CRUMB_GLYPH} text-ink-2`}>≡</Text>
               </Pressable>
             )}
             {breadcrumbMonth ? (
               <>
-                <Text style={[styles.crumb, { color: colors.ink3 }]}>
-                  {breadcrumbMonth}
-                </Text>
-                <Text style={[styles.crumbChev, { color: colors.ink4 }]}>
-                  ›
-                </Text>
-                <Text style={[styles.crumb, { color: colors.ink3 }]}>
-                  {breadcrumbDay}
-                </Text>
-                <Text style={[styles.crumbChev, { color: colors.ink4 }]}>
-                  ›
-                </Text>
+                <Text className={CRUMB}>{breadcrumbMonth}</Text>
+                <Text className={CRUMB_CHEV}>›</Text>
+                <Text className={CRUMB}>{breadcrumbDay}</Text>
+                <Text className={CRUMB_CHEV}>›</Text>
               </>
             ) : null}
             <Text
-              style={[styles.crumbActive, { color: colors.ink }]}
+              className="text-label font-semibold flex-1 text-ink"
               numberOfLines={1}
             >
               {breadcrumbTitle}
             </Text>
           </View>
-          <View style={styles.centerActions}>
+          <View className="flex-row gap-1">
             {selectedId && (
               <Pressable
                 onPress={() => void handleDelete(selectedId)}
                 disabled={deletingId !== null}
                 accessibilityRole="button"
                 accessibilityLabel="현재 노트 삭제"
-                style={styles.deleteBtn}
+                className="size-10 items-center justify-center rounded-8"
               >
                 <Trash2 size={17} color={colors.errText} strokeWidth={1.8} />
               </Pressable>
@@ -266,11 +251,9 @@ export function TabletWorkspace() {
               accessibilityRole="button"
               accessibilityLabel="노트 공유"
               hitSlop={8}
-              style={styles.crumbBtn}
+              className={CRUMB_BTN}
             >
-              <Text style={[styles.crumbBtnText, { color: colors.ink2 }]}>
-                ↑
-              </Text>
+              <Text className={`${CRUMB_GLYPH} text-ink-2`}>↑</Text>
             </Pressable>
             {!rightOpen && (
               <Pressable
@@ -278,20 +261,16 @@ export function TabletWorkspace() {
                 accessibilityRole="button"
                 accessibilityLabel="성경 보기 펼치기"
                 hitSlop={8}
-                style={styles.crumbBtn}
+                className={CRUMB_BTN}
               >
-                <Text
-                  style={[styles.crumbBtnText, { color: colors.accent }]}
-                >
-                  ◧
-                </Text>
+                <Text className={`${CRUMB_GLYPH} text-accent`}>◧</Text>
               </Pressable>
             )}
           </View>
         </View>
         {saveErr && (
-          <View style={[styles.errBanner, { backgroundColor: colors.errBg }]}>
-            <Text style={{ color: colors.errText }}>{saveErr}</Text>
+          <View className="px-5 py-2 bg-err-bg">
+            <Text className="text-err-text">{saveErr}</Text>
           </View>
         )}
         {selectedId ? (
@@ -311,31 +290,24 @@ export function TabletWorkspace() {
             <NoteEditor body={body} onChangeBody={draft.setBody} />
           </>
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyText, { color: colors.ink3 }]}>
+          <View className="flex-1 items-center justify-center gap-4">
+            <Text className="text-label text-ink-3">
               왼쪽에서 노트를 선택하거나 새 노트를 만드세요
             </Text>
             <Pressable
               onPress={createNote}
               accessibilityRole="button"
               accessibilityLabel="새 노트 만들기"
-              style={[styles.startBtn, { backgroundColor: colors.ink }]}
+              className="px-5 py-3 rounded-full bg-ink"
             >
-              <Text style={[styles.startBtnText, { color: colors.paper }]}>
-                새 노트
-              </Text>
+              <Text className="font-semibold text-label text-paper">새 노트</Text>
             </Pressable>
           </View>
         )}
       </View>
 
       {rightOpen ? (
-        <View
-          style={[
-            styles.rightPane,
-            { borderLeftColor: colors.rule },
-          ]}
-        >
+        <View className="w-pane-right border-l-hairline border-rule">
           <BiblePanel
             citedRefs={citedRefs}
             onInsert={insertRef}
@@ -354,60 +326,8 @@ export function TabletWorkspace() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, flexDirection: "row" },
-  leftPane: { width: 280 },
-  centerPane: { flex: 1 },
-  rightPane: {
-    width: 340,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-  },
-  centerHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-  },
-  breadcrumb: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    flex: 1,
-  },
-  crumb: { fontSize: 12, fontWeight: "500" },
-  crumbChev: { fontSize: 12 },
-  crumbActive: { fontSize: 13, fontWeight: "600", flex: 1 },
-  crumbBtn: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 6,
-  },
-  crumbBtnText: { fontSize: 15 },
-  deleteBtn: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-  },
-  centerActions: { flexDirection: "row", gap: 4 },
-  errBanner: { paddingHorizontal: 20, paddingVertical: 8 },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  emptyText: { fontSize: 14 },
-  startBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 999,
-  },
-  startBtnText: { fontWeight: "600", fontSize: 14 },
-});
+// 브레드크럼 글리프(≡ ↑ ◧)는 아이콘 — 고정 크기. ⚠️ 28px 버튼은 44px 기준 미달(drift B22).
+const CRUMB = "text-caption font-medium text-ink-3";
+const CRUMB_CHEV = "text-[12px] text-ink-4";
+const CRUMB_BTN = "size-7 items-center justify-center rounded-6";
+const CRUMB_GLYPH = "text-[15px]";

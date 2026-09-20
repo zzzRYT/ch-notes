@@ -1,15 +1,8 @@
 import React from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import { AppHeader, HeaderBack, useTheme } from "@/shared/ui";
+import { AppHeader, HeaderBack } from "@/shared/ui";
 
 const BIBLE_SOURCE_URL = "https://www.openbible.uk";
 const BIBLE_LICENSE_URL =
@@ -17,7 +10,6 @@ const BIBLE_LICENSE_URL =
 
 export function LicensesPage() {
   const router = useRouter();
-  const { colors } = useTheme();
 
   const openUrl = async (url: string) => {
     try {
@@ -29,43 +21,39 @@ export function LicensesPage() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 bg-bg">
       <AppHeader
         left={<HeaderBack onPress={() => router.back()} />}
         title="출처 및 라이선스"
         showRule
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.root}>
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
+      <ScrollView className="flex-1" contentContainerClassName="p-4 gap-2 pb-20">
+        <View className="gap-3 mb-5">
+          <Text className="text-caption uppercase tracking-eyebrow font-semibold text-ink-3">
             성경 본문
           </Text>
-          <Text style={[styles.body, { color: colors.ink }]}>
+          <Text className="text-label leading-[1.5] text-ink">
             이 앱의 성경 본문은{" "}
-            <Text style={styles.bold}>Open Bible 한국어판</Text>을 사용하며,
+            <Text className="font-semibold">Open Bible 한국어판</Text>을 사용하며,
             원문에서 본문을 추출·편집하여 수록했습니다.
           </Text>
           <Pressable
             onPress={() => openUrl(BIBLE_SOURCE_URL)}
             accessibilityRole="link"
             accessibilityLabel="Open Bible 웹사이트 열기"
-            style={styles.linkRow}
+            className={LINK_ROW}
           >
-            <Text style={[styles.link, { color: colors.accent }]}>
-              openbible.uk
-            </Text>
+            <Text className={LINK}>openbible.uk</Text>
           </Pressable>
           <Pressable
             onPress={() => openUrl(BIBLE_LICENSE_URL)}
             accessibilityRole="link"
             accessibilityLabel="CC BY-SA 4.0 라이선스 전문 열기"
-            style={styles.linkRow}
+            className={LINK_ROW}
           >
-            <Text style={[styles.link, { color: colors.accent }]}>
-              CC BY-SA 4.0 라이선스
-            </Text>
+            <Text className={LINK}>CC BY-SA 4.0 라이선스</Text>
           </Pressable>
-          <Text style={[styles.hint, { color: colors.ink3 }]}>
+          <Text className="text-label leading-[1.46] text-ink-3">
             본문은 CC BY-SA 4.0 조건에 따라 자유롭게 이용·공유할 수 있으며, 본문을
             수정한 2차적 저작물도 동일한 라이선스로 배포됩니다.
           </Text>
@@ -75,20 +63,5 @@ export function LicensesPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  scroll: { flex: 1 },
-  root: { padding: 16, gap: 8, paddingBottom: 80 },
-  section: { gap: 12, marginBottom: 20 },
-  sectionTitle: {
-    fontSize: 11,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    fontWeight: "600",
-  },
-  body: { fontSize: 14, lineHeight: 21 },
-  bold: { fontWeight: "600" },
-  hint: { fontSize: 13, lineHeight: 19 },
-  link: { fontSize: 15, fontWeight: "500", textDecorationLine: "underline" },
-  linkRow: { minHeight: 44, justifyContent: "center" },
-});
+const LINK_ROW = "min-h-touch justify-center";
+const LINK = "text-body font-medium underline text-accent";

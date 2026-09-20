@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
@@ -16,7 +9,6 @@ import { OTA_RELEASE } from '@/shared/config';
 import {
   AppHeader,
   HeaderBack,
-  useTheme,
   VARIATION_OPTIONS,
   type AccentChoice,
   type BlockStyle,
@@ -69,7 +61,6 @@ const ACCENT_SWATCHES: ReadonlyArray<{
 ];
 
 export function SettingsPage() {
-  const { colors } = useTheme();
   const settings = useSettingsStore((s) => s.settings);
   const setSettings = useSettingsStore((s) => s.setSettings);
 
@@ -100,40 +91,25 @@ export function SettingsPage() {
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={label}
-      style={[
-        styles.chip,
-        {
-          backgroundColor: selected ? colors.ink : colors.chipBg,
-        },
-      ]}
+      className={`px-4 py-3 rounded-full min-h-touch justify-center ${
+        selected ? 'bg-ink' : 'bg-chip-bg'
+      }`}
     >
-      <Text
-        style={[
-          styles.chipText,
-          {
-            color: selected ? colors.paper : colors.ink2,
-            fontWeight: selected ? '600' : '400',
-          },
-        ]}
-      >
-        {label}
-      </Text>
+      <Text className={chipTextClass(selected)}>{label}</Text>
     </Pressable>
   );
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
+    <View className="flex-1 bg-bg">
       <AppHeader
         left={<HeaderBack onPress={() => router.back()} />}
         title="설정"
         showRule
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.root}>
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            테마 (variation)
-          </Text>
-          <View style={styles.col}>
+      <ScrollView className="flex-1" contentContainerClassName="p-4 gap-2 pb-20">
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>테마 (variation)</Text>
+          <View className="gap-2">
             {VARIATION_OPTIONS.map((o) => {
               const selected = settings.variation === o.value;
               return (
@@ -143,32 +119,20 @@ export function SettingsPage() {
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                   accessibilityLabel={`${o.label} — ${o.hint}`}
-                  style={[
-                    styles.variationRow,
-                    {
-                      backgroundColor: selected
-                        ? colors.accentSoft
-                        : colors.paper,
-                      borderColor: selected ? colors.accent : colors.rule,
-                    },
-                  ]}
+                  className={`flex-row items-center justify-between px-3.5 py-3 rounded-10 border-hairline min-h-14 ${
+                    selected
+                      ? 'bg-accent-soft border-accent'
+                      : 'bg-paper border-rule'
+                  }`}
                 >
-                  <View style={styles.variationLabels}>
-                    <Text
-                      style={[styles.variationLabel, { color: colors.ink }]}
-                    >
+                  <View className="gap-0.5">
+                    <Text className="text-body font-semibold text-ink">
                       {o.label}
                     </Text>
-                    <Text
-                      style={[styles.variationHint, { color: colors.ink3 }]}
-                    >
-                      {o.hint}
-                    </Text>
+                    <Text className="text-caption text-ink-3">{o.hint}</Text>
                   </View>
                   {selected && (
-                    <Text style={{ color: colors.accent, fontWeight: '600' }}>
-                      ✓
-                    </Text>
+                    <Text className="text-accent font-semibold">✓</Text>
                   )}
                 </Pressable>
               );
@@ -176,11 +140,9 @@ export function SettingsPage() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            글꼴 크기
-          </Text>
-          <View style={styles.row}>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>글꼴 크기</Text>
+          <View className={ROW}>
             {FONT_OPTIONS.map((o) =>
               renderChip(o.label, settings.fontScale === o.value, () =>
                 setSettings({ fontScale: o.value }),
@@ -189,11 +151,9 @@ export function SettingsPage() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            폰트
-          </Text>
-          <View style={styles.row}>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>폰트</Text>
+          <View className={ROW}>
             {FONT_FAMILY_OPTIONS.map((o) =>
               renderChip(o.label, settings.fontFamily === o.value, () =>
                 setSettings({ fontFamily: o.value }),
@@ -202,11 +162,9 @@ export function SettingsPage() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            성경 블록 스타일
-          </Text>
-          <View style={styles.row}>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>성경 블록 스타일</Text>
+          <View className={ROW}>
             {BLOCK_STYLE_OPTIONS.map((o) =>
               renderChip(o.label, settings.blockStyle === o.value, () =>
                 setSettings({ blockStyle: o.value }),
@@ -215,11 +173,9 @@ export function SettingsPage() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            강조 색상
-          </Text>
-          <View style={styles.row}>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>강조 색상</Text>
+          <View className={ROW}>
             {ACCENT_SWATCHES.map((o) => {
               const selected = settings.accentChoice === o.value;
               return (
@@ -229,104 +185,74 @@ export function SettingsPage() {
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
                   accessibilityLabel={o.label}
-                  style={[
-                    styles.accentChip,
-                    {
-                      backgroundColor: selected ? colors.ink : colors.chipBg,
-                    },
-                  ]}
+                  className={`flex-row items-center gap-2 px-3.5 py-2.5 rounded-full min-h-touch ${
+                    selected ? 'bg-ink' : 'bg-chip-bg'
+                  }`}
                 >
                   {o.swatch && (
+                    // 견본 색은 사용자 데이터(hex)라 토큰이 아니다 — style로 준다.
                     <View
-                      style={[styles.swatchDot, { backgroundColor: o.swatch }]}
+                      className="size-3 rounded-6"
+                      style={{ backgroundColor: o.swatch }}
                     />
                   )}
-                  <Text
-                    style={[
-                      styles.chipText,
-                      {
-                        color: selected ? colors.paper : colors.ink2,
-                        fontWeight: selected ? '600' : '400',
-                      },
-                    ]}
-                  >
-                    {o.label}
-                  </Text>
+                  <Text className={chipTextClass(selected)}>{o.label}</Text>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            내보내기
-          </Text>
-          <Text style={[styles.hint, { color: colors.ink3 }]}>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>내보내기</Text>
+          <Text className={`${HINT} text-ink-3`}>
             내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
           </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.ink3 }]}>
-            정보
-          </Text>
-          <Text style={{ color: colors.ink }}>버전 {version}</Text>
+        <View className={SECTION}>
+          <Text className={SECTION_TITLE}>정보</Text>
+          <Text className="text-ink">버전 {version}</Text>
           <Pressable
             onPress={() => router.push('/licenses')}
             accessibilityRole="button"
             accessibilityLabel="출처 및 라이선스"
-            style={[styles.navRow, { borderTopColor: colors.rule }]}
+            className={NAV_ROW}
           >
-            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
-              출처 및 라이선스
-            </Text>
-            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
-              ›
-            </Text>
+            <Text className={NAV_ROW_LABEL}>출처 및 라이선스</Text>
+            <Text className={NAV_ROW_CHEVRON}>›</Text>
           </Pressable>
           <Pressable
             onPress={openPrivacyPolicy}
             accessibilityRole="link"
             accessibilityLabel="개인정보 처리방침 (웹페이지 열기)"
-            style={[styles.navRow, { borderTopColor: colors.rule }]}
+            className={NAV_ROW}
           >
-            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
-              개인정보 처리방침
-            </Text>
-            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
-              ↗
-            </Text>
+            <Text className={NAV_ROW_LABEL}>개인정보 처리방침</Text>
+            <Text className={NAV_ROW_CHEVRON}>↗</Text>
           </Pressable>
           <Pressable
             onPress={openContact}
             accessibilityRole="button"
             accessibilityLabel="문의하기 (메일 앱으로 문의 메일 작성)"
-            style={[styles.navRow, { borderTopColor: colors.rule }]}
+            className={NAV_ROW}
           >
-            <Text style={[styles.navRowLabel, { color: colors.ink }]}>
-              문의하기
-            </Text>
-            <Text style={[styles.navRowChevron, { color: colors.ink3 }]}>
-              ✉
-            </Text>
+            <Text className={NAV_ROW_LABEL}>문의하기</Text>
+            <Text className={NAV_ROW_CHEVRON}>✉</Text>
           </Pressable>
           {showAddressFallback && (
             <View
               accessibilityRole="alert"
-              style={[
-                styles.fallbackBox,
-                { backgroundColor: colors.chipBg, borderColor: colors.rule },
-              ]}
+              className="gap-1.5 p-3 mt-2 rounded-10 border-hairline bg-chip-bg border-rule"
             >
-              <Text style={[styles.hint, { color: colors.ink2 }]}>
+              <Text className={`${HINT} text-ink-2`}>
                 메일 앱을 열지 못했습니다. 아래 주소로 보내 주세요. 주소를 길게
                 누르면 복사할 수 있습니다.
               </Text>
               <Text
                 selectable
                 accessibilityLabel={`문의 이메일 주소 ${supportEmail}`}
-                style={[styles.fallbackAddress, { color: colors.ink }]}
+                className="text-body font-semibold text-ink"
               >
                 {supportEmail}
               </Text>
@@ -338,72 +264,17 @@ export function SettingsPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  scroll: { flex: 1 },
-  root: { padding: 16, gap: 8, paddingBottom: 80 },
-  section: { gap: 12, marginBottom: 20 },
-  sectionTitle: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    fontWeight: '600',
-  },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  col: { gap: 8 },
-  variationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    minHeight: 56,
-  },
-  variationLabels: { gap: 2 },
-  variationLabel: { fontSize: 15, fontWeight: '600' },
-  variationHint: { fontSize: 12 },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 999,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  chipText: { fontSize: 14 },
-  accentChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    minHeight: 44,
-  },
-  swatchDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  hint: { fontSize: 13, lineHeight: 19 },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    marginTop: 4,
-    minHeight: 48,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  navRowLabel: { fontSize: 15 },
-  navRowChevron: { fontSize: 22 },
-  fallbackBox: {
-    gap: 6,
-    padding: 12,
-    marginTop: 8,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  fallbackAddress: { fontSize: 16, fontWeight: '600' },
-});
+const SECTION = 'gap-3 mb-5';
+const SECTION_TITLE =
+  'text-caption uppercase tracking-eyebrow font-semibold text-ink-3';
+const ROW = 'flex-row flex-wrap gap-2';
+const HINT = 'text-label leading-[1.46]';
+const NAV_ROW =
+  'flex-row items-center justify-between py-3 mt-1 min-h-12 border-t-hairline border-rule';
+const NAV_ROW_LABEL = 'text-body text-ink';
+// 글리프(› ↗ ✉)는 아이콘 — 고정 크기
+const NAV_ROW_CHEVRON = 'text-[22px] text-ink-3';
+
+function chipTextClass(selected: boolean): string {
+  return `text-label ${selected ? 'text-paper font-semibold' : 'text-ink-2 font-normal'}`;
+}

@@ -1,16 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Keyboard,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Keyboard, Modal, Pressable, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { usePathname } from 'expo-router';
 import { HotUpdater } from '@hot-updater/react-native';
-import { scaled, useTheme } from '@/shared/ui';
 import { isStoreVersionNewer } from '../model/compare-version';
 import {
   currentStorePlatform,
@@ -71,7 +63,6 @@ export function StoreUpdateDialog({
   settingsLoaded,
   onDismiss,
 }: Props) {
-  const { colors, fontScale } = useTheme();
   const pathname = usePathname();
 
   const [latest, setLatest] = useState<string | null>(null);
@@ -139,60 +130,35 @@ export function StoreUpdateDialog({
       onRequestClose={dismiss}
       accessibilityViewIsModal
     >
-      <View style={styles.backdrop}>
-        <View style={[styles.sheet, { backgroundColor: colors.paper }]}>
+      <View className="flex-1 bg-black/35 items-center justify-center p-6">
+        <View className="w-full max-w-[420px] rounded-16 p-6 gap-3 bg-paper">
           <Text
             accessibilityRole="header"
-            style={[
-              styles.title,
-              { color: colors.ink, fontSize: scaled(20, fontScale) },
-            ]}
+            className="font-extrabold tracking-[-0.4px] text-ink text-title"
           >
             새 버전이 있어요!
           </Text>
-          <Text
-            style={[
-              styles.body,
-              {
-                color: colors.ink2,
-                fontSize: scaled(15, fontScale),
-                lineHeight: scaled(24, fontScale),
-              },
-            ]}
-          >
+          <Text className="mb-1 text-ink-2 text-body leading-[1.6]">
             {`스토어에서 씀씀 ${latest} 버전을 받을 수 있습니다.\n지금 쓰던 노트는 그대로 있습니다.`}
           </Text>
 
+          {/* POL-A11Y-001 — 탭 타깃 44~48px. */}
           <Pressable
             onPress={goToStore}
             accessibilityRole="button"
             accessibilityLabel="스토어로 이동해서 업데이트하기"
-            style={[styles.primaryBtn, { backgroundColor: colors.ink }]}
+            className={`${BTN} bg-ink`}
           >
-            <Text
-              style={[
-                styles.primaryText,
-                { color: colors.paper, fontSize: scaled(16, fontScale) },
-              ]}
-            >
-              스토어로 이동
-            </Text>
+            <Text className="font-bold text-paper text-body">스토어로 이동</Text>
           </Pressable>
 
           <Pressable
             onPress={dismiss}
             accessibilityRole="button"
             accessibilityLabel="나중에 하기"
-            style={[styles.secondaryBtn, { borderColor: colors.chipBg }]}
+            className={`${BTN} border border-chip-bg`}
           >
-            <Text
-              style={[
-                styles.secondaryText,
-                { color: colors.ink2, fontSize: scaled(16, fontScale) },
-              ]}
-            >
-              나중에
-            </Text>
+            <Text className="font-semibold text-ink-2 text-body">나중에</Text>
           </Pressable>
         </View>
       </View>
@@ -200,39 +166,4 @@ export function StoreUpdateDialog({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  sheet: {
-    width: '100%',
-    maxWidth: 420,
-    borderRadius: 16,
-    padding: 24,
-    gap: 12,
-  },
-  title: { fontWeight: '800', letterSpacing: -0.4 },
-  body: { marginBottom: 4 },
-  // POL-A11Y-001 — 탭 타깃 44~48px.
-  primaryBtn: {
-    minHeight: 52,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  primaryText: { fontWeight: '700' },
-  secondaryBtn: {
-    minHeight: 52,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  secondaryText: { fontWeight: '600' },
-});
+const BTN = "min-h-[52px] rounded-12 items-center justify-center px-4";

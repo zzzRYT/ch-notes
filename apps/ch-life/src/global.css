@@ -1,0 +1,63 @@
+/* Tailwind(uniwind) 진입점. 색은 theme.colors.css(자동 생성), 수치는 여기.
+   src/ 루트에 두는 이유: Tailwind가 이 파일의 폴더 아래만 스캔한다.
+   값의 출처는 docs/design-system/figma-plugin/primitives.js — 이름을 그대로 쓴다. */
+@import "tailwindcss";
+@import "uniwind";
+@import "./theme.colors.css";
+
+@theme {
+  /* 타입 스케일 6단계 — text-display … text-caption. 크기만이다(행간은 primitives.js에
+     실측값이 body/editor/verse-num뿐이라 토큰에 싣지 않는다 — 필요한 곳에서 leading-[1.6]처럼
+     비율로 준다. uniwind가 fontSize에 곱한다). fontScale 곱셈은 ThemeProvider가 런타임에
+     --text-* 를 갱신해서 한다. */
+  --text-display: 30px;
+  --text-title: 20px;
+  --text-body-large: 17px;
+  --text-body: 15px;
+  --text-label: 13px;
+  --text-caption: 11px;
+
+  /* 글꼴 — font-body. 값은 ThemeProvider가 fontFamily 설정에 따라 갱신한다. */
+  --font-body: "Pretendard", "-apple-system", "system-ui", sans-serif;
+
+  /* 자간 — tracking-eyebrow / tracking-title */
+  --tracking-eyebrow: 0.6px;
+  --tracking-title: -0.3px;
+
+  /* 모서리 — rounded-3 … rounded-16 (census 실측 7종) */
+  --radius-3: 3px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+
+  /* 터치 영역(RULE-UI-004) — min-h-touch / size-touch / size-fab */
+  --spacing-touch: 44px;
+  --spacing-fab: 56px;
+
+  /* 태블릿 패널 폭(RULE-UI-002) — w-pane-left / w-pane-right */
+  --spacing-pane-left: 280px;
+  --spacing-pane-right: 340px;
+}
+
+/* 헤어라인 — border-hairline / border-t-hairline … 기기 최소 두께(StyleSheet.hairlineWidth) */
+@utility border-hairline {
+  border-width: hairlineWidth();
+}
+@utility border-t-hairline {
+  border-top-width: hairlineWidth();
+}
+@utility border-b-hairline {
+  border-bottom-width: hairlineWidth();
+}
+@utility border-l-hairline {
+  border-left-width: hairlineWidth();
+}
+@utility border-r-hairline {
+  border-right-width: hairlineWidth();
+}
+@utility h-hairline {
+  height: hairlineWidth();
+}

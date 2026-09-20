@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTheme } from "@/shared/ui";
+import { View, Text, Pressable } from "react-native";
 import { BibleReader, useBiblePosition } from "@/widgets/scripture-browser";
 import { BibleLookupPanel } from "./BibleLookupPanel";
 
@@ -13,35 +12,32 @@ type Props = {
 };
 
 export function BiblePanel({ citedRefs, onInsert, onCollapse }: Props) {
-  const { colors } = useTheme();
   const [tab, setTab] = useState<Tab>("reader");
   const { initialRef, onPositionChange } = useBiblePosition();
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.paper }]}>
-      <View style={[styles.tabs, { borderBottomColor: colors.rule }]}>
+    <View className="flex-1 bg-paper">
+      <View className="flex-row items-center border-b-hairline border-rule px-2">
         <TabBtn
           label="성경"
           active={tab === "reader"}
           onPress={() => setTab("reader")}
-          colors={colors}
         />
         <TabBtn
           label="인용"
           badge={citedRefs.length}
           active={tab === "cited"}
           onPress={() => setTab("cited")}
-          colors={colors}
         />
-        <View style={styles.spacer} />
+        <View className="flex-1" />
         <Pressable
           onPress={onCollapse}
           accessibilityRole="button"
           accessibilityLabel="성경 패널 접기"
           hitSlop={10}
-          style={styles.collapseBtn}
+          className="size-7 items-center justify-center rounded-6"
         >
-          <Text style={[styles.collapseText, { color: colors.ink2 }]}>›</Text>
+          <Text className="text-[18px] text-ink-2">›</Text>
         </Pressable>
       </View>
 
@@ -69,13 +65,11 @@ function TabBtn({
   active,
   badge,
   onPress,
-  colors,
 }: {
   label: string;
   active: boolean;
   badge?: number;
   onPress: () => void;
-  colors: ReturnType<typeof useTheme>["colors"];
 }) {
   return (
     <Pressable
@@ -83,62 +77,20 @@ function TabBtn({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={label}
-      style={[
-        styles.tabBtn,
-        active && { borderBottomColor: colors.accent },
-      ]}
+      className={`flex-row items-center gap-1.5 px-3 py-3.5 min-h-12 border-b-2 ${
+        active ? "border-accent" : "border-transparent"
+      }`}
     >
       <Text
-        style={[
-          styles.tabLabel,
-          { color: active ? colors.ink : colors.ink3 },
-          active && styles.tabLabelActive,
-        ]}
+        className={`text-body ${active ? "text-ink font-semibold" : "text-ink-3"}`}
       >
         {label}
       </Text>
       {badge != null && badge > 0 && (
-        <View style={[styles.badge, { backgroundColor: colors.chipBg }]}>
-          <Text style={[styles.badgeText, { color: colors.ink3 }]}>{badge}</Text>
+        <View className="px-[7px] py-0.5 rounded-full bg-chip-bg">
+          <Text className="text-caption font-semibold text-ink-3">{badge}</Text>
         </View>
       )}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  tabs: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 8,
-  },
-  spacer: { flex: 1 },
-  tabBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    minHeight: 48,
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-  },
-  tabLabel: { fontSize: 15 },
-  tabLabelActive: { fontWeight: "600" },
-  badge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  badgeText: { fontSize: 10, fontWeight: "600" },
-  collapseBtn: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 6,
-  },
-  collapseText: { fontSize: 18 },
-});

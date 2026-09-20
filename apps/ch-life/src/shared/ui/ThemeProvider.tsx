@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+} from "react";
+import { Uniwind } from "uniwind";
 
 // 테마를 결정하는 표현 축. 도메인 의미가 없으므로 여기(shared)가 정본이고,
 // 설정 모델(features/settings)이 이 타입을 가져다 쓴다.
@@ -199,6 +205,17 @@ function softenAccent(hex: string): string {
   return `rgba(${r}, ${g}, ${b}, 0.08)`;
 }
 
+// Tailwind 타입 스케일의 base 값. src/app/global.css의 --text-* 와 같아야 한다
+// (CSS는 초기값, 여기는 ×fontScale 갱신용). primitives.js text/size/* 가 출처다.
+const TEXT_SCALE = {
+  display: 30,
+  title: 20,
+  "body-large": 17,
+  body: 15,
+  label: 13,
+  caption: 11,
+} as const;
+
 const Ctx = createContext<Theme>({
   colors: MINIMAL,
   fontScale: 1,
@@ -245,6 +262,30 @@ export function ThemeProvider({
     settings.blockStyle,
     settings.fontFamily,
     settings.accentChoice,
+  ]);
+  // Tailwind(uniwind) 쪽에 같은 결정을 흘린다 — 테마 = variation, accent 덮어쓰기와
+  // fontScale은 변수 갱신. className을 쓰는 곳은 이 한 군데만 믿으면 된다.
+  // ponytail: __DEV__에서 global.css를 핫 리로드하면 uniwind가 변수를 처음부터 다시 만들어
+  // 여기서 밀어 넣은 값이 설정을 다시 바꿀 때까지 사라진다. 프로덕션에는 없는 문제.
+  useLayoutEffect(() => {
+    Uniwind.setTheme(variation);
+    Uniwind.updateCSSVariables(variation, {
+      "--color-accent": value.colors.accent,
+      "--color-accent-soft": value.colors.accentSoft,
+      "--font-body": value.fontStack,
+      ...Object.fromEntries(
+        Object.entries(TEXT_SCALE).map(([k, base]) => [
+          `--text-${k}`,
+          scaled(base, value.fontScale),
+        ]),
+      ),
+    });
+  }, [
+    variation,
+    value.colors.accent,
+    value.colors.accentSoft,
+    value.fontStack,
+    value.fontScale,
   ]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

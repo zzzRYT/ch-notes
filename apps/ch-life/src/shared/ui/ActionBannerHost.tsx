@@ -8,12 +8,10 @@ import {
   View,
 } from "react-native";
 import { useFeedbackStore } from "../lib/feedback";
-import { useTheme } from "./ThemeProvider";
 
 export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
   const feedback = useFeedbackStore((state) => state.feedback);
   const clearFeedback = useFeedbackStore((state) => state.clearFeedback);
-  const { colors } = useTheme();
   const runningRef = useRef(false);
   const action = feedback?.action;
 
@@ -42,20 +40,25 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
 
   if (!feedback) return null;
 
-  const backgroundColor =
-    feedback.tone === "error" ? colors.errBg : colors.ink;
-  const textColor =
-    feedback.tone === "error" ? colors.errText : colors.paper;
+  const isError = feedback.tone === "error";
 
   return (
-    <View pointerEvents="box-none" style={styles.host}>
+    <View
+      pointerEvents="box-none"
+      className="absolute left-4 right-4 bottom-6 items-center z-[1000]"
+    >
       <View
         pointerEvents="auto"
-        style={[styles.banner, { backgroundColor }]}
+        className={`min-h-12 max-w-[560px] w-full rounded-12 pl-4 pr-2 py-2.5 flex-row items-center gap-3 ${
+          isError ? "bg-err-bg" : "bg-ink"
+        }`}
+        style={styles.shadow}
       >
         <Text
           accessibilityLiveRegion={passive ? "none" : "polite"}
-          style={[styles.message, { color: textColor }]}
+          className={`flex-1 text-label font-semibold ${
+            isError ? "text-err-text" : "text-paper"
+          }`}
         >
           {feedback.message}
         </Text>
@@ -65,9 +68,9 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
             accessibilityRole="button"
             accessibilityLabel={action.accessibilityLabel ?? action.label}
             hitSlop={8}
-            style={styles.actionButton}
+            className="min-h-10 min-w-[72px] items-center justify-center px-2"
           >
-            <Text style={[styles.action, { color: colors.accent }]}>
+            <Text className="text-accent text-label font-extrabold">
               {action.label}
             </Text>
           </Pressable>
@@ -77,39 +80,13 @@ export function ActionBannerHost({ passive = false }: { passive?: boolean }) {
   );
 }
 
+// 그림자는 iOS(shadow*)와 Android(elevation)가 갈려 style로 남긴다.
 const styles = StyleSheet.create({
-  host: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 24,
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  banner: {
-    minHeight: 48,
-    maxWidth: 560,
-    width: "100%",
-    borderRadius: 12,
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  shadow: {
     shadowColor: "#000",
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
-  message: { flex: 1, fontSize: 14, fontWeight: "600" },
-  actionButton: {
-    minHeight: 40,
-    minWidth: 72,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 8,
-  },
-  action: { fontSize: 14, fontWeight: "800" },
 });

@@ -47,6 +47,7 @@
 | [ADR-0022](ADR-0022-store-update-notice.md) | 스토어 최신 버전은 `website/app-version.json`, 안내는 닫을 수 있는 다이어로그 | 스토어 빌드를 낸 뒤, 업데이트 안내를 손볼 때 | 기록됨 |
 | [ADR-0023](ADR-0023-figma-design-system-structure.md) | Figma 디자인 시스템은 한 페이지에 층위로 놓고 근거는 이름에 적는다 | 디자인 토큰·컴포넌트를 더하거나 Figma 파일을 손볼 때 | 기록됨 |
 | [ADR-0024](ADR-0024-fsd-ddd-architecture.md) | FSD 레이어 + 선택적 DDD | 폴더를 옮기거나 새 Slice·의존성을 만들 때 | 기록됨 |
+| [ADR-0025](ADR-0025-tailwind-uniwind-tokens.md) | 토큰을 Tailwind(uniwind) 클래스로 — 테마 = 변형, 클래스 = Figma 변수 이름 | className을 쓰거나 토큰을 더할 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 
@@ -62,7 +63,7 @@
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
 데이터 축: [ADR-0009](ADR-0009-bible-source.md). UI 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0011](ADR-0011-bible-entrypoints.md).
 프로세스 축: [ADR-0013](ADR-0013-release-path.md) → [ADR-0016](ADR-0016-cold-launch-apply.md) → [ADR-0014](ADR-0014-worktree-workflow.md) → [ADR-0017](ADR-0017-commit-convention.md) → [ADR-0018](ADR-0018-pr-gate.md) → [ADR-0019](ADR-0019-issue-tracking.md) → [ADR-0020](ADR-0020-branch-strategy.md) → [ADR-0021](ADR-0021-release-strategy.md) → [ADR-0022](ADR-0022-store-update-notice.md).
-디자인 시스템 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0023](ADR-0023-figma-design-system-structure.md). 변형 4종이 색을 정하고, 그 색이 Figma 변수가 된다.
+디자인 시스템 축: [ADR-0010](ADR-0010-variation-theming.md) → [ADR-0023](ADR-0023-figma-design-system-structure.md) → [ADR-0025](ADR-0025-tailwind-uniwind-tokens.md). 변형 4종이 색을 정하고, 그 색이 Figma 변수가 되고, 같은 이름의 className으로 쓴다.
 
 구조 축: [ADR-0024](ADR-0024-fsd-ddd-architecture.md). 새 폴더·Slice·공개 인터페이스를 만들기 전에 읽는다.
 

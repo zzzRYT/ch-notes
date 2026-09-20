@@ -1,3 +1,4 @@
+import '../global.css';
 import { useCallback } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';

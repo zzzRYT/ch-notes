@@ -1,6 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@/shared/ui";
+import { Pressable, Text, View } from "react-native";
 
 type Props = {
   side: "left" | "right";
@@ -10,50 +9,30 @@ type Props = {
 };
 
 export function PanelRail({ side, label, glyph, onExpand }: Props) {
-  const { colors } = useTheme();
   return (
     <Pressable
       onPress={onExpand}
       accessibilityRole="button"
       accessibilityLabel={`${label} 펼치기`}
-      style={[
-        styles.rail,
-        {
-          backgroundColor: colors.bg,
-          borderLeftWidth: side === "right" ? StyleSheet.hairlineWidth : 0,
-          borderRightWidth: side === "left" ? StyleSheet.hairlineWidth : 0,
-          borderColor: colors.rule,
-        },
-      ]}
+      className={`w-[38px] py-4 items-center justify-start gap-[18px] bg-bg border-rule ${
+        side === "right" ? "border-l-hairline" : "border-r-hairline"
+      }`}
     >
-      <Text style={[styles.glyph, { color: colors.accent }]}>{glyph}</Text>
-      <View style={styles.labelBox}>
+      {/* 글리프·화살표는 아이콘(icon/glyph) — fontScale을 타지 않는다 */}
+      <Text className="text-[16px] font-semibold text-accent">{glyph}</Text>
+      <View className="items-center">
         {label.split("").map((ch, i) => (
           <Text
             key={`${ch}-${i}`}
-            style={[styles.labelCh, { color: colors.ink2 }]}
+            className="text-caption font-semibold leading-[14px] text-ink-2"
           >
             {ch}
           </Text>
         ))}
       </View>
-      <Text style={[styles.chev, { color: colors.ink3 }]}>
+      <Text className="text-[14px] mt-auto text-ink-3">
         {side === "left" ? "›" : "‹"}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  rail: {
-    width: 38,
-    paddingVertical: 16,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 18,
-  },
-  glyph: { fontSize: 16, fontWeight: "600" },
-  labelBox: { alignItems: "center" },
-  labelCh: { fontSize: 11, fontWeight: "600", lineHeight: 14 },
-  chev: { fontSize: 14, marginTop: "auto" },
-});
