@@ -13,3 +13,8 @@ dist/
 *.aab
 *.app.tar.gz
 *.dSYM.zip
+
+# `npx skills add`로 받는 에이전트 스킬 — 로컬 도구, 저장소에 담지 않는다.
+.agents/
+.claude/skills/
+skills-lock.json
