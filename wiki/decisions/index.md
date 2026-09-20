@@ -30,7 +30,7 @@
 | [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) | 안은 SQLite, 밖은 노트별 마크다운 | 저장 계층과 공유 포맷 중 한쪽만 볼 때 | 기록됨 |
 | [ADR-0007](ADR-0007-fts-scope.md) | 검색 색인은 제목과 인용까지만 | 본문 검색을 구현하려 할 때 | **확인필요** |
 | [ADR-0005](ADR-0005-idempotent-migration.md) | 버전 없는 멱등 마이그레이션 | `notes`에 컬럼을 추가할 때 | 기록됨 (이유 미기록) |
-| [ADR-0006](ADR-0006-duplicated-schema.md) | 스키마 DDL 이중 기록을 감수한다 | `schema.sql` / `db/index.ts` 중 하나만 고치려 할 때 | **확인필요** |
+| [ADR-0006](ADR-0006-duplicated-schema.md) | 스키마 DDL 이중 기록을 감수한다 | `schema.sql` / `NOTE_SCHEMA_SQL` 중 하나만 고치려 할 때 | **확인필요** |
 | [ADR-0008](ADR-0008-created-at-ordering.md) | 정렬 기준은 `updated_at`이 아니라 `created_at` | 목록·그룹핑·검색 정렬을 바꿀 때 | **확인필요** |
 | [ADR-0004](ADR-0004-settings-file.md) | 설정은 MMKV가 아니라 `settings.json` | 설정 저장 방식·파싱 엄격도 | **확인필요** |
 | [ADR-0009](ADR-0009-bible-source.md) | 성경 본문은 Open Bible 한국어판 (CC BY-SA 4.0) | 성경 데이터·라이선스 화면·`(KRV)` 표식 | **확인필요** |

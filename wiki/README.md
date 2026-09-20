@@ -41,9 +41,9 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 성경 참조는 "책 장:절" 또는 "책 장:절-끝절" 형태만 인식한다.
 implemented_by:
-  - apps/ch-life/src/parser/ref-parser.ts
+  - apps/ch-life/src/entities/scripture/model/ref-parser.ts
 verified_by:
-  - test: apps/ch-life/src/parser/__tests__/ref-parser.test.ts
+  - test: apps/ch-life/src/entities/scripture/model/__tests__/ref-parser.test.ts
 confidence: 코드추론
 ```
 ````

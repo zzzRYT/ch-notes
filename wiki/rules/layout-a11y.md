@@ -14,8 +14,8 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 화면 너비 900px 이상이면 3-pane 태블릿 작업공간을, 미만이면 폰 목록·에디터 흐름을 쓴다. 같은 기준으로 성경이 사이드바가 되거나 하단 시트가 된다.
 implemented_by:
-  - apps/ch-life/app/index.tsx (TABLET_BREAKPOINT)
-  - apps/ch-life/src/browser/useResponsiveLayout.ts
+  - apps/ch-life/src/pages/notes/ui/NotesPage.tsx (TABLET_BREAKPOINT)
+  - apps/ch-life/src/shared/lib/useResponsiveLayout.ts
 verified_by:
   - manual: 태블릿 가로/세로 회전 시 레이아웃 전환
 confidence: 기록됨
@@ -23,7 +23,7 @@ source:
   - apps/ch-life/CLAUDE.md ("900px가 phone/tablet 분기")
 ```
 
-**상수가 두 곳에 복제되어 있다** — `app/index.tsx`의 `TABLET_BREAKPOINT`와 `useResponsiveLayout`의 `width >= 900`. 한쪽만 바꾸면 목록은 태블릿인데 성경은 시트로 뜨는 상태가 만들어진다([`drift.md`](../drift.md) B절).
+**상수가 두 곳에 복제되어 있다** — `src/pages/notes/ui/NotesPage.tsx`의 `TABLET_BREAKPOINT`와 `useResponsiveLayout`의 `width >= 900`. 한쪽만 바꾸면 목록은 태블릿인데 성경은 시트로 뜨는 상태가 만들어진다([`drift.md`](../drift.md) B절).
 
 ## RULE-UI-002 · 태블릿은 접을 수 있는 3-pane
 
@@ -33,9 +33,9 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 태블릿 화면은 노트 목록(280px) / 에디터(가변) / 성경 패널(340px) 세 칸이며, 양쪽 패널은 접어서 얇은 레일로 만들 수 있다.
 implemented_by:
-  - apps/ch-life/src/workspace/TabletWorkspace.tsx
-  - apps/ch-life/src/workspace/PanelRail.tsx
-  - apps/ch-life/src/workspace/BiblePanel.tsx
+  - apps/ch-life/src/pages/notes/ui/TabletWorkspace.tsx
+  - apps/ch-life/src/pages/notes/ui/PanelRail.tsx
+  - apps/ch-life/src/pages/notes/ui/BiblePanel.tsx
 verified_by:
   - manual: 좌우 패널 접기·펼치기
 confidence: 기록됨
@@ -55,7 +55,7 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 폰에서 에디터의 성경은 화면 높이 70% 하단 시트로 열린다. 어두워지는 배경은 시트와 분리된 레이어로 화면 전체에 균일하게 페이드한다(진입 240ms / 종료 190ms).
 implemented_by:
-  - apps/ch-life/src/browser/BibleBrowser.tsx
+  - apps/ch-life/src/widgets/scripture-browser/ui/BibleBrowser.tsx
 verified_by:
   - manual: 시트 열기·닫기 시 배경이 함께 밀려 올라오지 않는다
 confidence: 기록됨
@@ -75,10 +75,10 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 모든 조작 요소는 44~48px 이상의 터치 영역을 갖고, 한국어 accessibilityLabel과 적절한 accessibilityRole을 가진다.
 implemented_by:
-  - apps/ch-life/src/chrome/HeaderControls.tsx
-  - apps/ch-life/app/settings.tsx
-  - apps/ch-life/src/browser/VerseList.tsx
-  - apps/ch-life/src/list/NoteCard.tsx
+  - apps/ch-life/src/shared/ui/HeaderControls.tsx
+  - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/widgets/scripture-browser/ui/VerseList.tsx
+  - apps/ch-life/src/pages/notes/ui/NoteCard.tsx
 verified_by:
   - manual: VoiceOver/TalkBack로 주요 화면 순회
 confidence: 기록됨
@@ -98,8 +98,8 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 인용 블록은 색 막대나 배경만이 아니라 참조 라벨을 항상 함께 표시한다. 선택 상태도 색과 함께 체크 표시나 accessibilityState로 전달한다.
 implemented_by:
-  - apps/ch-life/src/editor/QuoteBlock.tsx
-  - apps/ch-life/app/settings.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
+  - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
 verified_by:
   - manual: 흑백 모드에서 인용 블록과 선택 상태를 구분할 수 있다
 confidence: 기록됨
@@ -117,8 +117,8 @@ policy: POL-A11Y-001
 requirement: SHOULD
 statement: 네이티브 스택 헤더는 앱 전체에서 숨기고, 화면마다 공통 AppHeader 컴포넌트로 직접 그린다.
 implemented_by:
-  - apps/ch-life/app/_layout.tsx
-  - apps/ch-life/src/chrome/AppHeader.tsx
+  - apps/ch-life/src/app/_layout.tsx
+  - apps/ch-life/src/shared/ui/AppHeader.tsx
 verified_by:
   - manual: 모든 화면의 헤더 모양·글자 크기가 동일하다
 confidence: 코드추론

@@ -9,7 +9,7 @@ statement: 앱에 포함된 성경 본문은 Open Bible 한국어판이며 CC BY
 confidence: 기록됨
 waiver: 법적 고지 의무. 화면 표시 여부를 검증할 UI 테스트 수단이 없어 릴리스 전 수동 확인으로 대신한다.
 source:
-  - apps/ch-life/app/licenses.tsx
+  - apps/ch-life/src/pages/licenses/ui/LicensesPage.tsx
   - docs/legal/privacy-policy.md 7장
   - README.md 라이선스 절
 verified_by:

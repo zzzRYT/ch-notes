@@ -23,10 +23,10 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 유효한 참조 바로 뒤에 공백이나 개행이 입력되면 인용 블록으로 확정한다. 문단 끝뿐 아니라 문단 중간에서도 동작한다.
 implemented_by:
-  - apps/ch-life/src/editor/useAutocomplete.ts
-  - apps/ch-life/src/editor/ParagraphInput.tsx
+  - apps/ch-life/src/features/scripture/insert/model/autocomplete.ts
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/useAutocomplete.test.ts#detectTriggeredRef
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/autocomplete.test.ts#detectTriggeredRef
 confidence: 기록됨
 source:
   - DESIGN.md "자동완성 UX 디테일" 구현 갱신(2026-05-31)
@@ -50,10 +50,11 @@ policy: POL-SCRIPTURE-001
 requirement: MUST
 statement: 인용 확정 시 원래 문단은 [참조 앞 텍스트] / [인용 블록] / [참조 뒤 텍스트] 세 블록으로 나뉜다. 참조 문자열과 트리거 공백은 사라진다.
 implemented_by:
-  - apps/ch-life/src/editor/useAutocomplete.ts (splitAtRef)
-  - apps/ch-life/src/editor/NoteEditor.tsx (splitParagraphWithQuote)
+  - apps/ch-life/src/features/scripture/insert/model/autocomplete.ts (splitAtRef)
+  - apps/ch-life/src/features/scripture/insert/model/split-paragraph.ts (splitParagraphWithQuote)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (handleTrigger)
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/useAutocomplete.test.ts#splitAtRef
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/autocomplete.test.ts#splitAtRef
 confidence: 코드추론
 ```
 
@@ -71,8 +72,8 @@ policy: POL-SCRIPTURE-001
 requirement: SHOULD
 statement: 인용 블록이 삽입되면 캐럿은 그 아래 새 문단으로 이동해, 사용자가 손을 떼지 않고 계속 쓸 수 있어야 한다.
 implemented_by:
-  - apps/ch-life/src/editor/NoteEditor.tsx (focusOnMountIdx)
-  - apps/ch-life/src/editor/ParagraphInput.tsx (focusOnMount)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (focusOnMountIdx)
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (focusOnMount)
 verified_by:
   - manual: 문단 중간에서 "창 1:1 " 입력 → 인용 삽입 후 그 아래 칸에 커서가 있다
 confidence: 기록됨
@@ -90,8 +91,8 @@ policy: POL-NOTE-001
 requirement: SHOULD
 statement: 인용 블록 바로 아래 문단의 맨 앞에서 backspace를 누르면 인용 블록이 삭제되고, 위·아래 문단이 하나로 합쳐진다.
 implemented_by:
-  - apps/ch-life/src/editor/NoteEditor.tsx (handleBackspaceAtStart)
-  - apps/ch-life/src/editor/ParagraphInput.tsx (handleKeyPress)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (handleBackspaceAtStart)
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (handleKeyPress)
 verified_by:
   - manual: 인용 아래 문단 첫 칸에서 backspace → 인용이 사라지고 위 문단 끝에 이어붙는다
 confidence: 코드추론
@@ -109,7 +110,7 @@ policy: POL-SCRIPTURE-001
 requirement: SHOULD
 statement: 커서 바로 앞이 본문 조회에 성공하는 참조일 때만 화면 하단에 떠 있는 힌트 칩(참조 + space 안내)을 보여준다.
 implemented_by:
-  - apps/ch-life/src/editor/NoteEditor.tsx (liveHint)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (liveHint)
 verified_by:
   - manual: "창 1:1" 입력 중 하단 칩 표시, "창 99:99"에서는 미표시
 confidence: 기록됨
@@ -129,7 +130,7 @@ policy: POL-SCRIPTURE-001
 requirement: SHOULD NOT
 statement: 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다.
 implemented_by:
-  - apps/ch-life/src/editor/QuoteBlock.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
 verified_by:
   - manual: 인용 블록을 탭해도 커서가 들어가지 않는다
 confidence: 코드추론
@@ -143,14 +144,15 @@ confidence: 코드추론
 id: RULE-EDIT-007
 policy: POL-SCRIPTURE-001
 requirement: MUST
-statement: 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다.
+statement: 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다. 인용 블록은 makeQuoteBlock으로만 만들고, 예외는 마크다운 파서 하나다.
 implemented_by:
-  - apps/ch-life/src/editor/NoteEditor.tsx
-  - apps/ch-life/app/note/[id].tsx
-  - apps/ch-life/src/workspace/TabletWorkspace.tsx
-  - apps/ch-life/src/markdown/parse.ts
+  - apps/ch-life/src/entities/note/model/citation.ts (makeQuoteBlock)
+  - apps/ch-life/src/features/scripture/insert/model/split-paragraph.ts
+  - apps/ch-life/src/features/scripture/insert/model/insert-verse.ts
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts
 verified_by:
-  - test: apps/ch-life/src/domain/__tests__/types.test.ts
+  - test: apps/ch-life/src/entities/note/model/__tests__/types.test.ts
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/insert-verse.test.ts
 confidence: 코드추론
 ```
 
@@ -166,10 +168,10 @@ policy: POL-NOTE-001
 requirement: SHOULD
 statement: 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다.
 implemented_by:
-  - apps/ch-life/src/editor/ParagraphInput.tsx (COMMIT_DEBOUNCE_MS = 800)
-  - apps/ch-life/src/editor/useAutoSave.ts (delayMs = 500)
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (COMMIT_DEBOUNCE_MS = 800)
+  - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (delayMs = 500)
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/useAutoSave-payload.test.ts
+  - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts
   - manual: 입력 중단 후 약 1.3초 뒤 저장, 앱 재시작 시 보존
 confidence: 코드추론
 ```
@@ -188,11 +190,11 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 노트의 citedRefs는 사용자가 관리하는 값이 아니라, 저장 시점에 body의 quote 블록에서 등장 순서대로 중복 없이 추출한 결과다.
 implemented_by:
-  - apps/ch-life/src/editor/cited-refs.ts
-  - apps/ch-life/src/editor/useAutoSave.ts (buildSavePayload)
+  - apps/ch-life/src/entities/note/model/cited-refs.ts
+  - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (buildSavePayload)
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/cited-refs.test.ts
-  - test: apps/ch-life/src/editor/__tests__/useAutoSave-payload.test.ts
+  - test: apps/ch-life/src/entities/note/model/__tests__/cited-refs.test.ts
+  - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts
 confidence: 코드추론
 ```
 
@@ -208,13 +210,13 @@ policy: POL-PORT-001
 requirement: MUST
 statement: 굵게·기울임·밑줄은 별도 스팬 모델이 아니라 블록 텍스트 안의 경량 마크다운(**굵게**, _기울임_, ++밑줄++)으로 저장한다.
 implemented_by:
-  - apps/ch-life/src/domain/types.ts (InlineMark)
-  - apps/ch-life/src/editor/inlineMarks.ts
+  - apps/ch-life/src/entities/note/model/types.ts (InlineMark)
+  - apps/ch-life/src/entities/note/lib/inline-marks.ts
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/inlineMarks.test.ts
+  - test: apps/ch-life/src/entities/note/lib/__tests__/inline-marks.test.ts
 confidence: 기록됨
 source:
-  - apps/ch-life/src/domain/types.ts 주석 (스팬 모델을 피한 이유)
+  - apps/ch-life/src/entities/note/model/types.ts 주석 (스팬 모델을 피한 이유)
 ```
 
 모든 텍스트 블록이 `text: string` 하나만 갖게 되어, 마크다운 내보내기·검색용 평문 추출·목록 미리보기·인용 참조 추출이 **구분자만 벗기면** 되는 구조가 된다(코드 주석에 명시된 근거).
@@ -231,10 +233,10 @@ policy: POL-NOTE-002
 requirement: MUST
 statement: 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 → 생명양식 순으로 Return 키로 이동하고, 마지막 필드에서 Return을 누르면 본문 첫 문단으로 포커스가 넘어간다.
 implemented_by:
-  - apps/ch-life/src/editor/field-nav.ts
-  - apps/ch-life/src/editor/SermonMetaHeader.tsx
+  - apps/ch-life/src/widgets/note-editor/lib/field-nav.ts
+  - apps/ch-life/src/widgets/note-editor/ui/SermonMetaHeader.tsx
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/field-nav.test.ts
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/field-nav.test.ts
 confidence: 기록됨
 source:
   - docs/plans/2026-05-24-sermon-meta-header.md Task 8, Task 10
@@ -252,10 +254,10 @@ policy: POL-NOTE-002
 requirement: MUST
 statement: 날짜 입력은 구분자(. - / 공백)를 섞어 쓸 수 있고 연도를 생략하면 올해로 채운다. 저장 형식은 언제나 YYYY-MM-DD 문자열이며, 해석 불가한 입력은 저장하지 않고 직전 값으로 되돌린다.
 implemented_by:
-  - apps/ch-life/src/editor/calendar.ts (parseFlexibleDate)
-  - apps/ch-life/src/editor/SermonMetaHeader.tsx (commitDate)
+  - apps/ch-life/src/widgets/note-editor/lib/calendar.ts (parseFlexibleDate)
+  - apps/ch-life/src/widgets/note-editor/ui/SermonMetaHeader.tsx (commitDate)
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/calendar.test.ts#parseFlexibleDate
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/calendar.test.ts#parseFlexibleDate
   - manual: 해석 불가 입력 후 포커스 이동 시 직전 값 복원
 confidence: 기록됨
 source:
@@ -276,11 +278,11 @@ policy: POL-NOTE-002
 requirement: MUST
 statement: 생명양식 필드는 입력값으로 본문 조회가 성공할 때만 체크 표시를 보여주고 본문 미리보기 버튼을 활성화한다. 실패해도 입력 자체는 그대로 저장된다.
 implemented_by:
-  - apps/ch-life/src/editor/scripture-field.ts
-  - apps/ch-life/src/editor/SermonMetaHeader.tsx
-  - apps/ch-life/src/editor/ScripturePreviewModal.tsx
+  - apps/ch-life/src/features/scripture/insert/model/scripture-field.ts
+  - apps/ch-life/src/widgets/note-editor/ui/SermonMetaHeader.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/ScripturePreviewModal.tsx
 verified_by:
-  - test: apps/ch-life/src/editor/__tests__/scripture-field.test.ts
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/scripture-field.test.ts
 confidence: 기록됨
 source:
   - docs/plans/2026-05-24-sermon-meta-header.md Task 5, Task 7

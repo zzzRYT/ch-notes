@@ -20,7 +20,7 @@
 
 ## 이 계층에서 사고 나는 지점
 
-- **CONTRACT-DB-NOTES — DDL이 두 파일에 있고 이미 다르다.** `db/index.ts`(프로덕션이 실행)에만 `DROP INDEX IF EXISTS idx_notes_updated_at`이 있고 `db/schema.sql`(테스트가 읽음)에는 없다. **테스트가 검증하는 스키마는 실물이 아니다**([`../drift.md`](../drift.md) B1·C1, [`../decisions/ADR-0006-duplicated-schema.md`](../decisions/ADR-0006-duplicated-schema.md)). 신규 설치는 `CREATE TABLE`, 기존 설치는 `ALTER TABLE` — 한쪽만 고치면 한쪽 사용자군에서만 깨진다.
+- **CONTRACT-DB-NOTES — DDL이 두 파일에 있고 이미 다르다.** `entities/note/api/sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL`(프로덕션이 실행)에만 `DROP INDEX IF EXISTS idx_notes_updated_at`이 있고 `entities/note/api/schema.sql`(테스트가 읽음)에는 없다. **테스트가 검증하는 스키마는 실물이 아니다**([`../drift.md`](../drift.md) B1·C1, [`../decisions/ADR-0006-duplicated-schema.md`](../decisions/ADR-0006-duplicated-schema.md)). 신규 설치는 `CREATE TABLE`, 기존 설치는 `ALTER TABLE` — 한쪽만 고치면 한쪽 사용자군에서만 깨진다.
 - **CONTRACT-DOMAIN-NOTE — `Note`에 필드를 더하는 것은 타입만의 변경이 아니다.** DB 컬럼 · 마이그레이션 · repo 매핑(`Row`/`rowToNote`/`create`/`update` 네 곳) · 마크다운 frontmatter · 자동저장 payload가 함께 움직인다.
 - **CONTRACT-MD-NOTE — 하위호환 제약이 가장 세다.** `(KRV)` 토큰은 파서의 유일한 인용 판별자다. 바꾸면 이미 내보낸 파일을 못 읽는다. `schemaVersion`은 **쓰기만 하고 읽는 분기가 없다** — 문법을 바꾸며 버전을 올리려면 그 분기를 새로 만들어야 한다.
 - **CONTRACT-NOTE-REPO — `delete`와 `restore`는 짝이다.** `delete`는 지우기 전 스냅샷을 반환하고 `restore`가 그것을 되돌린다. `restore`는 **id와 `created_at`을 보존**하므로 `create`의 발급 규칙이 적용되지 않는다 — 새 컬럼을 더하면 `restore`의 INSERT 목록도 함께 고쳐야 하고, 빠뜨리면 되돌린 노트만 그 필드를 잃는다. 어댑터 차이(better-sqlite3 ↔ expo-sqlite)는 여전히 검증되지 않는다(C4).

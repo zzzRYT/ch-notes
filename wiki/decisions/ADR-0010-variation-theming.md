@@ -7,7 +7,7 @@ supersedes: docs/plans/2026-05-17-ch-life-v1-spec.md 6.1 (시스템/라이트/�
 statement: 화면 색은 minimal·paper·focus·dark 네 가지 변형 중 하나로 결정된다. OS 다크모드를 따라가지 않고, themePreference 필드는 색에 관여하지 않는다.
 confidence: 기록됨
 source:
-  - apps/ch-life/src/theme/ThemeProvider.tsx 주석 ("Claude Design handoff — 설교 노트 앱, 4 variations")
+  - apps/ch-life/src/shared/ui/ThemeProvider.tsx 주석 ("Claude Design handoff — 설교 노트 앱, 4 variations")
   - apps/ch-life/CLAUDE.md ("isDark = variation === 'dark'")
 ```
 

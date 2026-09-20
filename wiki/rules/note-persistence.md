@@ -14,8 +14,8 @@ policy: POL-PRIVACY-001
 requirement: MUST
 statement: 모든 노트는 앱 문서 디렉터리의 ch-life.db 한 파일에 저장되며, 어떤 경로로도 자동 전송·동기화·백업되지 않는다.
 implemented_by:
-  - apps/ch-life/src/db/index.ts
-  - apps/ch-life/src/db/expo-adapter.ts
+  - apps/ch-life/src/shared/lib/sqlite.ts (파일 DB 열기)
+  - apps/ch-life/src/app/_layout.tsx (ch-life.db 이름·마이그레이션 조립)
 verified_by:
   - manual: 비행기 모드에서 작성·재시작 후 노트 유지
 waiver: POL-PRIVACY-001의 귀결. 전송 코드의 부재를 자동으로 증명할 수단이 없다.
@@ -35,9 +35,9 @@ policy: POL-NOTE-001
 requirement: MUST
 statement: 노트 부분 수정 시 null을 넘기면 해당 필드를 비우고, undefined(생략)면 기존 값을 유지한다. 존재하지 않는 id에 대한 수정은 예외를 던진다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (update)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (update)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo.test.ts#update가 메타 필드를 부분 갱신한다
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#update가 메타 필드를 부분 갱신한다
 confidence: 기록됨
 source:
   - apps/ch-life/CLAUDE.md 핵심 데이터 모델
@@ -58,10 +58,10 @@ policy: POL-NOTE-001
 requirement: MUST
 statement: 노트 id는 36진수 타임스탬프 10자 + 36진수 난수 10자를 대문자로 이어붙인 20자 문자열이다. ULID가 아니다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (makeId)
-  - apps/ch-life/src/markdown/parse.ts (makeId)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (makeId)
+  - apps/ch-life/src/entities/note/api/markdown-parse.ts (makeId)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo.test.ts#노트를 만들고 읽는다
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#노트를 만들고 읽는다
 confidence: 코드추론
 ```
 
@@ -77,9 +77,9 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 노트 목록과 검색 결과는 created_at 내림차순으로 정렬하고 한 번에 최대 200건을 읽는다. 노트를 수정해도 순서는 바뀌지 않는다.
 implemented_by:
-  - apps/ch-life/src/db/note-repo.ts (listRecent, searchNotes)
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (listRecent, searchNotes)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/note-repo.test.ts#createdAt 내림차순 정렬 (업데이트해도 순서 변하지 않음)
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#createdAt 내림차순 정렬 (업데이트해도 순서 변하지 않음)
 confidence: 코드추론
 ```
 
@@ -95,9 +95,9 @@ policy: POL-NOTE-001
 requirement: MUST
 statement: 스키마 변경은 버전 번호나 마이그레이션 이력 테이블 없이, 매 실행마다 PRAGMA table_info로 누락 컬럼만 찾아 ALTER 한다. 몇 번을 실행해도 결과가 같아야 한다.
 implemented_by:
-  - apps/ch-life/src/db/migrate.ts
+  - apps/ch-life/src/entities/note/api/migrate.ts
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/migrate.test.ts#멱등하다 — 두 번 실행해도 오류 없음
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrate.test.ts#멱등하다 — 두 번 실행해도 오류 없음
 confidence: 기록됨
 source:
   - docs/plans/2026-05-24-sermon-meta-header.md Task 2
@@ -120,8 +120,8 @@ policy: POL-NOTE-001
 requirement: MAY
 statement: 새 노트 버튼을 누르면 빈 문단 하나를 가진 노트가 즉시 DB에 생성된다. 사용자가 아무것도 쓰지 않고 나가도 그 빈 노트는 남는다.
 implemented_by:
-  - apps/ch-life/app/index.tsx (createNote)
-  - apps/ch-life/src/workspace/TabletWorkspace.tsx (createNote)
+  - apps/ch-life/src/pages/notes/ui/NotesPage.tsx (createNote)
+  - apps/ch-life/src/pages/notes/ui/TabletWorkspace.tsx (createNote)
 verified_by:
   - manual: 새 노트 → 뒤로가기 → 목록에 "(빈 노트)" 항목이 남는다
 confidence: 기록됨
@@ -139,18 +139,20 @@ requirement: MUST
 policy: POL-NOTE-001
 statement: 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다.
 implemented_by:
-  - apps/ch-life/src/notes/note-actions.ts
-  - apps/ch-life/src/db/note-repo.ts
-  - apps/ch-life/src/list/SwipeToDelete.tsx
+  - apps/ch-life/src/features/note/delete/model/note-actions.ts
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts
+  - apps/ch-life/src/shared/ui/SwipeToDelete.tsx
 verified_by:
-  - test: apps/ch-life/src/notes/__tests__/note-actions.test.ts#deleteNoteWithUndo는 삭제 스냅샷과 revision을 등록한다
-  - test: apps/ch-life/src/db/__tests__/note-repo.test.ts#delete가 완전한 스냅샷을 반환하고 restore가 그대로 복원한다
+  - test: apps/ch-life/src/features/note/delete/model/__tests__/note-actions.test.ts#deleteNoteWithUndo는 삭제 스냅샷과 revision을 등록한다
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#delete가 완전한 스냅샷을 반환하고 restore가 그대로 복원한다
 confidence: 기록됨
 source:
   - docs/superpowers/specs/2026-08-09-note-delete-and-insert-feedback-design.md
 ```
 
 `restore`는 `create`와 달리 id를 새로 발급하지 않고 `created_at`도 보존한다 — 되돌린 노트가 목록에서 원래 자리로 돌아가야 하기 때문이다([`RULE-NOTE-004`](#rule-note-004)의 `created_at DESC` 정렬과 묶여 있다). 그래서 `restore`는 **같은 id의 기존 노트를 덮어쓰지 않는다.**
+
+undo 경로의 상태는 두 스토어에 나뉜다(2026-09-20, [`ADR-0024`](../decisions/ADR-0024-fsd-ddd-architecture.md)). 삭제 스냅샷·`noteRevision`·`lastRestoredNoteId`는 `features/note/delete`의 `useNoteDeleteStore`가, 배너 자체는 `shared/lib`의 피드백 스토어가 든다. 배너의 "실행 취소"는 문자열 태그가 아니라 **삭제 시점에 저장소를 닫아 넣은 콜백**이다 — 배너가 사라지면 콜백도 사라지므로, 배너 만료나 다른 안내로의 교체가 스냅샷을 따로 비우지 않아도 되돌릴 길은 없다. 이전 구현은 그 두 경우에 스냅샷을 명시적으로 비웠고 그 테스트 둘은 이 분리에서 제거했다.
 
 이 규칙은 2026-09-05 이전 정본에서 정반대로 서술되어 있었다("앱 안에서 노트를 지울 수 없다"). 삭제 UI가 실제로 들어온 것은 1.0.1 릴리스다.
 
@@ -164,11 +166,11 @@ policy: POL-NOTE-003
 requirement: MUST
 statement: 노트 목록은 createdAt의 날짜로 묶고 최신 날짜 그룹이 위에 온다. 같은 그룹 안에서도 createdAt 내림차순이며 updatedAt은 무시한다.
 implemented_by:
-  - apps/ch-life/src/list/group-notes.ts
-  - apps/ch-life/src/list/format-card.ts
+  - apps/ch-life/src/entities/note/lib/group-notes.ts
+  - apps/ch-life/src/pages/notes/lib/format-card.ts
 verified_by:
-  - test: apps/ch-life/src/list/__tests__/group-notes.test.ts
-  - test: apps/ch-life/src/list/__tests__/format-card.test.ts
+  - test: apps/ch-life/src/entities/note/lib/__tests__/group-notes.test.ts
+  - test: apps/ch-life/src/pages/notes/lib/__tests__/format-card.test.ts
 confidence: 코드추론
 ```
 

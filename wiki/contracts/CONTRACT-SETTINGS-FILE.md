@@ -5,11 +5,11 @@ id: CONTRACT-SETTINGS-FILE
 policy: POL-A11Y-001
 statement: 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 그대로 직렬화된다. fontScale과 themePreference는 필수이며, 나머지 필드는 없거나 잘못돼도 개별 폴백한다.
 implemented_by:
-  - apps/ch-life/src/state/settings-persist.ts
-  - apps/ch-life/src/state/settings-validator.ts
-  - apps/ch-life/src/domain/types.ts
+  - apps/ch-life/src/features/settings/change/model/settings-persist.ts
+  - apps/ch-life/src/features/settings/change/model/settings-validator.ts
+  - apps/ch-life/src/entities/note/model/types.ts
 verified_by:
-  - test: apps/ch-life/src/state/__tests__/settings-validator.test.ts
+  - test: apps/ch-life/src/features/settings/change/model/__tests__/settings-validator.test.ts
 confidence: 기록됨
 source:
   - docs/plans/2026-06-07-bible-reader-default-design.md 5절
@@ -41,4 +41,4 @@ source:
 
 ## 바꾸려면
 
-`domain/types.ts`의 `Settings` → `settings-validator.ts`의 허용값·폴백 → `app-store.ts`의 `DEFAULT_SETTINGS` → 필요하면 설정 화면. 저장은 스토어 구독이 자동으로 처리하므로 별도 배선이 없다.
+`features/settings/change/model/settings-store.ts`의 `Settings`·`DEFAULT_SETTINGS` → 같은 폴더 `settings-validator.ts`의 허용값·폴백 → 필요하면 설정 화면. 테마에 영향을 주는 필드면 `shared/ui/ThemeProvider.tsx`의 `ThemeSettings`에도. 저장은 스토어 구독이 자동으로 처리하므로 별도 배선이 없다.

@@ -5,12 +5,13 @@ id: CONTRACT-DB-NOTES
 policy: POL-NOTE-001
 statement: 노트는 ch-life.db의 notes 테이블에 저장되고, 검색은 notes_fts 가상 테이블에 트리거로 동기화된다. 이 DDL은 두 파일에 중복 기록되어 있으며 항상 함께 바뀌어야 한다.
 implemented_by:
-  - apps/ch-life/src/db/schema.sql
-  - apps/ch-life/src/db/index.ts
-  - apps/ch-life/src/db/migrate.ts
+  - apps/ch-life/src/entities/note/api/schema.sql
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (NOTE_SCHEMA_SQL · runNoteMigrations)
+  - apps/ch-life/src/entities/note/api/migrate.ts
+  - apps/ch-life/src/shared/lib/sqlite.ts (연결만 — DDL은 모른다)
 verified_by:
-  - test: apps/ch-life/src/db/__tests__/migrations.test.ts
-  - test: apps/ch-life/src/db/__tests__/migrate.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrations.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/migrate.test.ts
 confidence: 기록됨
 source:
   - apps/ch-life/.claude/skills/db-schema-change/SKILL.md
@@ -39,7 +40,7 @@ notes_fts USING fts5(id UNINDEXED, title, body_text, cited_refs, tokenize='unico
 
 ### 1. 스키마가 두 곳에 있고, 이미 어긋나 있다
 
-`db/index.ts`의 인라인 문자열이 프로덕션에서 실행되고, `db/schema.sql`은 테스트가 읽는다. 두 파일은 같아야 하지만 **지금 동일하지 않다** — 인라인 쪽에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있다.
+`sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL` 인라인 문자열이 프로덕션에서 실행되고, 같은 폴더의 `schema.sql`은 테스트가 읽는다. 두 파일은 같아야 하지만 **지금 동일하지 않다** — 인라인 쪽에만 `DROP INDEX IF EXISTS idx_notes_updated_at`가 있다.
 
 의미: **테스트가 검증하는 DDL은 프로덕션이 실행하는 DDL이 아니다.** 오라클이 실물과 다르다. 지금은 차이가 낡은 인덱스 제거뿐이라 무해하지만, 구조적으로는 언제든 갈라질 수 있다([`ADR-0006`](../decisions/ADR-0006-duplicated-schema.md), [`drift.md`](../drift.md) C절).
 
@@ -53,4 +54,4 @@ notes_fts USING fts5(id UNINDEXED, title, body_text, cited_refs, tokenize='unico
 
 ## 바꾸려면
 
-`apps/ch-life/.claude/skills/db-schema-change/SKILL.md`의 7단계 체크리스트를 그대로 따른다: `schema.sql` → `db/index.ts` 인라인 → `migrate.ts` 멱등 단계 → `note-repo.ts` 양방향 매핑 → `domain/types.ts` → (검색 대상이면) FTS 트리거 → `db/__tests__` 멱등성·병합 테스트.
+`apps/ch-life/.claude/skills/db-schema-change/SKILL.md`의 7단계 체크리스트를 그대로 따른다: `schema.sql` → `sqlite-note-repo.ts`의 `NOTE_SCHEMA_SQL` → `migrate.ts` 멱등 단계 → `sqlite-note-repo.ts` 양방향 매핑 + `model/note-repo.ts`의 `NoteInput`/`NotePatch` → `model/types.ts` → (검색 대상이면) FTS 트리거 → `api/__tests__` 멱등성·병합 테스트. 경로는 모두 `apps/ch-life/src/entities/note/` 아래다.

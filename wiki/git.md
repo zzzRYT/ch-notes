@@ -253,7 +253,7 @@ git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
 | 1.0.`1` — patch | 사소한 네이티브 업데이트 |
 | 1.0.0`+3` — OTA 발행 번호 | 그 버전에 OTA를 낼 때마다 +1 |
 
-앞 세 자리는 `app.config.ts`의 `version`이고 **새 스토어 빌드가 필요하다.** 네 번째는 다르다 — `src/version.ts`의 `OTA_RELEASE` 상수이고, 설정 화면에 `1.0.2+3`으로 보인다. 스토어 버전이 올라가면 0으로 되돌린다.
+앞 세 자리는 `app.config.ts`의 `version`이고 **새 스토어 빌드가 필요하다.** 네 번째는 다르다 — `src/shared/config/version.ts`의 `OTA_RELEASE` 상수이고, 설정 화면에 `1.0.2+3`으로 보인다. 스토어 버전이 올라가면 0으로 되돌린다.
 
 ⚠️ **OTA 번호를 `version` 문자열에 넣지 않는다.** iOS `CFBundleShortVersionString`은 숫자와 점만 받고, hot-updater가 겨냥하는 `--target-app-version`도 그 값에서 나온다. `version`을 `1.0.2+3`으로 만들면 그 번들은 **1.0.2 설치본에 닿지 않는다.** 번호는 JS 상수로만 올린다 — 그래야 OTA로 배달된다.
 
@@ -267,7 +267,7 @@ git push origin origin/main:refs/heads/release/1.0.2
 
 # 2. 버전 bump는 PR로
 git switch -c chore/release-1.0.2 origin/release/1.0.2
-#    app.config.ts version → 1.0.2,  src/version.ts OTA_RELEASE → 0
+#    app.config.ts version → 1.0.2,  src/shared/config/version.ts OTA_RELEASE → 0
 git commit -am "🔧 chore(release): 앱 버전 1.0.2로 올림"
 git push -u origin chore/release-1.0.2
 gh pr create --base release/1.0.2      # CI 통과 후 병합
