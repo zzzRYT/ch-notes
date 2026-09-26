@@ -90,6 +90,13 @@
         line-height: var(--rt-line);
         -webkit-text-size-adjust: 100%;
       }
+      /* 마지막 줄도 캐럿 아래 여백(CaretBottomRoom) 위로 올라올 수 있게 빈 공간을 둔다.
+         padding-bottom은 tentap 기본 CSS에 덮여 먹지 않았다. */
+      #root div .ProseMirror::after {
+        content: "";
+        display: block;
+        height: 45vh;
+      }
       #root div.dynamic-height .ProseMirror {
         height: unset;
       }
