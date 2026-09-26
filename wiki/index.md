@@ -7,16 +7,16 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 70 |
+| 도메인 규칙 `RULE` | 72 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 24 |
-| **합계** | **113** |
+| 결정 `ADR` | 26 |
+| **합계** | **117** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **41/70 (59%)** |
+| 자동 증거(test/ci)가 붙은 RULE | **43/72 (60%)** |
 | 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 61 |
+| 근거가 기록으로 남아 있는 항목 | 65 |
 | 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -68,6 +68,8 @@
 | [`RULE-EDIT-011`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 → 생명양식 순으로 Return 키로 이동하고, 마지막 필드에서 Return을 누르면 본문 첫 문단으로 포커스가 넘어간다. |
 | [`RULE-EDIT-012`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 날짜 입력은 구분자(. - / 공백)를 섞어 쓸 수 있고 연도를 생략하면 올해로 채운다. 저장 형식은 언제나 YYYY-MM-DD 문자열이며, 해석 불가한 입력은 저장하지 않고 직전 값으로 되돌린다. |
 | [`RULE-EDIT-013`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 생명양식 필드는 입력값으로 본문 조회가 성공할 때만 체크 표시를 보여주고 본문 미리보기 버튼을 활성화한다. 실패해도 입력 자체는 그대로 저장된다. |
+| [`RULE-EDIT-015`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 본문 문단에 포커스가 있으면 키보드 위에 굵게·밑줄·글머리 목록 버튼이 뜬다(기울임 버튼은 없다). 강조 버튼은 선택 영역을 해당 구분자로 감싸고, 이미 감싸져 있으면 벗긴다. 선택이 없으면 빈 구분자 쌍을 넣어 캐럿을 그 안에 두고, 켜진 강조의 닫는 구분자 바로 앞이면 캐럿을 그 뒤로 옮긴다(강조 끄기). 캐럿 위치에서 켜져 있는 강조는 버튼이 켜진 모양으로 보인다. |
+| [`RULE-EDIT-016`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 목록 버튼은 캐럿이 있는 줄 하나만 글머리(bullet) 블록으로 떼어 내고, 글머리에서 다시 누르면 문단으로 되돌린다. 글머리에서 Return은 다음 글머리를 만들고, 빈 글머리에서 Return은 목록을 끝내 그 자리를 빈 문단으로 바꾼다. 글머리 맨 앞 backspace는 글머리를 문단으로 바꾼다. 글머리 안에서 참조가 확정되면 앞부분은 글머리로 남고 뒷부분은 문단이 된다. |
 
 ### 노트 저장 — [`rules/note-persistence.md`](rules/note-persistence.md)
 
@@ -196,6 +198,8 @@
 | [`ADR-0022`](decisions/ADR-0022-store-update-notice.md) | 기록됨 | 스토어의 최신 버전은 GitHub Pages로 이미 발행 중인 website/app-version.json에 플랫폼별로 적고, 앱은 콜드 런치 뒤 한 번 읽어 설치본보다 높을 때만 닫을 수 있는 다이어로그를 띄운다. 강제 업데이트는 두지 않고, 같은 버전은 한 번만 안내한다. |
 | [`ADR-0023`](decisions/ADR-0023-figma-design-system-structure.md) | 기록됨 | Figma 디자인 시스템 파일은 페이지 하나에 토큰·컴포넌트·아이콘 보드 셋을 두고, 컴포넌트 보드는 Atoms/Molecules/Organisms 세 층위로 나눈다. 근거의 세기(코드에 있음/제안/예정)는 층위가 아니라 이름 접두사와 변형 단위 플래그로 표시한다. |
 | [`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md) | 기록됨 | 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다. |
+| [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) | 기록됨 | 앱 화면은 className으로 디자인 토큰을 쓴다(2026-09-20 전면 적용). Tailwind 바인딩은 uniwind이고, uniwind 테마 이름은 Variation(minimal/paper/focus/dark) 그대로이며, 색 클래스 이름은 Figma 변수 이름(minimal/ink-2 → text-ink-2)과 같다. 팔레트의 원본은 여전히 ThemeProvider.tsx 하나이고 CSS는 거기서 생성한다. |
+| [`ADR-0026`](decisions/ADR-0026-visible-inline-delimiters.md) | 기록됨 | 본문 입력칸은 강조 구분자(**, _, ++)를 지우거나 숨기지 않고 그대로 보여주며, 여는 구분자는 그 강조를 입고 닫는 구분자는 입지 않는다. 화면 문자열과 저장 문자열이 글자 단위로 같게 유지된다. |
 
 ## 정본이 아닌 것
 

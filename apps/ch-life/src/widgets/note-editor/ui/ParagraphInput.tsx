@@ -8,7 +8,9 @@ import React, {
   useState,
 } from 'react';
 import {
+  Text,
   TextInput,
+  View,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
   type TextInputSelectionChangeEventData,
@@ -18,6 +20,11 @@ import {
   splitAtRef,
   type DetectedRef,
 } from '@/features/scripture/insert';
+import {
+  toggleInlineMark,
+  tokenizeInlineMarks,
+  type InlineMark,
+} from '@/entities/note';
 
 const COMMIT_DEBOUNCE_MS = 800;
 
@@ -31,6 +38,8 @@ export type ActiveInputState = {
 // can move the caret into an already-mounted paragraph without touch.
 export type ParagraphInputHandle = {
   focus: () => void;
+  // Toolbar B / I / U on the current selection (RULE-EDIT-010).
+  applyMark: (mark: InlineMark) => void;
 };
 
 type Props = {
@@ -42,6 +51,10 @@ type Props = {
   onTrigger: (idx: number, textBefore: string, detected: DetectedRef) => void;
   onActiveChange: (state: ActiveInputState | null) => void;
   onBackspaceAtStart: (idx: number, currentText: string) => void;
+  // Set for single-line blocks (bullets): a newline hands the whole text to the
+  // parent, which splits it into blocks instead of growing this one.
+  onNewline?: (idx: number, text: string) => void;
+  bullet?: boolean;
 };
 
 const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
@@ -55,6 +68,8 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
       onTrigger,
       onActiveChange,
       onBackspaceAtStart,
+      onNewline,
+      bullet = false,
     },
     ref,
   ) {
@@ -67,7 +82,16 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
   const lastCommittedRef = useRef<string>(initialText);
   const inputRef = useRef<TextInput>(null);
 
-  useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }), []);
+  // Latest-closure holder so the imperative handle can stay created once.
+  const applyMarkRef = useRef<(mark: InlineMark) => void>(() => {});
+  useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => inputRef.current?.focus(),
+      applyMark: (mark) => applyMarkRef.current(mark),
+    }),
+    [],
+  );
 
   useEffect(() => {
     if (!focusOnMount) return;
@@ -128,6 +152,11 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
         onTrigger(idx, textWithoutTrigger, detected);
         return;
       }
+      if (onNewline && next.includes('\n')) {
+        cancelDebounce();
+        onNewline(idx, next);
+        return;
+      }
       setText(next);
       textRef.current = next;
       if (focusedRef.current) {
@@ -135,8 +164,26 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
       }
       scheduleCommit(next);
     },
-    [idx, onTrigger, onActiveChange, scheduleCommit],
+    [idx, onTrigger, onActiveChange, onNewline, scheduleCommit],
   );
+
+  applyMarkRef.current = (mark: InlineMark): void => {
+    const edit = toggleInlineMark(
+      textRef.current,
+      selectionStartRef.current,
+      cursorRef.current,
+      mark,
+    );
+    setText(edit.text);
+    textRef.current = edit.text;
+    selectionStartRef.current = edit.start;
+    cursorRef.current = edit.end;
+    onActiveChange({ idx, text: edit.text, cursor: edit.end });
+    scheduleCommit(edit.text);
+    // The new text reaches the native view on the next frame; placing the
+    // selection before that would land on the old string.
+    requestAnimationFrame(() => inputRef.current?.setSelection(edit.start, edit.end));
+  };
 
   const handleSelectionChange = useCallback(
     (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>): void => {
@@ -181,11 +228,11 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
   }, [idx, text, onCommit, onActiveChange]);
 
   return (
+    <View className="flex-row">
+      {bullet && <Text className={`w-6 ${TEXT_CLASS}`}>•</Text>}
     <TextInput
-      // 본문 에디터 = body-large, 행간은 실측 editor 1.625(primitives.js)
-      className="min-h-[30px] py-0 align-top text-ink font-body text-body-large leading-[1.625]"
+      className={`flex-1 min-h-[30px] py-0 align-top ${TEXT_CLASS}`}
       ref={inputRef}
-      value={text}
       multiline
       onFocus={handleFocus}
       onBlur={handleBlur}
@@ -193,16 +240,46 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
       onChangeText={handleChangeText}
       onKeyPress={handleKeyPress}
       placeholder={
-        isFirst ? '예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다' : ''
+        isFirst && !bullet ? '예: 창1:1 라고 입력 후 space — 본문이 자동 삽입됩니다' : ''
       }
       placeholderTextColorClassName="text-ink-3"
       autoCorrect={false}
       autoCapitalize="none"
       spellCheck={false}
-    />
+    >
+      {renderInlineRuns(text)}
+    </TextInput>
+    </View>
   );
   },
 );
+
+// 본문 에디터 = body-large, 행간은 실측 editor 1.625(primitives.js)
+const TEXT_CLASS = 'text-ink font-body text-body-large leading-[1.625]';
+
+const MARK_CLASS: Record<InlineMark, string> = {
+  bold: 'font-bold',
+  italic: 'italic',
+  underline: 'underline',
+};
+
+// The input's children are its value. Delimiters stay visible so the on-screen
+// string is index-for-index the stored string — selection offsets need no
+// mapping (ADR-0026). They are not dimmed: RN only re-applies child styles when
+// the text changes, so a typed character keeps the style of the one before the
+// caret, and a grey delimiter would turn everything typed after it grey.
+function renderInlineRuns(text: string): React.ReactNode {
+  const runs = tokenizeInlineMarks(text);
+  if (runs.every((r) => !r.delimiter)) return text;
+  return runs.map((r, i) => (
+    <Text
+      key={i}
+      className={r.marks.map((m) => MARK_CLASS[m]).join(' ')}
+    >
+      {r.text}
+    </Text>
+  ));
+}
 
 export const ParagraphInput = memo(ParagraphInputImpl);
 

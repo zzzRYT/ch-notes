@@ -47,7 +47,7 @@ type BlockNode =
 
 - `quote`(성경 인용)를 뺀 모든 블록은 `text: string` 하나를 갖는다. 인라인 강조는 그 문자열 안의 경량 마크다운이다([`RULE-EDIT-010`](../rules/editor-insert.md)).
 - `status`의 `loading`/`error`는 **어떤 코드도 생성하지 않는다**([`RULE-EDIT-007`](../rules/editor-insert.md)).
-- `heading`/`bullet`/`todo`/`blockquote`를 **입력할 UI는 없다.** 마크다운 가져오기로만 들어오고, 들어오면 렌더·재직렬화는 정상 동작한다.
+- `bullet`은 툴바 목록 버튼으로 입력한다([`RULE-EDIT-016`](../rules/editor-insert.md)). `heading`/`todo`/`blockquote`를 **입력할 UI는 없다** — 마크다운 가져오기로만 들어오고, 편집기에서는 평범한 문단처럼 보이지만 고친 글자는 타입을 유지한 채 저장된다([`drift.md`](../drift.md) B28).
 - **인용 블록은 `makeQuoteBlock(ref, verses, editionId)`로만 만든다**(`citation.ts`). 예외는 마크다운 파서 하나다([`drift.md`](../drift.md) B14).
 
 ## Citation Snapshot — `quote`와 `editionId`
