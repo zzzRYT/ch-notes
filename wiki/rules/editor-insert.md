@@ -307,8 +307,8 @@ implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
 verified_by:
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/replace-quote.test.ts#replaceQuoteRef
-  - manual: 인용을 눌러 참조를 바꾸고 노트를 나갔다 다시 열면 바뀐 구절이 남아 있다
-confidence: 코드추론
+  - manual: 인용을 눌러 참조를 바꾸고 앱을 종료했다 다시 열면 바뀐 구절이 남아 있다 (iOS 시뮬레이터 13 mini, collapse 변형, 요 3:16 → 요 3:16~17, 2026-09-26)
+confidence: 기록됨
 ```
 
 2026-09-26 Spirit Notes 역기획(E3)에서 도입했다. 오타 난 참조나 범위를 고치려면 전에는 인용을 backspace로 지우고([`RULE-EDIT-004`](#rule-edit-004--인용-블록-앞-backspace는-인용을-지우고-문단을-합친다)) 다시 쳐야 했다. 어르신에게는 이 두 단계가 곧 "못 고친다"이므로 고치는 길을 하나 둔다.
