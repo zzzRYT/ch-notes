@@ -57,13 +57,14 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   });
 
   useEffect(() => {
-    setVerseResolver(({ before, pos }, bridge) => {
+    setVerseResolver(({ before, pos, key }, bridge) => {
       const hit = detectRefAtCursor(before, before.length);
       const verses = hit && lookupVerses(hit.ref);
       if (!hit || !verses) return;
       const headLen = before.slice(0, hit.start).replace(/\s+$/, '').length;
       bridge.resolveVerse({
         pos,
+        key,
         cut: before.length - headLen,
         refText: before.slice(headLen),
         block: JSON.stringify(makeQuoteBlock(hit.ref, verses, BUNDLED_EDITION_ID)),

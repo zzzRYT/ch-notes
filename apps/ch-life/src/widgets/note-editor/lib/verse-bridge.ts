@@ -1,5 +1,5 @@
 import { Node } from "@tiptap/core";
-import { Plugin, TextSelection } from "@tiptap/pm/state";
+import { Plugin, TextSelection, type EditorState } from "@tiptap/pm/state";
 import { BridgeExtension, type EditorBridge } from "@10play/tentap-editor";
 import { VERSE_NODE } from "./rich-doc";
 
@@ -13,10 +13,13 @@ import { VERSE_NODE } from "./rich-doc";
 const TRIGGER = "verse-trigger";
 const RESOLVE = "verse-resolve";
 
-export type VerseTrigger = { before: string; pos: number };
+// Enter는 문단을 먼저 나눈 뒤 응답이 온다 — 지울 트리거 글자가 없다.
+export type TriggerKey = "space" | "enter";
+export type VerseTrigger = { before: string; pos: number; key: TriggerKey };
 export type VerseResolve = {
   pos: number;
-  // 지울 글자 수(참조 + 그 앞 공백). 스페이스 한 칸은 별도로 지운다.
+  key: TriggerKey;
+  // 지울 글자 수(참조 + 그 앞 공백). 트리거 스페이스 한 칸은 별도로 지운다.
   cut: number;
   refText: string;
   block: string;
@@ -28,6 +31,14 @@ type Msg = { type: string; payload?: unknown };
 function post(msg: Msg) {
   (window as unknown as { ReactNativeWebView?: { postMessage(s: string): void } })
     .ReactNativeWebView?.postMessage(JSON.stringify(msg));
+}
+
+function postTrigger(state: EditorState, pos: number, key: TriggerKey) {
+  const $pos = state.doc.resolve(pos);
+  // ponytail: 최상위 문단만 — 목록 안 인용은 저장 모델(평탄한 BlockNode[])에 자리가 없다.
+  if ($pos.depth !== 1 || $pos.parent.type.name !== "paragraph") return;
+  const before = $pos.parent.textBetween(0, $pos.parentOffset, undefined, "\n");
+  post({ type: TRIGGER, payload: { before, pos, key } satisfies VerseTrigger });
 }
 
 const VerseQuote = Node.create({
@@ -75,12 +86,15 @@ const VerseQuote = Node.create({
       new Plugin({
         props: {
           handleTextInput(view, from, to, text) {
-            if (text !== " " || from !== to) return false;
-            const $from = view.state.doc.resolve(from);
-            // ponytail: 최상위 문단만 — 목록 안 인용은 저장 모델(평탄한 BlockNode[])에 자리가 없다.
-            if ($from.depth !== 1 || $from.parent.type.name !== "paragraph") return false;
-            const before = $from.parent.textBetween(0, $from.parentOffset, undefined, "\n");
-            post({ type: TRIGGER, payload: { before, pos: from } satisfies VerseTrigger });
+            if (text === " " && from === to) postTrigger(view.state, from, "space");
+            return false;
+          },
+          // Enter는 막지 않는다 — 문단이 먼저 나뉘고, 응답이 오면 그 사이에 카드를 끼운다.
+          handleKeyDown(view, event) {
+            const { selection } = view.state;
+            if (event.key === "Enter" && !event.shiftKey && !event.isComposing && selection.empty) {
+              postTrigger(view.state, selection.from, "enter");
+            }
             return false;
           },
         },
@@ -93,12 +107,22 @@ const VerseQuote = Node.create({
 function applyResolve(editor: import("@tiptap/core").Editor, r: VerseResolve) {
   const { state } = editor;
   const from = r.pos - r.cut;
-  if (from < 0 || r.pos + 1 > state.doc.content.size) return;
-  if (state.doc.textBetween(from, r.pos + 1) !== r.refText + " ") return;
+  const end = r.key === "space" ? r.pos + 1 : r.pos;
+  if (from < 0 || end > state.doc.content.size) return;
+  if (state.doc.textBetween(from, end) !== r.refText + (r.key === "space" ? " " : "")) return;
   const node = state.schema.nodes[VERSE_NODE]!.create({ block: r.block, label: r.label });
-  const tr = state.tr.delete(from, r.pos + 1).split(from);
+  if (r.key === "space") {
+    const tr = state.tr.delete(from, end).split(from);
+    tr.insert(from + 1, node);
+    tr.setSelection(TextSelection.create(tr.doc, from + 1 + node.nodeSize + 1));
+    editor.view.dispatch(tr.scrollIntoView());
+    return;
+  }
+  // Enter: 참조가 앞 문단의 끝이어야 한다(그사이 Enter가 문단을 나눴다). 캐럿은 이미
+  // 아래 문단에 있으므로 그대로 두고 매핑만 따라가게 한다.
+  if (state.doc.resolve(end).parentOffset !== state.doc.resolve(end).parent.content.size) return;
+  const tr = state.tr.delete(from, end);
   tr.insert(from + 1, node);
-  tr.setSelection(TextSelection.create(tr.doc, from + 1 + node.nodeSize + 1));
   editor.view.dispatch(tr.scrollIntoView());
 }
 

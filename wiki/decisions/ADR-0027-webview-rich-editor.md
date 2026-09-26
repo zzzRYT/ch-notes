@@ -26,7 +26,7 @@ source:
 
 | 항목 | 결과 |
 |---|---|
-| `요 3:16` + space → 인용 카드 | **통과.** 판정과 조회는 RN이 한다(`detectRefAtCursor`·`lookupVerses`·`makeQuoteBlock` 재사용). 웹은 [앞][카드][뒤]로 나누고 캐럿을 카드 아래에 둔다 |
+| `요 3:16` + space 또는 Enter → 인용 카드 | **통과.** 두 트리거 모두 [`RULE-EDIT-001`](../rules/editor-insert.md) 그대로다. Enter는 막지 않고 문단이 먼저 나뉜 뒤, 응답이 오면 두 문단 사이에 카드를 끼운다. 판정과 조회는 RN이 한다(`detectRefAtCursor`·`lookupVerses`·`makeQuoteBlock` 재사용). 웹은 [앞][카드][뒤]로 나누고 캐럿을 카드 아래에 둔다 |
 | 한글 IME 조합 | **통과(조건부).** tentap `useEditorContent`는 RN이 `injectJavaScript`로 `getJSON`을 당겨 가는데, 이 주입이 조합을 끊어 다음 글자를 삼켰다. 같은 입력을 Safari contenteditable에 넣으면 손실이 없었다. 웹이 조합 중이 아닐 때 스스로 보내게 바꾸자(`doc-sync-bridge`) 손실이 사라졌다 |
 | `**x**` `_x_` `++x++` → 서식 | **통과.** 마커가 사라지고 실제 서식이 보인다 |
 | "/" 메뉴 | **통과.** 한글 필터(`/목록`)와 Enter 선택이 되고 "/검색어"는 지워진다 |
