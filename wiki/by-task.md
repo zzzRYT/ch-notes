@@ -75,10 +75,10 @@
 
 참조를 치고 space를 누르면 문단이 3분할되며 인용 블록이 끼어드는 기능. 트리거 감지 → 분할 → `citedRefs` 재계산 → 자동저장까지 한 묶음.
 
-**먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
+**먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · RULE-EDIT-014 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
 
-**코드** `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock,SermonMetaHeader}.tsx` · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
-**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,scripture-field}.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (9/13)
+**코드** `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock,QuoteEditModal,SermonMetaHeader}.tsx` · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,replace-quote,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
+**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,replace-quote,scripture-field}.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (10/14)
 
 **같은 변경에서 함께 고친다**
 1. **인용 블록은 `makeQuoteBlock`(`src/entities/note/model/citation.ts`) 한 곳에서만 만든다.** 인용의 모양(`status`·`editionId`)을 바꾸면 여기와 마크다운 파서(`src/entities/note/api/markdown-parse.ts`)를 같이 본다 — 파서는 형식 판별자 때문에 리터럴이 남아 있다.

@@ -128,7 +128,7 @@ source:
 id: RULE-EDIT-006
 policy: POL-SCRIPTURE-001
 requirement: SHOULD NOT
-statement: 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다.
+statement: 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다. 참조를 다른 구절로 바꾸는 것은 본문 수정이 아니다 — RULE-EDIT-014의 시트가 인용 블록을 통째로 다시 만든다.
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
 verified_by:
@@ -136,7 +136,7 @@ verified_by:
 confidence: 코드추론
 ```
 
-인용 본문은 성경 데이터의 사본이므로 노트 안에서 변형되지 않는다. 세 가지 표시 변형 중 `collapse`만 상호작용(접기/펴기)을 가지며, 접힘 상태는 저장되지 않는다.
+인용 본문은 성경 데이터의 사본이므로 노트 안에서 변형되지 않는다. 글자 단위로 고칠 수 있는 곳은 없고, 할 수 있는 일은 **참조를 바꿔 새 사본으로 교체하는 것**뿐이다([`RULE-EDIT-014`](#rule-edit-014--인용을-눌러-참조를-바꾼다)). 세 가지 표시 변형 중 `collapse`의 머리줄은 접기/펴기이며, 접힘 상태는 저장되지 않는다.
 
 ## RULE-EDIT-007 · 인용 상태는 항상 loaded
 
@@ -292,3 +292,30 @@ source:
 검증은 참조 형식이 아니라 **본문이 실제로 조회되는지**로 한다. 실패해도 막지 않는다 — `요한계시록 전체`처럼 자유 형식으로 적는 경우를 허용하기 위해서다. 체크 표시는 "확인됨"이지 "올바름"이 아니다.
 
 생명양식은 본문 중 인용(`citedRefs`)과 별개의 필드이며, 검색 색인에 들어가지 않는다(계획 문서에서 YAGNI로 명시적 제외).
+
+## RULE-EDIT-014 · 인용을 눌러 참조를 바꾼다
+
+```yaml
+id: RULE-EDIT-014
+policy: POL-SCRIPTURE-001
+requirement: SHOULD
+statement: 편집기의 인용 블록을 누르면 "인용 고치기" 시트가 열린다. 참조를 다시 입력하면 본문 미리보기가 바로 바뀌고, 조회되며 지금과 다른 구절일 때만 [바꾸기]가 켜진다. 바꾸면 그 자리의 인용이 makeQuoteBlock으로 다시 만들어지고 일반 본문 변경과 같은 자동저장 경로로 저장된다.
+implemented_by:
+  - apps/ch-life/src/features/scripture/insert/model/replace-quote.ts
+  - apps/ch-life/src/widgets/note-editor/ui/QuoteEditModal.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
+verified_by:
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/replace-quote.test.ts#replaceQuoteRef
+  - manual: 인용을 눌러 참조를 바꾸고 노트를 나갔다 다시 열면 바뀐 구절이 남아 있다
+confidence: 코드추론
+```
+
+2026-09-26 Spirit Notes 역기획(E3)에서 도입했다. 오타 난 참조나 범위를 고치려면 전에는 인용을 backspace로 지우고([`RULE-EDIT-004`](#rule-edit-004--인용-블록-앞-backspace는-인용을-지우고-문단을-합친다)) 다시 쳐야 했다. 어르신에게는 이 두 단계가 곧 "못 고친다"이므로 고치는 길을 하나 둔다.
+
+- **누르는 곳.** 카드·인용바 변형은 블록 전체, `collapse` 변형은 **펼친 본문**이다. `collapse`의 머리줄은 원래 접기/펴기였으므로 그 동작을 빼앗지 않는다. 접힌 상태에서 고치려면 먼저 편다.
+- **입력.** 휠 피커가 아니라 본문에서 치는 것과 같은 참조 문법의 텍스트 칸이다(`요 3:16-18`). 새 문법을 가르치지 않는다.
+- **같은 구절 판정.** 표시 이름(`formatRef`) 기준이다 — `요3:16`을 `요한복음 3:16`으로 바꾸는 것은 변경이 아니다.
+- **저장.** 교체된 본문은 `onChangeBody`로 올라가 [`RULE-EDIT-008`](#rule-edit-008--자동저장은-두-단계-디바운스)의 자동저장을 그대로 탄다. `citedRefs`는 저장할 때 본문에서 다시 뽑히므로([`RULE-EDIT-009`](#rule-edit-009--citedrefs는-저장할-때-본문에서-재계산한다)) 따로 고치지 않는다. 역기획한 앱은 카드 편집이 텍스트 저장 경로를 타지 않아 앱을 끄면 사라졌다 — 그 실수를 피하려고 별도 저장 경로를 만들지 않았다.
+- 인용 **삭제** 버튼은 없다. 지우는 길은 여전히 RULE-EDIT-004 하나다.
+- 판본(`editionId`)은 번들 판본으로 새로 찍힌다. 판본을 고르는 UI는 없다.

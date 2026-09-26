@@ -4,7 +4,10 @@ import type { CitationVerse, QuoteBlockNode } from "@/entities/note";
 import { formatRef } from "@/entities/scripture";
 import { useTheme } from "@/shared/ui";
 
-type Props = QuoteBlockNode;
+type Props = QuoteBlockNode & {
+  /** 있으면 카드를 눌러 참조를 고친다(RULE-EDIT-014). 미리보기에서는 비운다. */
+  onPress?: () => void;
+};
 
 export function QuoteBlock(props: Props) {
   const { blockStyle } = useTheme();
@@ -21,6 +24,17 @@ export function QuoteBlock(props: Props) {
 }
 
 type VariantProps = Props & { refLabel: string };
+
+// 누를 수 있는 인용은 버튼으로 읽힌다.
+function a11y(refLabel: string, onPress?: () => void) {
+  return onPress
+    ? {
+        accessibilityRole: "button" as const,
+        accessibilityLabel: `인용 ${refLabel}`,
+        accessibilityHint: "눌러서 참조를 고칩니다",
+      }
+    : { accessibilityRole: "text" as const, accessibilityLabel: `인용 ${refLabel}` };
+}
 
 const LABEL_CLASS = "text-accent text-caption font-semibold";
 
@@ -78,38 +92,41 @@ function Body({
   );
 }
 
-function CardVariant({ verses, status, refLabel }: VariantProps) {
+function CardVariant({ verses, status, refLabel, onPress }: VariantProps) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
       className={`my-2.5 border-hairline rounded-12 p-3.5 bg-paper ${
         status === "error" ? "border-err-bar" : "border-rule"
       }`}
-      accessibilityRole="text"
-      accessibilityLabel={`인용 ${refLabel}`}
+      {...a11y(refLabel, onPress)}
     >
       <HeaderLabel refLabel={refLabel} />
       <Body verses={verses} status={status} />
-    </View>
+    </Pressable>
   );
 }
 
-function QuoteVariant({ verses, status, refLabel }: VariantProps) {
+function QuoteVariant({ verses, status, refLabel, onPress }: VariantProps) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
       className="flex-row my-2.5 rounded-8 overflow-hidden bg-accent-soft"
-      accessibilityRole="text"
-      accessibilityLabel={`인용 ${refLabel}`}
+      {...a11y(refLabel, onPress)}
     >
       <View className="w-[3px] bg-accent" />
       <View className="flex-1 px-3.5 py-3">
         <HeaderLabel refLabel={refLabel} prefixDot={false} />
         <Body verses={verses} status={status} />
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-function CollapseVariant({ verses, status, refLabel }: VariantProps) {
+// 머리줄은 접기/펴기 그대로 두고, 펼친 본문을 눌러 고친다.
+function CollapseVariant({ verses, status, refLabel, onPress }: VariantProps) {
   const [open, setOpen] = useState(true);
   return (
     <View
@@ -130,9 +147,14 @@ function CollapseVariant({ verses, status, refLabel }: VariantProps) {
         <Text className={LABEL_CLASS}>{refLabel}</Text>
       </Pressable>
       {open && (
-        <View className="px-3 pb-3 gap-1">
+        <Pressable
+          onPress={onPress}
+          disabled={!onPress}
+          className="px-3 pb-3 gap-1"
+          {...a11y(refLabel, onPress)}
+        >
           <Body verses={verses} status={status} />
-        </View>
+        </Pressable>
       )}
     </View>
   );
