@@ -11,9 +11,11 @@
     "test:ci": "TZ=Asia/Seoul jest --ci",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "deploy:ota": "node scripts/deploy-ota.mjs"
+    "deploy:ota": "node scripts/deploy-ota.mjs",
+    "editor:build": "vite build --config editor-web/vite.config.ts && node ./node_modules/@10play/tentap-editor/scripts/buildEditor.js ./editor-web/build/index.html ./src/widgets/note-editor/lib/generated/editor-html.js"
   },
   "dependencies": {
+    "@10play/tentap-editor": "1.0.1",
     "@hot-updater/react-native": "0.36.8",
     "buffer": "^6.0.3",
     "expo": "~54.0.33",
@@ -30,12 +32,14 @@
     "gray-matter": "^4.0.3",
     "lucide-react-native": "^1.16.0",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-keyboard-controller": "1.18.5",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-webview": "13.15.0",
     "react-native-worklets": "0.5.1",
     "uniwind": "^1.12.0",
     "zustand": "^5.0.13"
@@ -47,6 +51,7 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "@types/react-test-renderer": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "better-sqlite3": "^12.10.0",
     "dotenv": "17.4.2",
     "eslint": "^9.39.4",
@@ -57,6 +62,8 @@
     "jest-expo": "~54.0.17",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.2",
+    "vite": "^5.4.21",
+    "vite-plugin-singlefile": "^2.3.3",
     "wrangler": "^4.129.0"
   },
   "jest": {
