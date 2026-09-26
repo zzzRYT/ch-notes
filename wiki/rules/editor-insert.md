@@ -307,7 +307,7 @@ implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
 verified_by:
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/replace-quote.test.ts#replaceQuoteRef
-  - manual: 인용을 눌러 참조를 바꾸고 앱을 종료했다 다시 열면 바뀐 구절이 남아 있다 (iOS 시뮬레이터 13 mini, collapse 변형, 요 3:16 → 요 3:16~17, 2026-09-26)
+  - manual: 인용을 눌러 참조를 바꾸고 앱을 종료했다 다시 열면 바뀐 구절이 남아 있다 (iOS 시뮬레이터 13 mini collapse 변형 요 3:16 → 요 3:16~17, iPad Pro 13 quote 변형 수 17:11 → 17:11~12 — 3분할 목록의 인용 표시까지 갱신, 2026-09-26)
 confidence: 기록됨
 ```
 
