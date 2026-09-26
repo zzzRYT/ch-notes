@@ -334,6 +334,7 @@ verified_by:
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#toggleBullet
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#splitBulletLines
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/split-paragraph.test.ts
+  - manual: 목록 전환·Return·빈 항목 Return·맨 앞 backspace, 앱 재실행 후 유지 (iOS 시뮬레이터 13 mini·iPad Pro 13, 2026-09-26)
 confidence: 기록됨
 source:
   - docs/reverse-planning/spirit-notes.md §9 E2
@@ -342,5 +343,9 @@ source:
 문단 블록은 여러 줄을 담지만 글머리는 한 줄이다 — 마크다운 `- 텍스트`가 한 줄이기 때문이다([`CONTRACT-MD-NOTE`](../contracts/CONTRACT-MD-NOTE.md)). 그래서 글머리 입력칸은 개행을 받으면 스스로 늘어나지 않고 본문을 줄 단위 블록으로 쪼갠다(여러 줄 붙여넣기도 같다).
 
 블록 수가 바뀌는 편집(목록, 인용 삽입)은 에디터의 **세대 번호를 올려 입력칸을 모두 다시 마운트한다.** 입력칸은 인덱스로 키가 잡혀 있고 포커스 중에는 바깥 텍스트를 무시하므로, 그대로 두면 쪼개진 문단이 옛 글자를 계속 보여 준다. 인용 삽입도 같은 이유로 세대를 올린다 — 전에는 아래에 블록이 더 있으면 `idx + 2` 자리 입력칸이 이미 마운트되어 있어 캐럿이 인용 아래로 가지 않았다([`RULE-EDIT-003`](#rule-edit-003--삽입-후-캐럿은-인용-다음-문단), 시뮬레이터에서 재현·수정 확인).
+
+목록 버튼은 에디터가 들고 있는 활성 입력칸의 글자(`ActiveInputState.text`)로 줄을 나눈다. 이 값은 선택 이벤트에서도 갱신되므로 **렌더 상태가 아니라 `textRef`에서 읽어야 한다** — 선택 이벤트는 그 키 입력의 리렌더보다 먼저 와서, 상태로 채우면 한 글자 늦는다. iPad 시뮬레이터에서 한글을 치자마자 목록을 누르면 마지막 음절이 사라지는 것으로 재현·수정했다.
+
+⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
 
 번호 목록·들여쓰기·체크리스트는 만들지 않았다.

@@ -191,10 +191,13 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
       selectionStartRef.current = start;
       cursorRef.current = end;
       if (focusedRef.current) {
-        onActiveChange({ idx, text, cursor: end });
+        // textRef, not the `text` state: a selection event arrives before the
+        // re-render for the keystroke that caused it, so the state is one
+        // character behind — the list button would drop the last (Hangul) letter.
+        onActiveChange({ idx, text: textRef.current, cursor: end });
       }
     },
-    [idx, text, onActiveChange],
+    [idx, onActiveChange],
   );
 
   const handleKeyPress = useCallback(
@@ -213,8 +216,8 @@ const ParagraphInputImpl = forwardRef<ParagraphInputHandle, Props>(
 
   const handleFocus = useCallback((): void => {
     focusedRef.current = true;
-    onActiveChange({ idx, text, cursor: cursorRef.current });
-  }, [idx, text, onActiveChange]);
+    onActiveChange({ idx, text: textRef.current, cursor: cursorRef.current });
+  }, [idx, onActiveChange]);
 
   const handleBlur = useCallback((): void => {
     focusedRef.current = false;
