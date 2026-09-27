@@ -3,6 +3,7 @@
 ```yaml
 id: ADR-0012
 status: accepted
+superseded_by: ADR-0029 (애널리틱스 부분만)
 statement: 백엔드·계정·동기화·애널리틱스를 두지 않는다. 그 결과 운영 관측(trace/metric)으로 회귀를 잡는 증거 계층이 존재하지 않는다.
 confidence: 기록됨
 source:
@@ -31,6 +32,8 @@ source:
 - 결함은 사용자가 말해 주기 전까지 발견되지 않는다.
 - 기기를 잃으면 데이터도 잃는다. 유일한 방어가 수동 내보내기인데, 그 절반(전체 백업)이 아직 없다([`RULE-MD-008`](../rules/share-markdown.md)).
 - 여러 기기에서 같은 노트를 이어 쓸 수 없다. `DESIGN.md` P4가 이를 "V2의 명시적 의제"로 남겨 두었다.
+
+> **2026-09-27** 애널리틱스 부분은 [`ADR-0029`](ADR-0029-firebase-analytics.md)가 대체했다. 계정·서버·동기화 없음은 유효하다.
 
 ## 이 결정을 뒤집으려면
 

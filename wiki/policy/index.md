@@ -12,7 +12,7 @@
 |---|---|---|---|
 | [POL-SCRIPTURE.md](POL-SCRIPTURE.md) | POL-SCRIPTURE-001<br>POL-SCRIPTURE-002 | 참조만 치면 오프라인으로 본문이 들어온다 · 성경 자체도 읽을 수 있다 | `src/entities/scripture/**`, `src/features/scripture/insert/**`, `src/widgets/scripture-browser/**` |
 | [POL-NOTE.md](POL-NOTE.md) | POL-NOTE-001<br>POL-NOTE-002<br>POL-NOTE-003 | 즉시 쓰고 자동 저장된다 · 설교 맥락을 남긴다 · 다시 찾을 수 있다 | 새 노트 흐름, 자동저장, 설교 메타 헤더, 목록·검색 |
-| [POL-PRIVACY.md](POL-PRIVACY.md) | POL-PRIVACY-001 | 콘텐츠·식별정보·사용기록이 기기 밖으로 나가지 않는다 | **네트워크 호출·SDK를 하나라도 추가할 때** |
+| [POL-PRIVACY.md](POL-PRIVACY.md) | POL-PRIVACY-001 | 콘텐츠·식별정보는 기기 밖으로 나가지 않는다 (익명 GA4 통계만 예외, ADR-0029) | **네트워크 호출·SDK를 하나라도 추가할 때** |
 | [POL-ACCESSIBILITY.md](POL-ACCESSIBILITY.md) | POL-A11Y-001 | 글자 크기 4단계, 손가락으로 누를 수 있는 크기, 색만으로 뜻을 전하지 않음 | 새 화면·컴포넌트, `fontScale`, 터치 타깃 |
 | [POL-PORTABILITY.md](POL-PORTABILITY.md) | POL-PORT-001 | 노트는 표준 Markdown으로 나가고 다시 들어온다 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` |
 | [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 | `assets/bible.json` 교체, `src/pages/licenses/ui/LicensesPage.tsx`, 내보내기 포맷 |
@@ -20,7 +20,7 @@
 
 ## 이 계층에서 사고 나는 지점
 
-- **POL-PRIVACY-001은 코드의 *부재*로 성립한다.** 자동 검사로 잡을 수 없다(그래서 `waiver`). `fetch` 한 줄이 이 정책을 깬다.
+- **POL-PRIVACY-001은 코드의 *부재*로 성립한다.** 자동 검사로 잡을 수 없다(그래서 `waiver`). `fetch` 한 줄이 이 정책을 깬다. Firebase Analytics(ADR-0029)는 자동 수집만 허용된 예외다 — 커스텀 이벤트에 콘텐츠를 실으면 깨진다.
 - **POL-A11Y-001의 "조용함"은 1.0.1에서 반쯤 깨졌다.** 저장 성공은 여전히 조용하지만 **구절 삽입 성공과 노트 삭제에는 배너가 뜬다**. 새 알림을 붙이려면 이 둘과 같은 급인지 먼저 따진다 — 기본값은 여전히 "띄우지 않는다"다(E14).
 - **POL-SCRIPTURE-001은 "조용한 실패"를 요구한다.** 없는 참조에 빨간 표시나 경고를 붙이면 안 된다.
 - **POL-LICENSE-001의 SA는 앱 밖까지 따라간다.** 내보낸 `.md`에 본문이 실리면 그 파일도 CC BY-SA다.

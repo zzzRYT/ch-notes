@@ -17,6 +17,8 @@
   "dependencies": {
     "@10play/tentap-editor": "1.0.1",
     "@hot-updater/react-native": "0.36.8",
+    "@react-native-firebase/analytics": "^26.4.0",
+    "@react-native-firebase/app": "^26.4.0",
     "buffer": "^6.0.3",
     "expo": "~54.0.33",
     "expo-build-properties": "~1.0.10",
