@@ -113,14 +113,17 @@ Bible text from the Open Bible Korean edition (CC BY-SA 4.0).
 
 ## 콘텐츠 등급 / 데이터 안전
 
-### Google Play — Data Safety 양식
-- 데이터 수집: **없음 (No data collected)**
+### Google Play — Data Safety 양식 (1.0.3, 2026-09-27 갱신)
+- 데이터 수집: **예** — Firebase Analytics 자동 수집 이벤트만(ADR-0029)
+  - 대략적인 위치 · 앱 상호작용 · 기기 또는 기타 ID — 수집됨, 공유 안 됨, 일시적 처리 아님, 필수, 목적 = 애널리틱스
 - 데이터 공유: **없음**
-- 보안: 전송 중 암호화 해당 없음(서버 전송 없음)
-- 데이터 삭제 요청: 앱 삭제 시 전체 삭제
+- 보안: 전송 중 암호화 **예**
+- 계정 생성: 허용하지 않음
+- 데이터 삭제 요청: 미응답(선택 항목). 노트는 앱 삭제 시 전체 삭제
 
-### App Store — App Privacy
-- "Data Not Collected" 선택
+### App Store — App Privacy (1.0.3, 2026-09-27 갱신)
+- "데이터 수집함" — 사용자와 연결되지 않은 데이터
+  - 사용 데이터 > 제품 상호작용 · 식별자 > 기기 ID · 위치 > 대략적인 위치 — 목적 = 분석
 - 추적(App Tracking) 사용 안 함
 
 ### 콘텐츠 등급 설문
