@@ -16,7 +16,7 @@ ch-life는 모든 기능 작업을 `.worktrees/`에서 격리해서 진행한다
 - `<branch>` — 타입 접두사 + slug. 기본 `feat/<slug>`. 키워드가 버그수정이면 `fix/<slug>`,
   잡일/릴리스 준비면 `chore/<slug>`. 접두는 커밋 타입과 같은 단어를 쓴다 —
   `feat/` `fix/` `docs/` `chore/` `refactor/` `test/` `perf/` `ci/` (`wiki/git.md` 4절).
-  **이미 나간 버전의 핫픽스라면** `origin/main`이 아니라 `origin/release/<버전>`에서 분기한다.
+  기본 분기점은 `origin/dev`다(`ADR-0028`). **이미 나간 버전의 핫픽스라면** `origin/release/<버전>`에서 분기한다.
 
 확신이 안 서면 사용자에게 slug/타입을 한 번 확인한다.
 
@@ -31,9 +31,9 @@ ch-life는 모든 기능 작업을 `.worktrees/`에서 격리해서 진행한다
 저장소 루트(`apps/ch-life`의 부모, `.worktrees/`가 있는 곳)에서 실행한다.
 
 ```bash
-# 최신 main 기준으로 분기 (원격 반영)
+# 최신 dev 기준으로 분기 (원격 반영)
 git fetch origin --quiet || true
-BASE=$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo origin/main || echo main)
+BASE=$(git rev-parse --verify origin/dev >/dev/null 2>&1 && echo origin/dev || echo dev)
 
 # 이미 있으면 멈추고 사용자에게 알릴 것
 test ! -e ".worktrees/<slug>" || { echo ".worktrees/<slug> 이미 존재"; exit 1; }

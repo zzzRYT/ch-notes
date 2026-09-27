@@ -141,7 +141,7 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 
 번들 생성·Hermes 컴파일·서명까지는 전부 통과하고 **R2 업로드에서만** 죽는다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있다 — 다른 자격증명(API 토큰 등)을 이 슬롯에 넣었을 가능성이 크다.
 
-워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다. 다만 **시크릿 값 자체는 아직 고쳐지지 않았다.** 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 자동 경로는 **실제로는 닫혀 있다.**
+워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다. 다만 **시크릿 값 자체는 아직 고쳐지지 않았다.** 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 OTA 경로는 **실제로는 닫혀 있다.**
 
 ### B20. 알 수 없는 블록 타입은 조용히 사라지거나 앱을 깨뜨린다
 `BlockNode`는 닫힌 유니온이지만, 그 값을 읽는 네 경로 중 **모르는 `type`을 다룰 준비가 된 곳이 하나도 없다.**
@@ -208,12 +208,14 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md)의 전면 적용으로 **본문 텍스트의 `fontSize` 리터럴은 0건**이 됐다. 텍스트는 전부 `text-display … text-caption` 여섯 단계이고 이 단계는 `ThemeProvider`가 ×fontScale로 갱신한다. 남은 고정 크기는 `text-[Npx]`로 표기한 **글리프 아이콘**(`‹ › ≡ ✕ ✓ ＋ ◧ ⌕ ↑ ↗ ✉ 📖`)뿐이며, 이것은 `primitives.js`의 `icon/glyph/*`가 텍스트와 분리해 둔 것이다. 확대 경계가 어디여야 하는지는 여전히 사용자 확정이 필요하다. → E22
 
-### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다
+### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다 — **부분 해소(2026-09-26)**
 `BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/entities/note/model/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
 
 그런데 편집기는 둘만 안다. 렌더는 `block.type === 'quote'`면 `QuoteBlock`, **나머지는 전부 `ParagraphInput`**이다(`src/widgets/note-editor/ui/NoteEditor.tsx:175-192`). `heading`의 `level`도 `todo`의 `checked`도 화면에 나타나지 않는다. 그 위에 `handleCommit`이 `if (prev?.type !== 'paragraph') return;`으로 막는다(`:105`) — **그 블록에 친 글자는 저장되지 않고 조용히 버려진다.**
 
 디스크의 데이터가 파괴되지는 않는다. 마크다운으로 가져온 할 일 목록은 파일에 그대로 남는다. 사라지는 것은 **사용자가 방금 친 것**과 **그 블록이 무엇인지 알아볼 방법**이다. B20이 "알 수 없는 블록 타입"을 다뤘다면 이쪽은 **알려진 블록 타입**이 같은 취급을 받는 자리다. → B20
+
+**2026-09-26 갱신.** `handleCommit`은 이제 `quote`가 아닌 모든 텍스트 블록의 글자를 **타입을 유지한 채** 저장한다(`{ ...prev, text }`) — 입력이 버려지는 문제는 사라졌다. `bullet`은 글머리 기호와 함께 그려지고 입력 UI가 생겼다([`RULE-EDIT-016`](rules/editor-insert.md)). 남은 것: `heading`의 크기, `todo`의 체크박스, `blockquote`의 모양은 여전히 화면에 나타나지 않는다.
 
 ### B29. ~~글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다~~ **해소(2026-09-20)**
 `src/pages/settings/ui/SettingsPage.tsx`에 `scaled`가 0건이어서 '크게'·'아주 크게'를 고르는 칩도 그 설명 문구도 배율을 받지 않았다. B27과 함께 해소 — 설정 화면의 텍스트는 전부 `text-label`·`text-body`·`text-caption` 토큰이다. → B27
@@ -225,6 +227,16 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 ### B31. 타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다
 `display 30 · title 20 · body-large 17 · body 15 · label 13 · caption 11`이 `docs/design-system/figma-plugin/primitives.js`(`text/size/*`, Figma용) · `apps/ch-life/src/global.css`(`--text-*`, Tailwind 초기값) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx`(`TEXT_SCALE`, ×fontScale 갱신용)에 각각 있다. 색 토큰은 `extract-colors.py`가 한 원본에서 생성하지만 수치 토큰에는 그런 생성기가 없다. 한 곳만 바꾸면 Figma·초기 렌더·fontScale 반영 후가 서로 다른 크기가 된다. → [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md), B9
+
+### B32. 네이티브 에디터의 규칙 셋이 앱에 연결돼 있지 않다 — **부분 해소(2026-09-27)**
+2026-09-27에 `feat/quote-ref-edit`·`feat/editor-format-toolbar`·`feat/tentap-editor`를 `dev`에 함께 머지했다. tentap 가지가 `widgets/note-editor`의 공개 `NoteEditor`를 `RichNoteEditor`(WebView)로 바꿔 내보내므로, **네이티브 `ui/NoteEditor.tsx`는 어느 화면에서도 쓰이지 않는다.** 그 결과 이 파일에만 구현된 동작이 앱에서 사라졌다.
+
+- [`RULE-EDIT-014`](rules/editor-insert.md) 인용을 눌러 참조 바꾸기 — `RichNoteEditor`에는 대응 경로가 없다.
+- [`RULE-EDIT-015`](rules/editor-insert.md)·[`RULE-EDIT-016`](rules/editor-insert.md) 서식 툴바·글머리 목록 — WebView 쪽은 TenTap 툴바가 대신한다. 동작(구분자 표시 등, [`ADR-0026`](decisions/ADR-0026-visible-inline-delimiters.md))은 같지 않다.
+
+순수 로직(`replaceQuoteRef`·`toggleInlineMark`·`list-blocks`)과 그 테스트는 살아 있다. 정할 것은 두 가지다. ⑴ 인용 고치기를 WebView 에디터로 옮길 것인가, ⑵ 네이티브 에디터와 RULE-EDIT-015·016을 걷어낼 것인가([`ADR-0027`](decisions/ADR-0027-webview-rich-editor.md)이 채택되면 뒤집히는 ADR-0001과 함께).
+
+**2026-09-27 갱신.** ⑴은 사용자 결정으로 옮겼다 — WebView의 인용 카드를 누르면 `verse-bridge`가 RN에 알리고, RN이 같은 `QuoteEditModal`·`replaceQuoteRef`로 새 인용을 만들어 그 자리 노드를 바꾼다([`RULE-EDIT-014`](rules/editor-insert.md)). 남은 것은 ⑵다.
 
 ## C. 테스트(오라클)의 신뢰도 문제
 
@@ -307,6 +319,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | E18 | **되돌릴 수 없는 변경은 어느 경로로 내보내는가?** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA 롤백으로 구제되지 않는다(B20). ⑴ 폴백을 먼저 한 번들 내보내고 다음 번들에서 쓰기, ⑵ 스토어 빌드로만 내보내기 — 어느 쪽을 기본으로 삼을 것인가? | [`RULE-OTA-008`](rules/release.md), [`RULE-OTA-009`](rules/release.md) |
 | E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없었다. **제안(2026-09-20, 확인필요)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용에서 이렇게 갈랐다: 읽는 텍스트는 전부 `text-*` 토큰(확대됨), 텍스트로 그린 **아이콘 글리프만** `text-[Npx]` 고정(`primitives.js` `icon/glyph/*`와 같은 구분). 요일 머리글·보조 라벨·칩 텍스트는 확대 대상에 넣었다. 이 경계가 맞으면 `RULE-UI`로 박고, 아니면 어느 쪽을 빼야 하는지 정해야 한다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
 | E23 | **Play 트랙을 `internal`에서 `alpha`로 올린 이유는?** `eas.json`의 `submit.production.android.track`이 바뀌었는데 기록이 없다. iOS 자동제출(ASC API 키)을 붙이면서 함께 정한 것인가, 아니면 별개의 판단인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), `docs/store/android-auto-submit.md` |
+| E24 | **preview OTA까지 수동으로 둔 이유, `dev` 직접 푸시를 허용한 이유는?** 2026-09-27에 결정만 기록됐다. 수동 preview는 "아무 가지에서나 쏠 수 있다"는 뜻이기도 하다. 이것이 의도라면 그대로 두고, `dev`로 제한할 생각이면 워크플로 가드를 더해야 한다. | [`ADR-0028`](decisions/ADR-0028-dev-branch.md) |
 
 ## G. 아직 정본화되지 않은 구현
 

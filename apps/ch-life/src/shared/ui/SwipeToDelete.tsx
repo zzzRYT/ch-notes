@@ -54,6 +54,8 @@ export function SwipeToDelete({
           }
           return isHorizontalSwipe(gesture.dx, gesture.dy);
         },
+        onMoveShouldSetPanResponderCapture: (_, gesture) =>
+          isHorizontalSwipe(gesture.dx, gesture.dy),
         onPanResponderGrant: () => {
           startOffset.current = open ? -ACTION_WIDTH : 0;
           translateX.stopAnimation();
@@ -71,7 +73,11 @@ export function SwipeToDelete({
             startOffset.current + gesture.dx,
             ACTION_WIDTH,
           );
-          const target = settleSwipeOffset(finalOffset, ACTION_WIDTH);
+          const target = settleSwipeOffset(
+            finalOffset,
+            ACTION_WIDTH,
+            gesture.vx,
+          );
           if (target === -ACTION_WIDTH) onOpen();
           else onClose();
           animateTo(target);
@@ -85,19 +91,38 @@ export function SwipeToDelete({
     [open, onOpen, onClose, translateX, animateTo],
   );
 
+  // 자식 배경이 반투명(예: 선택 행의 accent-soft)이어도 삭제 레이어가 비치지 않게,
+  // 행이 왼쪽으로 실제 움직인 만큼만 드러낸다.
+  const actionOpacity = translateX.interpolate({
+    inputRange: [-ACTION_WIDTH / 2, 0],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
   return (
-    <View className="relative overflow-hidden bg-err-bar">
-      <Pressable
-        onPress={onDelete}
-        accessibilityRole="button"
-        accessibilityLabel={deleteLabel}
-        accessibilityElementsHidden={!open}
-        importantForAccessibility={open ? "yes" : "no-hide-descendants"}
-        className="absolute top-0 right-0 bottom-0 min-h-12 items-center justify-center bg-err-bar"
-        style={{ width: ACTION_WIDTH }}
+    <View className="relative overflow-hidden">
+      {/* Animated.View에는 className이 닿지 않아 배치는 style로 준다. */}
+      <Animated.View
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: ACTION_WIDTH,
+          opacity: actionOpacity,
+        }}
       >
-        <Text className="text-white text-label font-bold">삭제</Text>
-      </Pressable>
+        <Pressable
+          onPress={onDelete}
+          accessibilityRole="button"
+          accessibilityLabel={deleteLabel}
+          accessibilityElementsHidden={!open}
+          importantForAccessibility={open ? "yes" : "no-hide-descendants"}
+          className="flex-1 min-h-12 items-center justify-center bg-err-bar"
+        >
+          <Text className="text-white text-label font-bold">삭제</Text>
+        </Pressable>
+      </Animated.View>
       <Animated.View
         {...panResponder.panHandlers}
         style={{ transform: [{ translateX }] }}
@@ -107,4 +132,3 @@ export function SwipeToDelete({
     </View>
   );
 }
-

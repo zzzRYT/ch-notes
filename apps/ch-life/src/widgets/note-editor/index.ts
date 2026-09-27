@@ -1,6 +1,8 @@
-export { NoteEditor, type NoteEditorHandle } from "./ui/NoteEditor";
+// 스파이크: WebView 에디터로 교체(ADR-0001 재검토). 네이티브 판은 ui/NoteEditor.tsx에 그대로 있다.
+export { RichNoteEditor as NoteEditor, type NoteEditorHandle } from "./ui/RichNoteEditor";
 export { SermonMetaHeader, type SermonMetaHeaderProps } from "./ui/SermonMetaHeader";
 export { QuoteBlock } from "./ui/QuoteBlock";
+export { EditorSkeleton } from "./ui/EditorSkeleton";
 export {
   useNoteDraft,
   type NoteDraft,

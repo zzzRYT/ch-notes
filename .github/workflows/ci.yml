@@ -4,7 +4,10 @@ on:
   pull_request:
   push:
     # release/** 도 검사한다. 그 가지에서 수동 OTA를 발행하기 때문이다.
-    branches: [main, "release/**"]
+    # dev는 직접 푸시를 허용하므로 푸시마다 검사한다.
+    branches: [main, dev, "release/**"]
+  # eas-update.yml이 발행 직전에 같은 커밋으로 부른다.
+  workflow_call:
 
 # Cancel superseded runs on the same ref to save runner minutes.
 concurrency:

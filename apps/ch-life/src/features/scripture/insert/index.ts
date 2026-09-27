@@ -12,3 +12,4 @@ export {
   validateScripture,
   type ScriptureValidation,
 } from "./model/scripture-field";
+export { replaceQuoteRef } from "./model/replace-quote";

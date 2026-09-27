@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import {
   addMonths,
-  buildMonthGrid,
+  buildMonthWeeks,
   parseYmd,
   todayYmd,
 } from "../lib/calendar";
@@ -23,8 +23,14 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
     month0: initial.getMonth(),
   });
 
-  const grid = useMemo(
-    () => buildMonthGrid(view.year, view.month0),
+  useEffect(() => {
+    if (!visible) return;
+    const next = parseYmd(value ?? "") ?? parseYmd(todayYmd())!;
+    setView({ year: next.getFullYear(), month0: next.getMonth() });
+  }, [visible, value]);
+
+  const weeks = useMemo(
+    () => buildMonthWeeks(view.year, view.month0),
     [view.year, view.month0],
   );
 
@@ -76,54 +82,60 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
             {WEEKDAYS.map((w) => (
               <Text
                 key={w}
-                className={`${COL} text-center text-caption py-1 text-ink-3`}
+                className="flex-1 text-center text-caption py-1 text-ink-3"
               >
                 {w}
               </Text>
             ))}
           </View>
 
-          <View className="flex-row flex-wrap">
-            {grid.map((ymd, i) => {
-              if (!ymd) return <View key={`pad-${i}`} className={CELL} />;
-              const day = Number(ymd.slice(8, 10));
-              const selected = ymd === value;
-              const isToday = ymd === today;
-              return (
-                <Pressable
-                  key={ymd}
-                  onPress={() => {
-                    onSelect(ymd);
-                    onClose();
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={isToday ? `${day}일 오늘` : `${day}일`}
-                  className={CELL}
-                >
-                  <View
-                    className={`size-full rounded-full items-center justify-center ${
-                      selected
-                        ? "bg-accent"
-                        : isToday
-                          ? "border-[1.5px] border-accent"
-                          : ""
-                    }`}
-                  >
-                    <Text
-                      className={`text-body ${
-                        selected
-                          ? "text-accent-text font-bold"
-                          : isToday
-                            ? "text-accent font-bold"
-                            : "text-ink font-normal"
-                      }`}
+          <View>
+            {weeks.map((week, weekIndex) => (
+              <View key={weekIndex} className="flex-row">
+                {week.map((ymd, dayIndex) => {
+                  if (!ymd) {
+                    return <View key={`pad-${dayIndex}`} className={CELL} />;
+                  }
+                  const day = Number(ymd.slice(8, 10));
+                  const selected = ymd === value;
+                  const isToday = ymd === today;
+                  return (
+                    <Pressable
+                      key={ymd}
+                      onPress={() => {
+                        onSelect(ymd);
+                        onClose();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={isToday ? `${day}일 오늘` : `${day}일`}
+                      className={CELL}
                     >
-                      {day}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
+                      <View
+                        className={`size-full rounded-full items-center justify-center ${
+                          selected
+                            ? "bg-accent"
+                            : isToday
+                              ? "border-[1.5px] border-accent"
+                              : ""
+                        }`}
+                      >
+                        <Text
+                          className={`text-body ${
+                            selected
+                              ? "text-accent-text font-bold"
+                              : isToday
+                                ? "text-accent font-bold"
+                                : "text-ink font-normal"
+                          }`}
+                        >
+                          {day}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
           </View>
 
           <Pressable
@@ -144,7 +156,6 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
 }
 
 // 7열 그리드. 글리프 ‹ › 는 아이콘이라 fontScale을 타지 않는다(icon/glyph 계열).
-const COL = "w-[14.2857%]";
-const CELL = `${COL} aspect-square items-center justify-center p-0.5`;
+const CELL = "flex-1 aspect-square items-center justify-center p-0.5";
 const NAV_BTN = "size-touch items-center justify-center";
 const NAV_GLYPH = "text-[24px] text-ink-2";

@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import type { NoteRepo } from "@/entities/note";
 import { showFeedback } from "@/shared/lib";
 import { useNoteDeleteStore } from "./delete-store";
@@ -5,6 +6,14 @@ import { useNoteDeleteStore } from "./delete-store";
 type DeleteRepo = Pick<NoteRepo, "delete" | "restore">;
 
 let undoInFlight: Promise<boolean> | null = null;
+
+/** 에디터 휴지통 버튼의 확인창. 폰·태블릿 에디터가 같은 문구·흐름을 쓴다(RULE-NOTE-007). */
+export function confirmNoteDelete(onConfirm: () => void): void {
+  Alert.alert("노트 삭제", "삭제하시겠습니까?", [
+    { text: "취소", style: "cancel" },
+    { text: "삭제", style: "destructive", onPress: onConfirm },
+  ]);
+}
 
 /** 노트를 지우고 5초짜리 "실행 취소" 배너를 띄운다(POL-NOTE-002). */
 export async function deleteNoteWithUndo(

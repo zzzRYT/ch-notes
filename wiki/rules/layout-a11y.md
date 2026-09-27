@@ -89,6 +89,8 @@ source:
 
 작은 아이콘에는 `hitSlop`으로 실제 터치 영역을 넓힌다. 노트 카드는 시각·제목·설교자·생명양식을 한 문장으로 합쳐 읽어 준다.
 
+목록의 왼쪽 스와이프는 세로 스크롤보다 수평 이동이 뚜렷할 때만 선점한다. 절반 이상 끌거나 빠르게 왼쪽으로 플릭하면 84px 삭제 영역을 열고, 빠르게 오른쪽으로 플릭하면 닫는다(`shared/lib/swipe-geometry.ts`).
+
 절 옆 `＋` 버튼은 32px로 이 기준보다 작고 `hitSlop={8}`로 보완한다 — 기준선상의 예외다.
 
 ## RULE-UI-005 · 색만으로 의미를 전달하지 않는다
@@ -126,3 +128,42 @@ confidence: 코드추론
 ```
 
 글꼴 배율과 변형 팔레트를 헤더에도 적용하려면 네이티브 헤더로는 부족하다. 대신 iOS 기본 스와이프 뒤로가기 같은 플랫폼 관습은 직접 유지해야 한다.
+
+## RULE-UI-007 · 달력은 로컬 날짜의 일~토 7열을 고정한다
+
+```yaml
+id: RULE-UI-007
+policy: POL-A11Y-001
+requirement: SHOULD
+statement: 설교 날짜 달력은 기기 로컬 날짜를 기준으로 일요일부터 토요일까지 7열·6주를 고정하고, 열 때마다 현재 선택값 또는 오늘이 속한 달을 표시한다.
+implemented_by:
+  - apps/ch-life/src/widgets/note-editor/lib/calendar.ts
+  - apps/ch-life/src/widgets/note-editor/ui/DatePickerModal.tsx
+verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/calendar.test.ts#buildMonthWeeks는 일~토 7열을 유지하는 6주 격자를 만든다
+  - manual: 토·일 포함 월 경계와 오늘 표시 확인
+confidence: 코드추론
+```
+
+7개 셀을 퍼센트 너비로 한 줄에 감싸지 않고 주 단위 행으로 렌더링한다. 기기별 픽셀 반올림 때문에 토요일이나 일요일이 다음 줄로 밀리는 것을 막는다.
+
+## RULE-UI-008 · 물리 키보드로 타이핑하면 소프트 키보드를 내린다
+
+```yaml
+id: RULE-UI-008
+policy: POL-A11Y-001
+requirement: SHOULD
+statement: 소프트 키보드는 물리 키보드가 연결되어 있어도 평소대로 뜬다. 물리 키보드의 키 입력이 실제로 들어오면 입력 포커스는 유지한 채 소프트 키보드만 내린다. 연결 여부만으로 소프트 키보드를 막지 않는다.
+implemented_by:
+  - apps/ch-life/modules/hardware-keyboard
+  - apps/ch-life/src/shared/lib/useHardwareKeyboardDismiss.ts
+  - apps/ch-life/src/app/_layout.tsx
+verified_by:
+  - manual: Android 실기기에 블루투스 키보드 연결 → 입력란 탭(소프트 키보드 뜸) → 물리 키 입력 시 내려가고 글자는 계속 들어감
+  - manual: 물리 키보드 없는 기기에서 소프트 키보드가 평소대로 뜨는지
+confidence: 기록됨
+```
+
+iOS는 `GCKeyboard.keyboardInput.keyChangedHandler`, Android는 `Window.Callback.dispatchKeyEvent`에서 비가상 알파벳 키보드 장치의 키 다운만 골라 `onKeyPress`를 보낸다. 앱 루트(`_layout.tsx`)의 훅 하나가 이 이벤트를 받아 `KeyboardController.dismiss({ keepFocus: true })`를 호출하므로 폰·태블릿 모든 입력란에 같은 동작이 적용된다. `showSoftInputOnFocus`는 쓰지 않는다 — 연결 상태만으로 소프트 키보드를 막으면 사용자가 원할 때 띄울 수 없다.
+
+iOS/iPadOS는 물리 키보드가 붙으면 OS가 이미 소프트 키보드를 숨기므로, 이 규칙이 실제로 체감되는 대상은 Android다.

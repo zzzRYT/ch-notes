@@ -86,7 +86,7 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 | `Co-Authored-By: … <…>` | 에이전트·공동 작업자 |
 | `BREAKING CHANGE: …` | 위 참조 |
 
-**`[skip ci]`는 쓰지 않는다.** 문서만 고친 커밋도 예외가 아니다. `main`의 OTA 발행이 CI 성공(`workflow_run`)에 매달려 있어, CI를 건너뛰면 **배포가 조용히 나가지 않는다**([`POL-RELEASE-001`](policy/POL-RELEASE.md)).
+**`[skip ci]`는 쓰지 않는다.** 문서만 고친 커밋도 예외가 아니다. `main`은 CI 통과를 병합 조건으로 걸어 두었고, `dev`는 직접 푸시를 받는 대신 푸시마다 도는 CI가 유일한 신호다. 건너뛰면 깨진 커밋이 `dev`에 조용히 쌓인다.
 
 ### 커밋을 나누는 단위
 
@@ -96,7 +96,9 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 
 ## 2. Pull Request
 
-`main`으로 가는 길은 PR 하나뿐이다. 직접 푸시는 GitHub 브랜치 보호가 막는다([`ADR-0018`](decisions/ADR-0018-pr-gate.md)).
+`main`으로 가는 길은 PR 하나뿐이다. 직접 푸시는 GitHub 브랜치 보호가 막는다([`ADR-0018`](decisions/ADR-0018-pr-gate.md)). `main`에 PR을 여는 가지는 사실상 둘이다 — `dev`(통째 머지)와 릴리스 역머지용 임시 가지(`chore/backmerge-<버전>`).
+
+`dev`는 PR 없이 직접 푸시해도 된다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). 작업 가지를 PR로 `dev`에 넣을지는 선택이다. 아래 병합 조건은 `main`에만 걸린다.
 
 ### 병합 조건
 
@@ -168,23 +170,25 @@ PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커�
 
 ### 닫기
 
-이슈는 **PR 병합으로 닫는다.** 커밋이나 PR 본문에 `Closes #12`를 적으면 GitHub이 닫는다. 열 때가 아니라 **`main`에 병합되는 순간**에 닫히므로, base가 `release/**`인 PR은 그때 닫히지 않고 [역머지](#4-브랜치)가 `main`에 닿을 때 닫힌다. 손으로 닫을 때는 왜 닫는지 한 줄 남긴다 — "재현 안 됨"과 "안 하기로 함"은 다른 결말이고, 6개월 뒤에는 구분이 안 된다.
+이슈는 **PR 병합으로 닫는다.** 커밋이나 PR 본문에 `Closes #12`를 적으면 GitHub이 닫는다. 열 때가 아니라 **`main`에 병합되는 순간**에 닫힌다. 그래서 base가 `dev`인 PR은 `dev` → `main` 병합 때 닫히고, base가 `release/**`인 PR은 [역머지](#4-브랜치)가 `main`에 닿을 때 닫힌다. 손으로 닫을 때는 왜 닫는지 한 줄 남긴다 — "재현 안 됨"과 "안 하기로 함"은 다른 결말이고, 6개월 뒤에는 구분이 안 된다.
 
 ---
 
 ## 4. 브랜치
 
-가지는 세 종류뿐이다([`ADR-0020`](decisions/ADR-0020-branch-strategy.md)).
+가지는 네 종류뿐이다([`ADR-0020`](decisions/ADR-0020-branch-strategy.md), [`ADR-0028`](decisions/ADR-0028-dev-branch.md)).
 
 ```text
 feat/note-search ─┐
-fix/editor-crash ─┼─► main ──┬─► release/1.0.2 ──► 태그 v1.0.2 ──► 스토어 · OTA
-docs/git-rules   ─┘          │        │
-                             └────────┘  역머지 (버전 bump·핫픽스를 main으로)
+fix/editor-crash ─┼─► dev ──► main ──┬─► release/1.0.2 ──► 태그 v1.0.2 ──► 스토어 · OTA
+docs/git-rules   ─┘    ▲             │        │
+                       │             └────────┘  역머지 (버전 bump·핫픽스를 main으로)
+                       └── main을 다시 dev로
 ```
 
-- **`main`** — 통합 가지. 언제나 초록이고, 여기 있는 것이 다음 릴리스 후보다.
-- **작업 가지** — `main`에서 잘라 `main`으로 돌아간다. 짧게 살고 병합되면 사라진다.
+- **`dev`** — 통합 가지. 작업이 모이는 곳이다. 직접 푸시를 허용하고, 푸시마다 CI가 돈다. 지우지 않는다.
+- **`main`** — **실제로 나갈 것만** 들어가는 가지. `dev`를 통째로 머지해서만 받는다. 언제나 초록이고, 여기 있는 것이 다음 릴리스 후보다. 병합해도 아무것도 발행되지 않는다.
+- **작업 가지** — `dev`에서 잘라 `dev`로 돌아간다. 짧게 살고 병합되면 사라진다. **나갈지 정하지 않은 작업(스파이크·실험)은 `dev`에 넣지 않고 작업 가지에 둔다.** `dev`는 통째로 `main`에 가기 때문이다.
 - **`release/<버전>`** — 출시된 버전 하나의 유지보수 선. 오래 산다.
 
 ### 이름
@@ -201,10 +205,25 @@ docs/git-rules   ─┘          │        │
 
 | 고치는 대상 | 분기 기준 | 돌아가는 곳 |
 |---|---|---|
-| 다음 버전 | `origin/main` | `main` |
+| 다음 버전 | `origin/dev` | `dev` |
 | **이미 나간 버전** | `origin/release/<버전>` | `release/<버전>` → 뒤에 `main`으로 역머지 |
 
 병합되면 브랜치는 자동으로 지워진다. 커밋은 `main`에 남으므로 잃는 것은 없다.
+
+### dev → main
+
+`dev`에서 곧장 `main`으로 PR을 연다(head `dev`, base `main`). 병합 방식은 merge commit이고, PR 제목은 이번에 들여보내는 내용을 한 줄로 쓴다.
+
+`main`은 strict라 `dev`가 `main` 최신을 포함해야 한다. 이 방향(`main` → `dev`)의 머지는 허용된다 — 금지된 것은 `main` → `release`뿐이다.
+
+```bash
+git switch dev && git pull
+git merge origin/main        # 역머지 등으로 main이 앞서 있으면
+git push
+gh pr create --base main --head dev
+```
+
+`dev`는 룰셋으로 삭제를 막아 두었다. 병합 시 자동 삭제가 켜져 있어서, 막지 않으면 이 PR이 병합되는 순간 `dev`가 사라진다.
 
 ### 릴리스 가지
 
@@ -237,6 +256,8 @@ git push -u origin chore/backmerge-1.0.2   # 이 가지로 main에 PR
 ```
 
 임시 가지는 병합되면 자동으로 지워지고, `release/1.0.2`는 그대로 남는다.
+
+역머지가 `main`에 병합되면 **이어서 `main`을 `dev`에 머지한다**(`git switch dev && git merge origin/main && git push`). 빠뜨리면 다음 `dev` → `main` PR에서 버전 bump가 충돌한다.
 
 ---
 
@@ -291,8 +312,10 @@ git push origin v1.0.2
 
 | 채널 | 언제 | 어디서 | 방식 |
 |---|---|---|---|
-| `preview` | `main` 병합 → CI 성공 | `main` | 자동 |
+| `preview` | 사람이 판단할 때 | 아무 가지(보통 `dev`) | 수동 실행 |
 | `production` | 사람이 판단할 때 | **`release/<버전>`에서만** | 수동 실행 |
+
+**자동 발행은 없다.** `main`·`dev` 병합은 아무것도 발행하지 않는다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). 발행 워크플로는 번들을 만들기 전에 **같은 커밋으로 CI를 다시 돌린다.** 그래서 직접 푸시된 `dev` 커밋을 쏘더라도 CI를 통과한 커밋만 나간다.
 
 `production`을 `main`에서 쏘려 하면 **워크플로도 로컬 `pnpm deploy:ota`도 거부한다** — 스토어에 올린 것과 다른 코드가 기존 설치본으로 나가는 것을 막는다.
 
@@ -310,5 +333,5 @@ production 발행이 성공하면 그때 추가된 `OTA_RELEASE`와 핫픽스도
 
 ### 지금 닫혀 있는 것 (2026-09-05)
 
-- **자동 OTA는 한 번도 성공한 적이 없다.** R2 access key id에 53자짜리 값이 들어 있다(32자리 hex여야 한다). 시크릿을 고치기 전까지 `preview` 자동 발행은 실패한다([`drift.md`](drift.md) B19).
+- **OTA는 한 번도 성공한 적이 없다.** R2 access key id에 53자짜리 값이 들어 있다(32자리 hex여야 한다). 시크릿을 고치기 전까지는 어느 채널로 발행해도 실패한다([`drift.md`](drift.md) B19).
 - **스토어의 1.0.1은 `expo-updates` 바이너리다.** hot-updater는 네이티브 모듈이라 OTA로 배달할 수 없다 — **1.0.1 사용자는 어떤 OTA도 받지 못한다.** 그들에게 무언가를 보내려면 1.0.2 스토어 빌드를 내는 수밖에 없다([`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)).

@@ -40,8 +40,8 @@ source:
 ## 두 경로
 
 ```text
-main 머지 → CI(typecheck·lint·test) 성공 → hot-updater deploy --channel preview      [자동]
-release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --channel production  [수동]
+아무 가지(보통 dev) → GitHub Actions 수동 실행 → CI 재실행 → deploy --channel preview [수동]
+release/<버전> → GitHub Actions 수동 실행 → CI 재실행 → deploy --channel production   [수동]
 네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait          [수동]
 스토어 심사 통과 → website/app-version.json PR → main → pages.yml                    [수동]
 ```
@@ -50,14 +50,14 @@ release/<버전> → GitHub Actions 수동 실행 → hot-updater deploy --chann
 
 `production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 
-⚠️ **자동 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
+⚠️ **OTA 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
 
 빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS Submit**이고, 이제 두 플랫폼 모두 자격증명이 붙어 있다
 (절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). 자격증명은 `apps/ch-life/credentials/`에만
 있고 저장소에는 없으므로 **제출은 그 파일을 가진 기기에서만 된다.** Android는 `internal`이 아니라 `alpha` 트랙으로
 나간다 — 이 선택의 이유는 기록되지 않았다([`../drift.md`](../drift.md) E23).
 
-CI가 실패하면 OTA는 발행되지 않는다. OTA는 **CI를 통과한 정확한 커밋**(`workflow_run.head_sha`)을 체크아웃해 배포한다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
+자동 발행은 없다 — `main`·`dev` 병합은 아무것도 발행하지 않는다([`../decisions/ADR-0028`](../decisions/ADR-0028-dev-branch.md)). 발행 워크플로는 `ci.yml`을 `workflow_call`로 불러 **같은 커밋으로 CI를 먼저 돌리고**, 실패하면 발행하지 않는다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
 
 ## 함정 넷
 
