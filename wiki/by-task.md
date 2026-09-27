@@ -257,7 +257,7 @@
 
 **함정**
 - ⚠️ OTA는 `updateStrategy: "appVersion"` — **`version`만 올리고 OTA를 쏘면 아무에게도 안 닿는다.**
-- ⚠️ **Firebase 설정 파일(`GoogleService-Info.plist`·`google-services.json`)은 gitignore 대상이다**([ADR-0029](decisions/ADR-0029-firebase-analytics.md)). 로컬 빌드는 `apps/ch-life/`에 두고, EAS는 file 환경변수 `GOOGLE_SERVICE_INFO_PLIST`·`GOOGLE_SERVICES_JSON`이 없으면 prebuild가 실패한다. Firebase 네이티브 SDK는 OTA로 못 넣는다 — 스토어 빌드와 한 세트.
+- ⚠️ **Firebase 설정 파일(`GoogleService-Info.plist`·`google-services.json`)은 gitignore 대상이다**([ADR-0029](decisions/ADR-0029-firebase-analytics.md)). 로컬 빌드는 `apps/ch-life/`에 두고, EAS 빌드 서버는 file 환경변수 `GOOGLE_SERVICE_INFO_PLIST`·`GOOGLE_SERVICES_JSON`으로 받는다. file 변수는 `eas build`를 부르는 CI 러너에는 내려오지 않으므로 `app.config.ts`는 파일이 없으면 경로를 비우고, 빌드 서버(`EAS_BUILD`)에서만 없을 때 던진다. Firebase 네이티브 SDK는 OTA로 못 넣는다 — 스토어 빌드와 한 세트.
 - `.npmrc`의 `node-linker=hoisted`가 없으면 번들이 깨진다. **CI는 이걸 못 잡는다.**
 - `appVersionSource: "remote"` ↔ 동적 `app.config.ts` ↔ `autoIncrement` 3자 결합. 깨지면 EAS 서버 단계에서야 실패한다(커밋 `769fe51`).
 - **`hot-updater`가 이제 정본이다**(`30b6a60`, PR #14). `expo-updates`는 제거됐다. ⚠️ **스토어의 1.0.1은 `expo-updates` 바이너리라 OTA가 닿지 않는다** — 1.0.1 사용자에게 뭔가 보내려면 새 스토어 빌드뿐이다. OTA 워크플로는 시크릿/변수 7개를 `test -n`으로 검사하므로 하나만 없어도 잡이 실패한다.
