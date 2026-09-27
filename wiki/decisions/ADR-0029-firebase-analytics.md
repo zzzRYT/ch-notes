@@ -22,6 +22,7 @@ source:
 - Firebase 프로젝트 `ssumssum-64dbf`(jinjinstar3@gmail.com), 연결된 GA4 속성 ID `556130222`. iOS·Android 앱 모두 `com.leejaejin.chlife`.
 - `@react-native-firebase/app` + `@react-native-firebase/analytics`. JS에서 이벤트를 따로 보내지 않고 **자동 수집 이벤트**(first_open, session_start, app_update 등)만 쓴다.
 - iOS는 `withoutAdIdSupport: true` — IDFA를 쓰지 않아 ATT 프롬프트가 없다.
+- Android는 `blockedPermissions`로 `com.google.android.gms.permission.AD_ID`를 뺀다. Firebase Analytics가 이 권한을 매니페스트에 병합하는데, Play Console은 "광고 ID 미사용" 선언과 어긋나는 AAB의 업로드를 거부한다(1.0.3 첫 제출에서 실패).
 - `GoogleService-Info.plist`·`google-services.json`은 저장소에 두지 않는다. 로컬은 `apps/ch-life/` 아래 파일, EAS는 file 타입 환경변수 `GOOGLE_SERVICE_INFO_PLIST`·`GOOGLE_SERVICES_JSON`(2026-09-27 production·preview·development에 sensitive로 등록).
 
 ## 귀결

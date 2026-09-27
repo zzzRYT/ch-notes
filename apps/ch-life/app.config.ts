@@ -57,6 +57,8 @@ const config: ExpoConfig = {
   android: {
     package: "com.leejaejin.chlife",
     googleServicesFile: googleServicesJson,
+    // Firebase Analytics가 병합하는 광고 ID 권한 제거 — 광고 ID 미사용(ADR-0029), Play 선언과 일치
+    blockedPermissions: ["com.google.android.gms.permission.AD_ID"],
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#FDF9F4",
