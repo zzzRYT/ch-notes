@@ -2,6 +2,11 @@ import { ExpoConfig } from "expo/config";
 
 const hotUpdaterChannel = process.env.HOT_UPDATER_CHANNEL ?? "production";
 const hotUpdaterBaseUrl = process.env.HOT_UPDATER_BASE_URL ?? null;
+// Firebase 설정 파일은 gitignore 대상 — EAS에서는 file 타입 환경변수로 주입한다.
+const googleServicesJson =
+  process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json";
+const googleServiceInfoPlist =
+  process.env.GOOGLE_SERVICE_INFO_PLIST ?? "./GoogleService-Info.plist";
 
 if (process.env.EAS_BUILD_PROFILE && !hotUpdaterBaseUrl) {
   throw new Error(
@@ -26,6 +31,7 @@ const config: ExpoConfig = {
   },
   ios: {
     bundleIdentifier: "com.leejaejin.chlife",
+    googleServicesFile: googleServiceInfoPlist,
     supportsTablet: true,
     infoPlist: {
       UIFileSharingEnabled: true,
@@ -36,6 +42,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: "com.leejaejin.chlife",
+    googleServicesFile: googleServicesJson,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#FDF9F4",
@@ -47,9 +54,17 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     ["@hot-updater/react-native", { channel: hotUpdaterChannel }],
+    // SPM(dynamic frameworks)은 Expo 54 prebuilt core와 충돌 → CocoaPods + static
+    ["@react-native-firebase/app", { ios: { disableSPM: true } }],
+    // IDFA 미사용 → ATT 프롬프트 불필요
+    ["@react-native-firebase/analytics", { ios: { withoutAdIdSupport: true } }],
     [
       "expo-build-properties",
       {
+        ios: {
+          useFrameworks: "static",
+          forceStaticLinking: ["RNFBApp", "RNFBAnalytics"],
+        },
         android: {
           // R8 코드 축소·난독화 (Play Console 앱 최적화 권장)
           enableMinifyInReleaseBuilds: true,

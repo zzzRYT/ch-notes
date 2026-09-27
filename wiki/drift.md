@@ -309,6 +309,7 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 | ~~E10~~ | ~~`hot-updater` 전환은 계속 진행할 것인가?~~ **해소** — `30b6a60`(PR #14)로 `main`에 병합됐고 `expo-updates`는 제거됐다. | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) |
 | E11 | 마이그레이션에 버전 테이블을 두지 않은 이유는? 단일 기기라 프레임워크가 과하다는 판단이 맞나? | [`ADR-0005`](decisions/ADR-0005-idempotent-migration.md) |
 | E12 | 확정 키를 `Tab`에서 space로 바꾼 이유는? 소프트 키보드에 Tab이 없어서가 맞나? | [`ADR-0002`](decisions/ADR-0002-space-trigger.md) |
+| E13 | GA4(Firebase Analytics)를 넣은 이유는? 어떤 지표를 보려는 것인가? 자동 수집 외 커스텀 이벤트가 필요한가? | [`ADR-0029`](decisions/ADR-0029-firebase-analytics.md) |
 | E13 | **스토어의 1.0.1은 `expo-updates` 바이너리인데 `main`은 hot-updater다 — 1.0.1 설치본은 OTA를 받지 못한다.** 의도된 상태인가? 새 스토어 빌드 계획은? 그리고 `expo-updates`를 버린 이유는 무엇인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), [`ADR-0013`](decisions/ADR-0013-release-path.md) |
 | E14 | 구절 삽입 **성공**에 배너를 띄우기로 한 것은 POL-A11Y-001의 "조용함"을 의도적으로 완화한 것인가? 삭제 배너는 undo 때문에 불가피하지만 삽입은 아니다. | [`POL-A11Y-001`](policy/POL-ACCESSIBILITY.md), G1 |
 | E16 | **OTA 지원 대상 버전을 몇 개까지 유지하는가?** `updateStrategy: "appVersion"`이라 번들은 앱 버전마다 따로 발행된다. **지금 `scripts/deploy-ota.mjs`는 `--target-app-version`을 막고 `app.config.ts`의 `version` 하나로 고정해 발행한다** — 코드는 이미 "현재 스토어 버전만"으로 답하고 있다. 이것을 정책으로 확정할 것인가, 아니면 1.0.2를 낸 뒤에도 1.0.1용 번들을 계속 자를 것인가? | [`RULE-OTA-004`](rules/release.md), E13 |
