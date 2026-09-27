@@ -49,6 +49,7 @@
 | [ADR-0024](ADR-0024-fsd-ddd-architecture.md) | FSD 레이어 + 선택적 DDD | 폴더를 옮기거나 새 Slice·의존성을 만들 때 | 기록됨 |
 | [ADR-0028](ADR-0028-dev-branch.md) | 작업은 `dev`에 모으고, `main`에는 나갈 것만 · OTA는 전부 수동 | 브랜치를 만들거나 `main`에 PR을 열 때, OTA를 발행할 때 | 기록됨 (일부 이유 미기록) |
 | [ADR-0025](ADR-0025-tailwind-uniwind-tokens.md) | 토큰을 Tailwind(uniwind) 클래스로 — 테마 = 변형, 클래스 = Figma 변수 이름 | className을 쓰거나 토큰을 더할 때 | 기록됨 |
+| [ADR-0026](ADR-0026-visible-inline-delimiters.md) | 편집 중 강조 구분자는 숨기지 않고 보여준다 | 에디터에서 강조를 그리거나 선택 위치를 다룰 때 | 기록됨 |
 
 ## 만들지 않기로 한 결정
 

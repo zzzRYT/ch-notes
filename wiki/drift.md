@@ -208,12 +208,14 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md)의 전면 적용으로 **본문 텍스트의 `fontSize` 리터럴은 0건**이 됐다. 텍스트는 전부 `text-display … text-caption` 여섯 단계이고 이 단계는 `ThemeProvider`가 ×fontScale로 갱신한다. 남은 고정 크기는 `text-[Npx]`로 표기한 **글리프 아이콘**(`‹ › ≡ ✕ ✓ ＋ ◧ ⌕ ↑ ↗ ✉ 📖`)뿐이며, 이것은 `primitives.js`의 `icon/glyph/*`가 텍스트와 분리해 둔 것이다. 확대 경계가 어디여야 하는지는 여전히 사용자 확정이 필요하다. → E22
 
-### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다
+### B28. 편집기가 `paragraph`와 `quote` 말고는 아무것도 다루지 않는다 — **부분 해소(2026-09-26)**
 `BlockNode`는 여섯 종류다 — `paragraph`·`heading`·`bullet`·`todo`·`blockquote`·`quote`(`src/entities/note/model/types.ts:18-24`). 마크다운 계약도 이 중 넷을 왕복 변환한다([`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md)).
 
 그런데 편집기는 둘만 안다. 렌더는 `block.type === 'quote'`면 `QuoteBlock`, **나머지는 전부 `ParagraphInput`**이다(`src/widgets/note-editor/ui/NoteEditor.tsx:175-192`). `heading`의 `level`도 `todo`의 `checked`도 화면에 나타나지 않는다. 그 위에 `handleCommit`이 `if (prev?.type !== 'paragraph') return;`으로 막는다(`:105`) — **그 블록에 친 글자는 저장되지 않고 조용히 버려진다.**
 
 디스크의 데이터가 파괴되지는 않는다. 마크다운으로 가져온 할 일 목록은 파일에 그대로 남는다. 사라지는 것은 **사용자가 방금 친 것**과 **그 블록이 무엇인지 알아볼 방법**이다. B20이 "알 수 없는 블록 타입"을 다뤘다면 이쪽은 **알려진 블록 타입**이 같은 취급을 받는 자리다. → B20
+
+**2026-09-26 갱신.** `handleCommit`은 이제 `quote`가 아닌 모든 텍스트 블록의 글자를 **타입을 유지한 채** 저장한다(`{ ...prev, text }`) — 입력이 버려지는 문제는 사라졌다. `bullet`은 글머리 기호와 함께 그려지고 입력 UI가 생겼다([`RULE-EDIT-016`](rules/editor-insert.md)). 남은 것: `heading`의 크기, `todo`의 체크박스, `blockquote`의 모양은 여전히 화면에 나타나지 않는다.
 
 ### B29. ~~글자 크기를 고르는 화면이 정작 `fontScale`을 쓰지 않는다~~ **해소(2026-09-20)**
 `src/pages/settings/ui/SettingsPage.tsx`에 `scaled`가 0건이어서 '크게'·'아주 크게'를 고르는 칩도 그 설명 문구도 배율을 받지 않았다. B27과 함께 해소 — 설정 화면의 텍스트는 전부 `text-label`·`text-body`·`text-caption` 토큰이다. → B27

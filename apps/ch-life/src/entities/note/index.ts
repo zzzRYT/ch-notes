@@ -42,4 +42,10 @@ export {
   noteTitleOrFallback,
   type NoteGroup,
 } from "./lib/group-notes";
-export { stripInlineMarks } from "./lib/inline-marks";
+export {
+  stripInlineMarks,
+  tokenizeInlineMarks,
+  toggleInlineMark,
+  marksAt,
+  type InlineRun,
+} from "./lib/inline-marks";

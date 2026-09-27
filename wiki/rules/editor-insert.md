@@ -224,7 +224,7 @@ source:
 
 대가: 사용자가 본문에 문자 그대로 `**`를 쓰면 강조로 해석된다. 이스케이프 수단은 없다.
 
-현재 **강조를 입력하는 UI는 없다.** 서식 툴바가 없으므로 이 표기는 가져온 마크다운 파일에서만 들어온다.
+입력은 키보드 위 서식 툴바로 한다([`RULE-EDIT-015`](#rule-edit-015--서식-툴바는-선택-영역을-구분자로-감싼다)). 편집 중에도 구분자는 **숨기지 않고** 보여준다 — 화면의 문자열과 저장 문자열이 글자 단위로 같아서 선택 위치를 변환할 필요가 없다([`ADR-0026`](../decisions/ADR-0026-visible-inline-delimiters.md)). 기울임(`_…_`)은 저장·내보내기·가져오기는 되지만 **화면에 기울어져 보이지 않는다**(한글 글꼴에 기울임 자형이 없고, 번들 글꼴이 없어 라틴 글자도 iOS에서 기울지 않았다). 짝이 없는 구분자(`snake_case`의 `_`)는 강조로 해석하지 않는다(`tokenizeInlineMarks`).
 
 ## RULE-EDIT-011 · 메타 헤더 이동 순서
 
@@ -319,3 +319,59 @@ confidence: 기록됨
 - **저장.** 교체된 본문은 `onChangeBody`로 올라가 [`RULE-EDIT-008`](#rule-edit-008--자동저장은-두-단계-디바운스)의 자동저장을 그대로 탄다. `citedRefs`는 저장할 때 본문에서 다시 뽑히므로([`RULE-EDIT-009`](#rule-edit-009--citedrefs는-저장할-때-본문에서-재계산한다)) 따로 고치지 않는다. 역기획한 앱은 카드 편집이 텍스트 저장 경로를 타지 않아 앱을 끄면 사라졌다 — 그 실수를 피하려고 별도 저장 경로를 만들지 않았다.
 - 인용 **삭제** 버튼은 없다. 지우는 길은 여전히 RULE-EDIT-004 하나다.
 - 판본(`editionId`)은 번들 판본으로 새로 찍힌다. 판본을 고르는 UI는 없다.
+
+## RULE-EDIT-015 · 서식 툴바는 선택 영역을 구분자로 감싼다
+
+```yaml
+id: RULE-EDIT-015
+policy: POL-NOTE-001
+requirement: MUST
+statement: 본문 문단에 포커스가 있으면 키보드 위에 굵게·밑줄·글머리 목록 버튼이 뜬다(기울임 버튼은 없다). 강조 버튼은 선택 영역을 해당 구분자로 감싸고, 이미 감싸져 있으면 벗긴다. 선택이 없으면 빈 구분자 쌍을 넣어 캐럿을 그 안에 두고, 켜진 강조의 닫는 구분자 바로 앞이면 캐럿을 그 뒤로 옮긴다(강조 끄기). 캐럿 위치에서 켜져 있는 강조는 버튼이 켜진 모양으로 보인다.
+implemented_by:
+  - apps/ch-life/src/entities/note/lib/inline-marks.ts (toggleInlineMark, marksAt, tokenizeInlineMarks)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (FormatToolbar)
+  - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (applyMark, renderInlineRuns)
+verified_by:
+  - test: apps/ch-life/src/entities/note/lib/__tests__/inline-marks.test.ts#toggleInlineMark
+  - manual: 단어를 선택하고 굵게 → 굵게 보이고 다시 누르면 풀린다. 선택 없이 굵게 → 입력 → 굵게 → 입력하면 앞은 굵게, 뒤는 보통 (iOS 시뮬레이터 13 mini, 2026-09-26)
+confidence: 기록됨
+source:
+  - docs/reverse-planning/spirit-notes.md §9 E1
+```
+
+Spirit Notes 역기획(§6)에서 가져온 동작이다. 다만 "켜 두고 타이핑"(typing attribute)은 흉내 내지 않는다 — 선택 없이 누르면 `**|**`처럼 빈 쌍이 들어가 그 안에 치는 방식이다. 구분자가 보이므로 사용자가 무엇이 일어났는지 볼 수 있다.
+
+**기울임 버튼을 뺀 이유.** 시뮬레이터에서 `_…_` 구간이 한글·라틴 모두 기울지 않았다. 앱은 글꼴을 번들하지 않아(`font-body`는 CSS 스택 문자열) iOS가 시스템 글꼴로 대체하고, 한글 시스템 글꼴에는 기울임 자형이 없다. 눌러도 변화가 없는 버튼은 어르신 사용자에게 고장으로 보인다.
+
+툴바는 `react-native-keyboard-controller`의 `KeyboardStickyView`다(이미 쓰는 의존성, OTA 가능). 버튼은 44pt 이상이다.
+
+## RULE-EDIT-016 · 글머리 목록은 한 줄 한 블록이다
+
+```yaml
+id: RULE-EDIT-016
+policy: POL-NOTE-001
+requirement: MUST
+statement: 목록 버튼은 캐럿이 있는 줄 하나만 글머리(bullet) 블록으로 떼어 내고, 글머리에서 다시 누르면 문단으로 되돌린다. 글머리에서 Return은 다음 글머리를 만들고, 빈 글머리에서 Return은 목록을 끝내 그 자리를 빈 문단으로 바꾼다. 글머리 맨 앞 backspace는 글머리를 문단으로 바꾼다. 글머리 안에서 참조가 확정되면 앞부분은 글머리로 남고 뒷부분은 문단이 된다.
+implemented_by:
+  - apps/ch-life/src/widgets/note-editor/lib/list-blocks.ts
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (applyListEdit, handleNewline, handleBackspaceAtStart)
+  - apps/ch-life/src/features/scripture/insert/model/split-paragraph.ts
+verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#toggleBullet
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#splitBulletLines
+  - test: apps/ch-life/src/features/scripture/insert/model/__tests__/split-paragraph.test.ts
+  - manual: 목록 전환·Return·빈 항목 Return·맨 앞 backspace, 앱 재실행 후 유지 (iOS 시뮬레이터 13 mini·iPad Pro 13, 2026-09-26)
+confidence: 기록됨
+source:
+  - docs/reverse-planning/spirit-notes.md §9 E2
+```
+
+문단 블록은 여러 줄을 담지만 글머리는 한 줄이다 — 마크다운 `- 텍스트`가 한 줄이기 때문이다([`CONTRACT-MD-NOTE`](../contracts/CONTRACT-MD-NOTE.md)). 그래서 글머리 입력칸은 개행을 받으면 스스로 늘어나지 않고 본문을 줄 단위 블록으로 쪼갠다(여러 줄 붙여넣기도 같다).
+
+블록 수가 바뀌는 편집(목록, 인용 삽입)은 에디터의 **세대 번호를 올려 입력칸을 모두 다시 마운트한다.** 입력칸은 인덱스로 키가 잡혀 있고 포커스 중에는 바깥 텍스트를 무시하므로, 그대로 두면 쪼개진 문단이 옛 글자를 계속 보여 준다. 인용 삽입도 같은 이유로 세대를 올린다 — 전에는 아래에 블록이 더 있으면 `idx + 2` 자리 입력칸이 이미 마운트되어 있어 캐럿이 인용 아래로 가지 않았다([`RULE-EDIT-003`](#rule-edit-003--삽입-후-캐럿은-인용-다음-문단), 시뮬레이터에서 재현·수정 확인).
+
+목록 버튼은 에디터가 들고 있는 활성 입력칸의 글자(`ActiveInputState.text`)로 줄을 나눈다. 이 값은 선택 이벤트에서도 갱신되므로 **렌더 상태가 아니라 `textRef`에서 읽어야 한다** — 선택 이벤트는 그 키 입력의 리렌더보다 먼저 와서, 상태로 채우면 한 글자 늦는다. iPad 시뮬레이터에서 한글을 치자마자 목록을 누르면 마지막 음절이 사라지는 것으로 재현·수정했다.
+
+⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
+
+번호 목록·들여쓰기·체크리스트는 만들지 않았다.
