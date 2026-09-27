@@ -228,6 +228,14 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 ### B31. 타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다
 `display 30 · title 20 · body-large 17 · body 15 · label 13 · caption 11`이 `docs/design-system/figma-plugin/primitives.js`(`text/size/*`, Figma용) · `apps/ch-life/src/global.css`(`--text-*`, Tailwind 초기값) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx`(`TEXT_SCALE`, ×fontScale 갱신용)에 각각 있다. 색 토큰은 `extract-colors.py`가 한 원본에서 생성하지만 수치 토큰에는 그런 생성기가 없다. 한 곳만 바꾸면 Figma·초기 렌더·fontScale 반영 후가 서로 다른 크기가 된다. → [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md), B9
 
+### B32. 네이티브 에디터의 규칙 셋이 앱에 연결돼 있지 않다
+2026-09-27에 `feat/quote-ref-edit`·`feat/editor-format-toolbar`·`feat/tentap-editor`를 `dev`에 함께 머지했다. tentap 가지가 `widgets/note-editor`의 공개 `NoteEditor`를 `RichNoteEditor`(WebView)로 바꿔 내보내므로, **네이티브 `ui/NoteEditor.tsx`는 어느 화면에서도 쓰이지 않는다.** 그 결과 이 파일에만 구현된 동작이 앱에서 사라졌다.
+
+- [`RULE-EDIT-014`](rules/editor-insert.md) 인용을 눌러 참조 바꾸기 — `RichNoteEditor`에는 대응 경로가 없다.
+- [`RULE-EDIT-015`](rules/editor-insert.md)·[`RULE-EDIT-016`](rules/editor-insert.md) 서식 툴바·글머리 목록 — WebView 쪽은 TenTap 툴바가 대신한다. 동작(구분자 표시 등, [`ADR-0026`](decisions/ADR-0026-visible-inline-delimiters.md))은 같지 않다.
+
+순수 로직(`replaceQuoteRef`·`toggleInlineMark`·`list-blocks`)과 그 테스트는 살아 있다. 정할 것은 두 가지다. ⑴ 인용 고치기를 WebView 에디터로 옮길 것인가, ⑵ 네이티브 에디터와 RULE-EDIT-015·016을 걷어낼 것인가([`ADR-0027`](decisions/ADR-0027-webview-rich-editor.md)이 채택되면 뒤집히는 ADR-0001과 함께).
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.

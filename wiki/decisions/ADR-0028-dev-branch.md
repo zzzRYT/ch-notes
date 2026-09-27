@@ -17,7 +17,7 @@ source:
 
 [`ADR-0020`](ADR-0020-branch-strategy.md)은 `develop` 가지를 검토하고 채택하지 않았다. 이유는 두 가지였다. 1인 저장소에서는 동기화 비용만 남고, "`main` 병합 → CI → OTA" 자동 경로와 충돌한다는 것이다.
 
-그 뒤로 사정이 바뀌었다. 작업 가지가 로컬에 쌓이기 시작했다(`feat/tentap-editor` 스파이크, `feat/editor-format-toolbar`, `feat/quote-ref-edit`). 그중에는 나갈지 아직 정하지 않은 것도 있다(WebView 에디터 스파이크 — 아직 제안 단계). `main`이 유일한 통합 가지라면 이 작업들을 합쳐 볼 자리가 `main`뿐이다. 그러면 `main`이 "다음 출시 후보"라는 뜻을 잃는다.
+그 뒤로 사정이 바뀌었다. 작업 가지가 로컬에 쌓이기 시작했다(`feat/tentap-editor` 스파이크, `feat/editor-format-toolbar`, `feat/quote-ref-edit`). 그중에는 나갈지 정하지 않은 채 쌓인 것도 있었다(당시의 WebView 에디터 스파이크). `main`이 유일한 통합 가지라면 이 작업들을 합쳐 볼 자리가 `main`뿐이다. 그러면 `main`이 "다음 출시 후보"라는 뜻을 잃는다.
 
 사용자의 요구는 이렇다. **`main`으로 머지해도 출시는 되지 않는다. 다만 앞으로 `main`에 들어가는 커밋은 실제로 반영될 내용만이어야 한다.**
 

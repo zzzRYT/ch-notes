@@ -109,7 +109,7 @@ module.exports = defineConfig([
       "ios/*",
       "scripts/*",
       "editor-web/*",
-      "src/editor/generated/*",
+      "src/widgets/note-editor/lib/generated/*",
     ],
   },
   fsdBoundaries,
