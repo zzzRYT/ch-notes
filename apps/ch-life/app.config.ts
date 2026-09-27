@@ -1,12 +1,26 @@
+import { existsSync } from "node:fs";
 import { ExpoConfig } from "expo/config";
 
 const hotUpdaterChannel = process.env.HOT_UPDATER_CHANNEL ?? "production";
 const hotUpdaterBaseUrl = process.env.HOT_UPDATER_BASE_URL ?? null;
-// Firebase 설정 파일은 gitignore 대상 — EAS에서는 file 타입 환경변수로 주입한다.
-const googleServicesJson =
-  process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json";
-const googleServiceInfoPlist =
-  process.env.GOOGLE_SERVICE_INFO_PLIST ?? "./GoogleService-Info.plist";
+// Firebase 설정 파일은 gitignore 대상 — EAS 빌드 서버에서는 file 타입 환경변수로 주입된다.
+// eas build를 호출하는 쪽(CI 러너)은 파일도 변수도 없이 config를 읽으므로 없으면 비워 둔다.
+const firebaseFile = (envPath: string | undefined, local: string) =>
+  envPath ?? (existsSync(local) ? local : undefined);
+const googleServicesJson = firebaseFile(
+  process.env.GOOGLE_SERVICES_JSON,
+  "./google-services.json",
+);
+const googleServiceInfoPlist = firebaseFile(
+  process.env.GOOGLE_SERVICE_INFO_PLIST,
+  "./GoogleService-Info.plist",
+);
+// 빌드 서버에서 빠지면 iOS는 조용히 빌드되고 실행 시 FirebaseApp.configure()에서 죽는다.
+if (process.env.EAS_BUILD && !(googleServicesJson && googleServiceInfoPlist)) {
+  throw new Error(
+    "GOOGLE_SERVICES_JSON / GOOGLE_SERVICE_INFO_PLIST must be set on EAS builds.",
+  );
+}
 
 if (process.env.EAS_BUILD_PROFILE && !hotUpdaterBaseUrl) {
   throw new Error(
