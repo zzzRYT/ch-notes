@@ -1,0 +1,70 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--navy:#122649;--navy2:#0b1932;--sky:#95c9fc;--mint:#8dd3bc;--cream:#fbf7f1}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden;font-family:"Pretendard","Pretendard Variable",sans-serif;-webkit-font-smoothing:antialiased}
+.slide{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--bg);color:var(--fg)}
+.deco{position:absolute;border-radius:50%;filter:blur(2px);opacity:.55}
+.copy{position:absolute;left:0;right:0;top:8.4vw;text-align:center;z-index:2;padding:0 6vw}
+.eyebrow{display:inline-block;font-weight:700;font-size:3.5vw;letter-spacing:.02em;padding:1.3vw 3.4vw;border-radius:99px;background:var(--chip);color:var(--chipfg);margin-bottom:4.2vw}
+h1{font-weight:800;font-size:8.6vw;line-height:1.24;letter-spacing:-.035em;word-break:keep-all}
+h1 em{font-style:normal;color:var(--em)}
+p{margin-top:3.4vw;font-weight:500;font-size:3.9vw;line-height:1.45;opacity:.78;letter-spacing:-.01em;word-break:keep-all}
+.phone{position:absolute;left:50%;transform:translateX(-50%);top:var(--ptop);width:var(--pw);border-radius:11vw;background:#0d0f14;padding:2.1vw;
+  box-shadow:0 5vw 10vw rgba(8,18,40,.35),0 0 0 .5vw rgba(255,255,255,.08) inset;z-index:1}
+.screen{border-radius:9vw;overflow:hidden;background:var(--sb)}
+.sbar{height:9.6vw;display:flex;align-items:center;justify-content:space-between;padding:0 7.4vw;font-weight:700;font-size:3.5vw;color:var(--sbfg);position:relative}
+.island{position:absolute;left:50%;top:2.4vw;transform:translateX(-50%);width:20vw;height:5.8vw;border-radius:99px;background:#000}
+.hole{position:absolute;left:50%;top:3vw;transform:translateX(-50%);width:3.6vw;height:3.6vw;border-radius:50%;background:#000}
+.bat{width:6.4vw;height:3vw;border:.45vw solid currentColor;border-radius:.9vw;position:relative;opacity:.9}
+.bat:after{content:"";position:absolute;inset:.4vw;background:currentColor;border-radius:.3vw}
+.screen img{display:block;width:100%}
+.ipad .copy{top:7vw}.ipad .eyebrow{font-size:2.4vw;padding:1vw 2.6vw;margin-bottom:3vw}.ipad h1{font-size:6.4vw}.ipad p{font-size:2.7vw;margin-top:2.4vw}
+.ipad .phone{border-radius:5vw;padding:1.6vw}.ipad .screen{border-radius:3.6vw}.ipad .sbar{height:4.6vw;font-size:1.9vw;padding:0 4vw}.ipad .bat{width:3.6vw;height:1.7vw;border-width:.3vw;border-radius:.5vw}.ipad .bat:after{inset:.25vw}
+</style></head>
+<body><div class="slide" id="s"></div>
+<script>
+const q=new URLSearchParams(location.search);
+const SL={
+ 1:{bg:"linear-gradient(165deg,#1b3a6e 0%,#122649 55%,#0b1932 100%)",fg:"#fff",chip:"rgba(141,211,188,.18)",chipfg:"#8dd3bc",em:"#95c9fc",
+    eb:"씀씀 · 설교 노트",h:"설교를 들으며<br><em>바로 적는</em> 노트",p:"예배 시간에 떠오르는 은혜를 그대로.<br>날짜별로 차곡차곡 정리돼요.",img:"01_list",
+    deco:[["#95c9fc",-18,60,70],["#8dd3bc",70,-12,48]]},
+ 2:{bg:"linear-gradient(170deg,#eaf4ff 0%,#cfe5ff 60%,#b4d7fd 100%)",fg:"#122649",chip:"#122649",chipfg:"#fff",em:"#2f6fd0",
+    eb:"말씀 자동 삽입",h:"구절만 적으면<br><em>본문이 자동으로</em>",p:"‘요 3:16’처럼 입력하면 인용 블록으로 쏙.<br>인터넷 없이도 작동해요.",img:"02_note",
+    deco:[["#ffffff",-20,55,60],["#8dd3bc",72,-10,40]]},
+ 3:{bg:"linear-gradient(170deg,#fdfaf5 0%,#f5eee3 100%)",fg:"#122649",chip:"#8dd3bc",chipfg:"#0b3b2e",em:"#1f8a6a",
+    eb:"성경 읽기",h:"성경을 펼쳐<br><em>한 절씩 바로 추가</em>",p:"노트를 쓰다가 성경을 열고<br>＋ 한 번이면 노트에 담겨요.",img:"03_bible",
+    deco:[["#95c9fc",68,-14,52],["#8dd3bc",-22,70,50]]},
+ 4:{bg:"linear-gradient(165deg,#e3f6ef 0%,#bfe8da 60%,#8dd3bc 100%)",fg:"#122649",chip:"#122649",chipfg:"#fff",em:"#0f6b50",
+    eb:"큰 글씨 · 편안한 화면",h:"어르신도 편안한<br><em>큰 글씨</em>",p:"글꼴 크기 4단계, 테마 4가지.<br>보기 편한 대로 골라 쓰세요.",img:"10_settings_big",
+    deco:[["#ffffff",-16,58,62],["#95c9fc",74,-8,40]]},
+ 5:{bg:"linear-gradient(170deg,#1a1d26 0%,#0e0f13 100%)",fg:"#fff",chip:"rgba(245,179,94,.16)",chipfg:"#f5b35e",em:"#f5b35e",
+    eb:"다크 모드",h:"긴 설교에도<br><em>눈이 편안하게</em>",p:"어두운 예배당에서도 은은하게.<br>눈부심 없이 끝까지 기록해요.",img:"09_note_dark",
+    deco:[["#f5b35e",70,-14,40],["#122649",-24,62,70]]},
+ 6:{bg:"linear-gradient(170deg,#122649 0%,#0b1932 100%)",fg:"#fff",chip:"rgba(149,201,252,.16)",chipfg:"#95c9fc",em:"#8dd3bc",
+    eb:"내 노트는 내 기기에",h:"가입 없이 바로,<br><em>노트는 내 기기에</em>",p:"모든 노트는 기기에만 저장돼요.<br>필요할 땐 파일로 내보내 백업하세요.",img:"07_note_paper",
+    deco:[["#8dd3bc",-20,60,60],["#95c9fc",72,-12,44]]},
+ 7:{bg:"linear-gradient(165deg,#1b3a6e 0%,#122649 55%,#0b1932 100%)",fg:"#fff",chip:"rgba(141,211,188,.18)",chipfg:"#8dd3bc",em:"#95c9fc",
+    eb:"씀씀 · 설교 노트",h:"노트·설교·성경을<br><em>한 화면에</em>",p:"큰 화면에서는 목록, 노트, 성경을 나란히 펼쳐 보세요.",img:"t1",
+    deco:[["#95c9fc",-14,50,50],["#8dd3bc",74,-10,36]]},
+ 8:{bg:"linear-gradient(170deg,#eaf4ff 0%,#cfe5ff 60%,#b4d7fd 100%)",fg:"#122649",chip:"#122649",chipfg:"#fff",em:"#2f6fd0",
+    eb:"말씀 자동 삽입",h:"구절만 적으면<br><em>본문이 자동으로</em>",p:"인용한 말씀은 옆 패널에 모여 한눈에 보여요. 인터넷 없이도 작동해요.",img:"t2",
+    deco:[["#ffffff",-16,48,46],["#8dd3bc",76,-8,30]]},
+ 9:{bg:"linear-gradient(170deg,#fdfaf5 0%,#f5eee3 100%)",fg:"#122649",chip:"#8dd3bc",chipfg:"#0b3b2e",em:"#b15c2e",
+    eb:"테마 4가지",h:"종이처럼 편안한<br><em>크림 톤 노트</em>",p:"미니멀 · 종이 · 포커스 · 다크 중 보기 편한 화면으로.",img:"t4_paper",
+    deco:[["#95c9fc",74,-10,36],["#8dd3bc",-16,50,40]]},
+ 10:{bg:"linear-gradient(170deg,#1a1d26 0%,#0e0f13 100%)",fg:"#fff",chip:"rgba(245,179,94,.16)",chipfg:"#f5b35e",em:"#f5b35e",
+    eb:"다크 모드",h:"긴 설교에도<br><em>눈이 편안하게</em>",p:"어두운 예배당에서도 은은하게, 끝까지 기록해요.",img:"t5_dark",
+    deco:[["#f5b35e",74,-10,30],["#122649",-18,48,54]]},
+};
+const s=SL[q.get("n")], os=q.get("os")||"ios", SB=JSON.parse(q.get("sb"));
+const el=document.getElementById("s");if(os==="ipad")el.classList.add("ipad");
+el.style.cssText=`--bg:${s.bg};--fg:${s.fg};--chip:${s.chip};--chipfg:${s.chipfg};--em:${s.em};--ptop:${q.get("ptop")||"60vw"};--pw:${q.get("pw")||"76vw"}`;
+const sb=SB[s.img], dark=["#0e0d0c","#8e8e8e","#1a1916"].includes(sb);
+el.innerHTML=s.deco.map(([c,x,y,d])=>`<div class="deco" style="background:${c};left:${x}vw;top:${y}vw;width:${d}vw;height:${d}vw;opacity:.28"></div>`).join("")+
+ `<div class="copy"><div class="eyebrow">${s.eb}</div><h1>${s.h}</h1><p>${s.p}</p></div>
+ <div class="phone"><div class="screen" style="--sb:${sb};--sbfg:${dark?"#fff":"#111"}">
+  <div class="sbar"><span>9:41</span>${os==="ios"?'<div class="island"></div>':os==="android"?'<div class="hole"></div>':''}<div class="bat"></div></div>
+  <img src="crop/${s.img}.png"></div></div>`;
+</script></body></html>
