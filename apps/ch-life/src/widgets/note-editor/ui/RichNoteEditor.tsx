@@ -1,24 +1,54 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import { Animated, View } from 'react-native';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Animated, Pressable, ScrollView, View } from 'react-native';
 import { KeyboardEvents, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DEFAULT_TOOLBAR_ITEMS,
+  PlaceholderBridge,
   RichText,
   TenTapStartKit,
   Toolbar,
   useEditorBridge,
 } from '@10play/tentap-editor';
-import { makeQuoteBlock, type BlockNode } from '@/entities/note';
+import { makeQuoteBlock, type BlockNode, type QuoteBlockNode } from '@/entities/note';
 import { BUNDLED_EDITION_ID, formatRef, lookupVerses } from '@/entities/scripture';
-import { detectRefAtCursor } from '@/features/scripture/insert';
+import { detectRefAtCursor, replaceQuoteRef } from '@/features/scripture/insert';
 import { useTheme } from '@/shared/ui';
 import { editorHtml } from '../lib/generated/editor-html';
-import { DocSyncBridge, setDocListener } from '../lib/doc-sync-bridge';
+import { DocSyncBridge, setDocListener, type Caret } from '../lib/doc-sync-bridge';
 import { blocksToDoc, docToBlocks } from '../lib/rich-doc';
-import { setVerseResolver, VerseQuoteBridge } from '../lib/verse-bridge';
+import {
+  setVerseEditHandler,
+  setVerseResolver,
+  VerseQuoteBridge,
+  type VerseEdit,
+} from '../lib/verse-bridge';
+import { EditorSkeleton } from './EditorSkeleton';
+import { QuoteEditModal } from './QuoteEditModal';
 
-const BRIDGES = [...TenTapStartKit, VerseQuoteBridge, DocSyncBridge];
+// 빈 노트의 안내 문구는 editor-web/index.html의 CSS에 있다. 여기서 넣지 않는다 — tentap이
+// 설정을 작은따옴표 JS 문자열 속 JSON으로 주입해 줄바꿈·따옴표가 JSON을 깨뜨리고 웹
+// 에디터가 뜨지 않았다. 빈 문자열로 영어 기본값("Write something...")만 끈다.
+const BRIDGES = [
+  ...TenTapStartKit,
+  PlaceholderBridge.configureExtension({ placeholder: '' }),
+  VerseQuoteBridge,
+  DocSyncBridge,
+];
+// tentap Toolbar 높이 — 키보드 위에 붙어 본문을 그만큼 더 가린다.
+const TOOLBAR_H = 44;
+// 타이핑 중인 캐럿 아래로 보이는 높이의 이만큼은 비워 둔다(맨 아래에 붙지 않게).
+const CARET_BOTTOM_ROOM = 0.4;
+// 웹 에디터가 뜨기 전 본문 자리 — 스켈레톤이 들어가고, 뜬 뒤 레이아웃이 튀지 않게 한다.
+const BODY_MIN_H = 240;
 
 type Props = {
   body: BlockNode[];
@@ -30,6 +60,8 @@ export type NoteEditorHandle = { focusFirstParagraph: () => void };
 
 // WebView(TipTap) 본문 에디터 — ADR-0001을 뒤집는 스파이크. 에디터가 편집 중의
 // 정본이고, 문서 JSON을 BlockNode[]로 바꿔 onChangeBody로 내보낸다.
+// 웹뷰는 문서 높이만큼 늘어나고(dynamicHeight) 머리(header)와 함께 바깥 ScrollView
+// 하나로 스크롤된다 — 머리가 화면 위에 고정되어 본문을 가리지 않는다.
 export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichNoteEditor(
   { body, onChangeBody, header },
   ref,
@@ -58,7 +90,8 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
 
   const editor = useEditorBridge({
     customSource: source,
-    avoidIosKeyboard: true,
+    // 웹뷰가 스스로 스크롤하지 않으므로 키보드 회피·캐럿 따라가기는 아래 ScrollView가 한다.
+    dynamicHeight: true,
     initialContent,
     bridgeExtensions: BRIDGES,
     // 기본 toolbarBody가 flex:1이라 높이 없는 KeyboardStickyView 안에서 0으로 접힌다.
@@ -88,8 +121,30 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   // 본문은 비동기로 로드되고, WebView는 준비되기 전의 setContent를 버린다.
   // 그래서 웹이 "준비됨"을 알릴 때 최신 본문을 넣고, 그 뒤의 바깥 변경만 밀어 넣는다.
   const readyRef = useRef(false);
-  // 준비 전의 WebView는 빈 화면이나 반쯤 그린 문서다 — 가려 두었다가 페이드로 드러낸다.
+  // 준비 전의 WebView는 빈 화면이나 반쯤 그린 문서다 — 스켈레톤을 보이다가 페이드로 바꾼다.
   const fade = useRef(new Animated.Value(0)).current;
+  const [ready, setReady] = useState(false);
+
+  // 캐럿을 화면에 둔다. 좌표는 모두 ScrollView 콘텐츠 기준.
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const viewportH = useRef(0);
+  const headerH = useRef(0);
+  const kbH = useRef(0);
+  const [kbPad, setKbPad] = useState(0);
+  const caretRef = useRef<Caret | null>(null);
+  const keepCaretVisible = useCallback(() => {
+    const c = caretRef.current;
+    if (!c || !viewportH.current) return;
+    const visible = viewportH.current - kbH.current - TOOLBAR_H;
+    const room = c.typing ? visible * CARET_BOTTOM_ROOM : 16;
+    const top = headerH.current + c.top;
+    const bottom = headerH.current + c.bottom;
+    let y: number | null = null;
+    if (bottom > scrollY.current + visible - room) y = bottom - visible + room;
+    else if (top < scrollY.current + 8) y = top - 8;
+    if (y !== null) scrollRef.current?.scrollTo({ y: Math.max(0, y), animated: true });
+  }, []);
   const bodyRef = useRef(body);
   bodyRef.current = body;
   const push = useCallback(
@@ -105,7 +160,11 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
       onReady: () => {
         readyRef.current = true;
         push(bodyRef.current);
-        Animated.timing(fade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+        setReady(true);
+      },
+      onCaret: (c) => {
+        caretRef.current = c;
+        keepCaretVisible();
       },
       onDoc: (doc) => {
         const blocks = docToBlocks(doc);
@@ -116,26 +175,59 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
       },
     });
     return () => setDocListener(null);
-  }, [onChangeBody, push, fade]);
+  }, [onChangeBody, push, fade, keepCaretVisible]);
+
+  // 준비됐어도 문서 높이가 오기 전엔 웹뷰 높이가 0이다 — 둘 다 된 뒤 스켈레톤과 바꾼다.
+  const [webH, setWebH] = useState(0);
+  const shown = ready && webH > 0;
+  useEffect(() => {
+    if (shown) Animated.timing(fade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+  }, [shown, fade]);
 
   useEffect(() => {
     if (readyRef.current && JSON.stringify(body) !== shownRef.current) push(body);
   }, [body, push]);
 
-  // WebView는 키보드 뒤까지 깔린다 — 웹이 캐럿 아래 여백(CaretBottomRoom)을 잴 때
-  // 가려진 높이를 빼도록 키보드 높이를 알려 준다. 타이핑 중이 아니라 키보드가 뜨고
-  // 질 때만 주입하므로 한글 조합을 끊지 않는다.
+  // 키보드가 가리는 만큼 본문 아래를 늘리고, 에디터에 캐럿이 있으면 그 위로 올린다.
   useEffect(() => {
-    const send = (h: number) => {
-      editor.injectJS(`window.__kbInset=${h};window.dispatchEvent(new Event('kbinset'));true;`);
+    const set = (h: number) => {
+      kbH.current = h;
+      setKbPad(h);
+      // caretRef는 에디터에 포커스가 있을 때만 차 있다(blur면 null).
+      if (h) keepCaretVisible();
     };
-    const show = KeyboardEvents.addListener('keyboardDidShow', (e) => send(e.height));
-    const hide = KeyboardEvents.addListener('keyboardDidHide', () => send(0));
+    const show = KeyboardEvents.addListener('keyboardDidShow', (e) => set(e.height));
+    const hide = KeyboardEvents.addListener('keyboardDidHide', () => set(0));
     return () => {
       show.remove();
       hide.remove();
     };
+  }, [editor, keepCaretVisible]);
+
+  // 인용 카드를 누르면 참조를 바꾸는 시트를 연다(RULE-EDIT-014).
+  const [editing, setEditing] = useState<(VerseEdit & { quote: QuoteBlockNode }) | null>(null);
+  useEffect(() => {
+    setVerseEditHandler((e) => {
+      editor.blur();
+      setEditing({ ...e, quote: JSON.parse(e.block) as QuoteBlockNode });
+    });
+    return () => setVerseEditHandler(null);
   }, [editor]);
+  const replaceQuote = useCallback(
+    (ref: string) => {
+      setEditing(null);
+      if (!editing) return;
+      const next = replaceQuoteRef([editing.quote], 0, ref)?.[0];
+      if (next?.type !== 'quote') return;
+      editor.replaceVerse({
+        pos: editing.pos,
+        block: editing.block,
+        next: JSON.stringify(next),
+        label: formatRef(next.ref),
+      });
+    },
+    [editor, editing],
+  );
 
   useEffect(() => {
     editor.injectCSS(css, 'chlife-theme');
@@ -143,13 +235,59 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.bg }}>
-      {header}
-      <Animated.View style={{ flex: 1, opacity: fade }}>
-        <RichText editor={editor} />
-      </Animated.View>
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: kbPad + TOOLBAR_H }}
+        keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          scrollY.current = e.nativeEvent.contentOffset.y;
+        }}
+        onLayout={(e) => {
+          viewportH.current = e.nativeEvent.layout.height;
+        }}
+        // 타이핑으로 본문이 길어지면 웹뷰 높이가 뒤늦게 늘어난다 — 그때 다시 맞춘다.
+        onContentSizeChange={() => {
+          keepCaretVisible();
+        }}
+      >
+        <View
+          onLayout={(e) => {
+            headerH.current = e.nativeEvent.layout.height;
+          }}
+        >
+          {header}
+        </View>
+        <View style={{ minHeight: BODY_MIN_H }}>
+          <Animated.View
+            style={{ opacity: fade }}
+            onLayout={(e) => setWebH(e.nativeEvent.layout.height)}
+          >
+            <RichText editor={editor} />
+          </Animated.View>
+          {!shown && (
+            <View className="absolute inset-x-0 top-0">
+              <EditorSkeleton />
+            </View>
+          )}
+        </View>
+        {/* 본문 아래 빈 곳을 눌러도 끝에서 이어 쓴다. */}
+        <Pressable
+          className="flex-grow"
+          style={{ minHeight: 120 }}
+          onPress={() => editor.focus('end')}
+          accessible={false}
+        />
+      </ScrollView>
       <KeyboardStickyView offset={{ closed: -insets.bottom }}>
         <Toolbar editor={editor} items={DEFAULT_TOOLBAR_ITEMS} />
       </KeyboardStickyView>
+      <QuoteEditModal
+        quote={editing?.quote ?? null}
+        onClose={() => setEditing(null)}
+        onReplace={replaceQuote}
+      />
     </View>
   );
 });

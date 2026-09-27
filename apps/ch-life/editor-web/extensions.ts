@@ -1,6 +1,7 @@
 import { Extension, markInputRule, type Editor } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
+import { CARET, type Caret } from "../src/widgets/note-editor/lib/doc-sync-bridge";
 
 // `++밑줄++` — Bold(`**`)·Italic(`_`)은 TipTap 기본 입력 규칙이 이미 있다.
 export const UnderlineInputRule = Extension.create({
@@ -74,7 +75,10 @@ export const SlashMenu = Extension.create({
       const c = view.coordsAtPos(range.from);
       menu.style.display = "block";
       menu.style.left = `${Math.min(c.left, window.innerWidth - 220)}px`;
-      menu.style.top = `${c.bottom + window.scrollY + 4}px`;
+      // 웹뷰는 문서 높이만큼만 있다 — 아래가 모자라면(끝 줄) 캐럿 위로 띄운다.
+      const below = c.bottom + window.scrollY + 4;
+      const fits = below + menu.offsetHeight <= document.documentElement.scrollHeight;
+      menu.style.top = `${fits ? below : c.top + window.scrollY - menu.offsetHeight - 4}px`;
     };
 
     return [
@@ -158,31 +162,34 @@ export const HardwareFormatKeys = Extension.create({
   },
 });
 
-// 타이핑하며 내려가도 캐럿이 화면 맨 아래에 붙지 않게 한다 — 보이는 높이의 아래
-// CARET_BOTTOM_ROOM만큼은 늘 비워 둔다. iOS의 기본 캐럿 추적은 "겨우 보이게"까지만
-// 올리므로, 캐럿 자리에 보이지 않는 표식을 두고 scroll-margin을 준 채 scrollIntoView
-// 한다. 끝 문단도 올라올 수 있게 index.html에서 본문 뒤에 빈 공간(::after)을 둔다.
-const CARET_BOTTOM_ROOM = 0.4;
+// 캐럿 위치를 RN에 알린다 — 웹뷰가 문서 높이만큼 늘어나 스스로 스크롤하지 않으므로
+// 캐럿을 화면에 두는 일(키보드 위 여백 포함)은 RN의 ScrollView가 한다.
+// 포커스를 얻을 때도 보낸다: 처음 탭하면 캐럿을 놓는 트랜잭션이 포커스보다 먼저라
+// 그때는 보낼 수 없고, RN은 이 값을 들고 있다가 키보드가 뜨면 스크롤한다. 잃으면 null.
+function postCaret(payload: Caret | null) {
+  (window as unknown as { ReactNativeWebView?: { postMessage(s: string): void } })
+    .ReactNativeWebView?.postMessage(JSON.stringify({ type: CARET, payload }));
+}
 
-export const CaretBottomRoom = Extension.create({
-  name: "caretBottomRoom",
+function reportCaret(view: EditorView, typing: boolean) {
+  requestAnimationFrame(() => {
+    const c = view.coordsAtPos(view.state.selection.head);
+    postCaret({ top: c.top, bottom: c.bottom, typing });
+  });
+}
+
+export const CaretReport = Extension.create({
+  name: "caretReport",
+  onFocus() {
+    reportCaret(this.editor.view, false);
+  },
+  onBlur() {
+    postCaret(null);
+  },
   onTransaction({ transaction }) {
-    // 터치로 캐럿을 놓은 건 건드리지 않는다(화면이 튄다). 입력·키보드 이동만.
-    if (transaction.getMeta("pointer") || (!transaction.docChanged && !transaction.selectionSet)) return;
     const view = this.editor.view;
-    requestAnimationFrame(() => {
-      const scroller = view.dom.closest<HTMLElement>("#root > div");
-      if (!scroller || !view.state.selection.empty) return;
-      const caret = view.coordsAtPos(view.state.selection.head);
-      const marker = document.createElement("div");
-      const top = caret.bottom - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      marker.style.cssText = `position:absolute;left:0;top:${top}px;width:1px;height:1px;pointer-events:none;`;
-      // RN이 키보드 높이를 알려 준다(__kbInset) — 가려진 만큼은 보이는 높이가 아니다.
-      const kb = (window as unknown as { __kbInset?: number }).__kbInset ?? 0;
-      marker.style.scrollMarginBottom = `${Math.round((window.innerHeight - kb) * CARET_BOTTOM_ROOM)}px`;
-      scroller.appendChild(marker);
-      marker.scrollIntoView({ block: "nearest" });
-      marker.remove();
-    });
+    // 포커스가 없으면(본문을 불러와 setContent한 경우 등) 스크롤할 이유가 없다.
+    if ((!transaction.docChanged && !transaction.selectionSet) || !view.hasFocus()) return;
+    reportCaret(view, !transaction.getMeta("pointer"));
   },
 });

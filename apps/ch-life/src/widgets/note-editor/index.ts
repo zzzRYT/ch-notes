@@ -2,6 +2,7 @@
 export { RichNoteEditor as NoteEditor, type NoteEditorHandle } from "./ui/RichNoteEditor";
 export { SermonMetaHeader, type SermonMetaHeaderProps } from "./ui/SermonMetaHeader";
 export { QuoteBlock } from "./ui/QuoteBlock";
+export { EditorSkeleton } from "./ui/EditorSkeleton";
 export {
   useNoteDraft,
   type NoteDraft,

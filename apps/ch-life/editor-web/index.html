@@ -76,8 +76,15 @@
         top: 0;
         bottom: 0;
       }
-      #root > div.dynamic-height {
-        height: unset;
+      /* 문서 높이만큼 늘어나는 모드(RichNoteEditor) — 스크롤은 바깥 RN ScrollView가 한다.
+         absolute·min-height:100%를 두면 웹뷰 높이가 문서 높이를 다시 끌어올려 줄지 않는다. */
+      #root > div.dynamic-height:nth-of-type(1) {
+        position: static;
+        height: auto;
+        overflow: visible;
+      }
+      #root div.dynamic-height .ProseMirror {
+        min-height: 0;
       }
       #root div .ProseMirror {
         min-height: 100%;
@@ -89,13 +96,6 @@
         font-size: var(--rt-font-size);
         line-height: var(--rt-line);
         -webkit-text-size-adjust: 100%;
-      }
-      /* 마지막 줄도 캐럿 아래 여백(CaretBottomRoom) 위로 올라올 수 있게 빈 공간을 둔다.
-         padding-bottom은 tentap 기본 CSS에 덮여 먹지 않았다. */
-      #root div .ProseMirror::after {
-        content: "";
-        display: block;
-        height: 45vh;
       }
       #root div.dynamic-height .ProseMirror {
         height: unset;
@@ -147,16 +147,23 @@
         align-items: flex-start;
         gap: 0.5em;
       }
+      /* 체크박스를 첫 줄의 세로 가운데에 둔다 — label을 한 줄 높이(글자 크기 × 줄 간격)의
+         flex 상자로 만들어 그 안에서 가운데 정렬한다. margin 어림값으로 맞추면 input이
+         글자 기준선에 앉아 글자보다 아래로 처졌다. 여러 줄이어도 첫 줄에 맞는다. */
       .ProseMirror ul[data-type="taskList"] li > label {
-        margin-top: 0.25em;
+        display: flex;
+        align-items: center;
+        height: calc(1em * var(--rt-line));
+        margin: 0;
         user-select: none;
       }
       .ProseMirror ul[data-type="taskList"] li > div {
         flex: 1;
       }
-      .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
+      .ProseMirror ul[data-type="taskList"] li > label > input[type="checkbox"] {
         width: 1.1em;
         height: 1.1em;
+        margin: 0;
         accent-color: var(--rt-accent);
       }
 
@@ -226,7 +233,9 @@
       }
 
       .ProseMirror .is-editor-empty:first-child::before {
-        content: attr(data-placeholder);
+        /* 빈 노트의 안내. data-placeholder(tentap 설정)는 쓰지 않는다 — RichNoteEditor 주석 참고. */
+        content: "창 1:2 처럼 쓰고 띄어 쓰면 본문이 들어갑니다\A“/”를 누르면 제목·목록·할 일을 넣을 수 있습니다";
+        white-space: pre-line;
         float: left;
         color: var(--rt-ink3);
         pointer-events: none;

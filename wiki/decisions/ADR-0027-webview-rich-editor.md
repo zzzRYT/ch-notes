@@ -46,7 +46,7 @@ source:
 | 테마 CSS를 로드 뒤 `injectCSS`로 넣어, 첫 화면이 기본 색으로 그려졌다 바뀌었다 | `RichNoteEditor`가 마운트 때 한 번 `<style data-tag="chlife-theme">`을 HTML `<head>`에 넣는다. 이후 테마 변경만 `injectCSS`가 같은 태그를 덮어쓴다 |
 | tentap이 iOS에서 첫 `onLoad` 뒤 WebView를 **일부러 한 번 더 로드**했다(react-native-webview #3578 — 첫 로드에서 `injectedJavaScriptBeforeContentLoaded`가 안 도는 문제의 우회) | `pnpm patch`로 재로드를 지우고, 같은 초기화 스크립트를 HTML `<head>`의 `<script>`로 미리 넣는다. `<`는 `\u003c`로 바꿔 본문 속 `</script>`가 태그를 닫지 못하게 한다 |
 | 번들 중복(위 "무게") | 717KB → 623KB |
-| 준비 전의 빈 WebView가 그대로 보였다 | `doc-ready`까지 opacity 0, 이후 150ms 페이드 |
+| 준비 전의 빈 WebView가 그대로 보였다 | `doc-ready`**와 첫 문서 높이**가 올 때까지 본문 자리에 스켈레톤(`EditorSkeleton`)을 두고, 이후 WebView를 150ms 페이드로 드러낸다. 노트를 DB에서 읽는 동안에도 빈 화면(`return null`) 대신 앱 헤더와 메타·본문 스켈레톤을 그린다(2026-09-27) |
 
 측정(30fps 녹화, 탭부터 본문이 보일 때까지): 앱을 켠 뒤 첫 진입 약 1.3초, 이후 진입 약 0.7초. 조치 전 수치는 같은 조건으로 재지 않았다 — 비교가 필요하면 조치를 되돌려 다시 잰다. 공백을 0으로 만들려면 WebView 한 개를 앱 수명 동안 살려 두고 `setContent`로 노트만 바꾸는 방식이 필요하다(전환 애니메이션·키보드 위치를 직접 다뤄야 해서 보류).
 
@@ -59,10 +59,25 @@ source:
 
 그래서 TenTap은 **과도기 구현**이다. 전용 에디터를 만들 때까지 위 조치처럼 계속 다듬고, 저장 모델(BlockNode[] + 텍스트 속 경량 마크다운)과 판정 로직(`detectRefAtCursor`·`lookupVerses`·`makeQuoteBlock`)은 에디터 밖에 두어 교체 비용을 낮게 유지한다.
 
+## 메타 헤더를 본문과 함께 스크롤 (2026-09-27)
+
+폰에서 메타 헤더(제목·날짜·설교자·장소·생명양식)가 WebView 밖에 고정되어 화면의 40%를 차지했다. tentap의 `dynamicHeight`로 **WebView를 문서 높이만큼 늘리고**, 헤더와 WebView를 RN `ScrollView` 하나에 넣었다. 태블릿도 같은 `header` 슬롯을 쓴다.
+
+- WebView는 스스로 스크롤하지 않는다. 그래서 캐럿을 화면에 두는 일이 RN으로 넘어왔다 — 웹(`CaretReport`)이 포커스가 있을 때만 캐럿 좌표를 보내고, RN이 키보드·툴바 높이를 빼고 스크롤한다. 입력 중에는 보이는 높이의 40%를 캐럿 아래에 비운다(이전 `CaretBottomRoom`과 같은 값). `avoidIosKeyboard`는 끈다. 처음 탭할 때는 캐럿을 놓는 트랜잭션이 포커스보다 먼저라 보고되지 않으므로, 포커스를 얻을 때도 보내고(잃으면 `null`) RN은 키보드가 뜰 때 그 값으로 스크롤한다 — 이게 없으면 첫 탭의 캐럿이 키보드에 가려졌다가 한 글자 치면 올라왔다.
+- `index.html`의 절대 위치 스크롤러는 `dynamic-height`일 때 정적 배치·`min-height: 0`으로 바꾼다. 그대로 두면 WebView 높이가 문서 높이를 다시 끌어올려 줄지 않는다.
+- "/" 메뉴는 WebView 아래가 모자라면(끝 줄) 캐럿 위로 뜬다.
+
+## 빈 노트의 안내 문구 (2026-09-27)
+
+tentap 기본값 "Write something..." 대신 네이티브 에디터가 보이던 안내를 이어받아 두 줄로 보인다 — `창 1:2 처럼 쓰고 띄어 쓰면 본문이 들어갑니다` / `“/”를 누르면 제목·목록·할 일을 넣을 수 있습니다`. 문구는 `editor-web/index.html`의 `.is-editor-empty:first-child::before { content }`에 있고, RN은 `PlaceholderBridge.configureExtension({ placeholder: '' })`로 영어 기본값만 끈다.
+
+- **`configureExtension`에 문구를 넣지 않는다.** tentap은 브리지 설정을 `window.bridgeExtensionConfigMap = '${JSON.stringify(...)}'`로 — 작은따옴표 JS 문자열 속 JSON으로 — 주입한다. 줄바꿈(`\n`)이나 `"`가 JS 문자열 단계에서 한 번 풀려 JSON이 깨지고, 웹 에디터가 **아예 뜨지 않는다**(스켈레톤이 영원히 남았다). 다른 브리지 설정에도 같은 함정이 있다.
+- 준비 뒤 `setPlaceholder` 메시지로 바꾸는 길도 시험했으나 빈 노트에서 문구가 그려지지 않았다(원인 미확인). CSS가 가장 짧고 확실하다.
+- **알려진 한계.** 여러 줄을 끌어 선택하면서 화면 끝에 닿아도 자동으로 스크롤되지 않는다(WebView 안의 자동 스크롤이 바깥 ScrollView에 닿지 않는다). 긴 노트에서 WebView가 수천 px이 되는 비용은 재지 않았다.
+
 ## 채택 전에 남은 일
 
 - 실기기 iPad와 키보드로 Cmd+B/I/U, 방향키, "/" 메뉴 확인.
 - 구형 안드로이드 에뮬레이터에서 첫 로드 시간과 타이핑 지연 측정 — ADR-0001의 원래 이유.
-- 폰에서 메타 헤더가 WebView 밖에 고정되어 화면의 40%를 차지한다. 헤더를 함께 스크롤시킬 방법이 필요하다.
 - 네이티브 의존성 `react-native-webview`가 추가된다 → 스토어 빌드가 필요하다([`ADR-0013`](ADR-0013-release-path.md)).
 - 채택하면 RULE-EDIT-* 중 `TextInput` 구조를 전제로 한 규칙(디바운스 두 겹, 문단 memo, Android IME 포커스 가드)을 다시 쓴다.

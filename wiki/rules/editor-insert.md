@@ -303,17 +303,21 @@ statement: 편집기의 인용 블록을 누르면 "인용 고치기" 시트가 
 implemented_by:
   - apps/ch-life/src/features/scripture/insert/model/replace-quote.ts
   - apps/ch-life/src/widgets/note-editor/ui/QuoteEditModal.tsx
-  - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
-  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/RichNoteEditor.tsx
+  - apps/ch-life/src/widgets/note-editor/lib/verse-bridge.ts (카드 탭 → RN, 교체 → 웹)
+  - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx (네이티브 에디터 — 앱에 연결되지 않음, drift B32)
+  - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (같음)
 verified_by:
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/replace-quote.test.ts#replaceQuoteRef
   - manual: 인용을 눌러 참조를 바꾸고 앱을 종료했다 다시 열면 바뀐 구절이 남아 있다 (iOS 시뮬레이터 13 mini collapse 변형 요 3:16 → 요 3:16~17, iPad Pro 13 quote 변형 수 17:11 → 17:11~12 — 3분할 목록의 인용 표시까지 갱신, 2026-09-26)
+  - manual: WebView 에디터에서 인용 카드를 눌러 히 11:16 → 11:16-17로 바꾸면 카드가 바뀌고 DB의 body_json·cited_refs에 반영된다 (iOS 시뮬레이터 iPhone 15 Pro, 2026-09-27)
 confidence: 기록됨
 ```
 
 2026-09-26 Spirit Notes 역기획(E3)에서 도입했다. 오타 난 참조나 범위를 고치려면 전에는 인용을 backspace로 지우고([`RULE-EDIT-004`](#rule-edit-004--인용-블록-앞-backspace는-인용을-지우고-문단을-합친다)) 다시 쳐야 했다. 어르신에게는 이 두 단계가 곧 "못 고친다"이므로 고치는 길을 하나 둔다.
 
-- **누르는 곳.** 카드·인용바 변형은 블록 전체, `collapse` 변형은 **펼친 본문**이다. `collapse`의 머리줄은 원래 접기/펴기였으므로 그 동작을 빼앗지 않는다. 접힌 상태에서 고치려면 먼저 편다.
+- **WebView 에디터(현재 앱).** 카드 전체가 누르는 곳이다. 웹은 누른 노드의 위치와 현재 JSON만 RN에 보내고, 판정·조회·`makeQuoteBlock`은 RN이 한다([`RULE-EDIT-001`](#rule-edit-001--확정-트리거는-space-또는-개행)의 삽입과 같은 분담). 웹은 그 자리가 아직 같은 인용일 때만 바꾼다 — 시트가 열린 사이 문서가 바뀌었으면 버린다. 표시 변형(카드/인용바/접힘)은 WebView에 아직 없다.
+- **누르는 곳(네이티브 에디터).** 카드·인용바 변형은 블록 전체, `collapse` 변형은 **펼친 본문**이다. `collapse`의 머리줄은 원래 접기/펴기였으므로 그 동작을 빼앗지 않는다. 접힌 상태에서 고치려면 먼저 편다.
 - **입력.** 휠 피커가 아니라 본문에서 치는 것과 같은 참조 문법의 텍스트 칸이다(`요 3:16-18`). 새 문법을 가르치지 않는다.
 - **같은 구절 판정.** 표시 이름(`formatRef`) 기준이다 — `요3:16`을 `요한복음 3:16`으로 바꾸는 것은 변경이 아니다.
 - **저장.** 교체된 본문은 `onChangeBody`로 올라가 [`RULE-EDIT-008`](#rule-edit-008--자동저장은-두-단계-디바운스)의 자동저장을 그대로 탄다. `citedRefs`는 저장할 때 본문에서 다시 뽑히므로([`RULE-EDIT-009`](#rule-edit-009--citedrefs는-저장할-때-본문에서-재계산한다)) 따로 고치지 않는다. 역기획한 앱은 카드 편집이 텍스트 저장 경로를 타지 않아 앱을 끄면 사라졌다 — 그 실수를 피하려고 별도 저장 경로를 만들지 않았다.

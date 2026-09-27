@@ -12,6 +12,9 @@ import { VERSE_NODE } from "./rich-doc";
 
 const TRIGGER = "verse-trigger";
 const RESOLVE = "verse-resolve";
+// 인용 카드를 눌렀다(웹 → RN) / 참조를 바꾼 인용으로 교체하라(RN → 웹). RULE-EDIT-014.
+const EDIT = "verse-edit";
+const REPLACE = "verse-replace";
 
 // Enter는 문단을 먼저 나눈 뒤 응답이 온다 — 지울 트리거 글자가 없다.
 export type TriggerKey = "space" | "enter";
@@ -25,6 +28,10 @@ export type VerseResolve = {
   block: string;
   label: string;
 };
+
+// `block`은 누른 인용의 현재 JSON — 교체할 때 그 사이 바뀌지 않았는지 대조한다.
+export type VerseEdit = { pos: number; block: string };
+export type VerseReplace = VerseEdit & { next: string; label: string };
 
 type Msg = { type: string; payload?: unknown };
 
@@ -58,10 +65,17 @@ const VerseQuote = Node.create({
   },
 
   addNodeView() {
-    return ({ node }) => {
+    return ({ node, getPos }) => {
       const dom = document.createElement("div");
       dom.className = "verse-quote";
       dom.contentEditable = "false";
+      // mousedown을 막아 노드 선택·키보드가 뜨지 않게 하고, click에서 RN에 시트를 부탁한다.
+      dom.addEventListener("mousedown", (ev) => ev.preventDefault());
+      dom.addEventListener("click", () => {
+        const pos = typeof getPos === "function" ? getPos() : undefined;
+        if (typeof pos !== "number") return;
+        post({ type: EDIT, payload: { pos, block: String(node.attrs.block) } satisfies VerseEdit });
+      });
       const head = document.createElement("div");
       head.className = "verse-quote__ref";
       head.textContent = String(node.attrs.label);
@@ -126,6 +140,13 @@ function applyResolve(editor: import("@tiptap/core").Editor, r: VerseResolve) {
   editor.view.dispatch(tr.scrollIntoView());
 }
 
+// 그 자리가 아직 누른 인용 그대로일 때만 바꾼다.
+function applyReplace(editor: import("@tiptap/core").Editor, r: VerseReplace) {
+  const node = editor.state.doc.nodeAt(r.pos);
+  if (node?.type.name !== VERSE_NODE || node.attrs.block !== r.block) return;
+  editor.view.dispatch(editor.state.tr.setNodeMarkup(r.pos, undefined, { block: r.next, label: r.label }));
+}
+
 type Resolver = (t: VerseTrigger, editor: EditorBridge) => void;
 let resolver: Resolver | null = null;
 // RN(NoteEditor)이 마운트 때 등록한다.
@@ -133,19 +154,27 @@ export function setVerseResolver(fn: Resolver | null) {
   resolver = fn;
 }
 
+let editHandler: ((e: VerseEdit) => void) | null = null;
+export function setVerseEditHandler(fn: ((e: VerseEdit) => void) | null) {
+  editHandler = fn;
+}
+
 export const VerseQuoteBridge = new BridgeExtension<object, object, Msg>({
   tiptapExtension: VerseQuote,
   onBridgeMessage: (editor, message) => {
     if (message?.type === RESOLVE) applyResolve(editor, message.payload as VerseResolve);
+    else if (message?.type === REPLACE) applyReplace(editor, message.payload as VerseReplace);
     return false;
   },
   onEditorMessage: (message, bridge) => {
-    if (message?.type !== TRIGGER) return false;
-    resolver?.(message.payload as VerseTrigger, bridge);
+    if (message?.type === TRIGGER) resolver?.(message.payload as VerseTrigger, bridge);
+    else if (message?.type === EDIT) editHandler?.(message.payload as VerseEdit);
+    else return false;
     return true;
   },
   extendEditorInstance: (send) => ({
     resolveVerse: (payload: VerseResolve) => send({ type: RESOLVE, payload }),
+    replaceVerse: (payload: VerseReplace) => send({ type: REPLACE, payload }),
   }),
   extendEditorState: () => ({}),
 });
@@ -153,5 +182,6 @@ export const VerseQuoteBridge = new BridgeExtension<object, object, Msg>({
 declare module "@10play/tentap-editor" {
   interface EditorBridge {
     resolveVerse: (payload: VerseResolve) => void;
+    replaceVerse: (payload: VerseReplace) => void;
   }
 }

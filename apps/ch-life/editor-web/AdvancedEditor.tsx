@@ -3,10 +3,10 @@ import { EditorContent } from "@tiptap/react";
 import { useTenTap, TenTapStartKit } from "@10play/tentap-editor";
 import { VerseQuoteBridge } from "../src/widgets/note-editor/lib/verse-bridge";
 import { DocSyncBridge } from "../src/widgets/note-editor/lib/doc-sync-bridge";
-import { CaretBottomRoom, HardwareFormatKeys, SlashMenu, UnderlineInputRule } from "./extensions";
+import { CaretReport, HardwareFormatKeys, SlashMenu, UnderlineInputRule } from "./extensions";
 
 const bridges = [...TenTapStartKit, VerseQuoteBridge, DocSyncBridge];
-const tiptapOptions = { extensions: [SlashMenu, UnderlineInputRule, HardwareFormatKeys, CaretBottomRoom] };
+const tiptapOptions = { extensions: [SlashMenu, UnderlineInputRule, HardwareFormatKeys, CaretReport] };
 
 export const AdvancedEditor = () => {
   const editor = useTenTap({ bridges, tiptapOptions });

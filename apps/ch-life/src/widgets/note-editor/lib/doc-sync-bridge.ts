@@ -10,8 +10,14 @@ const DOC_CHANGED = "doc-changed";
 // 컴포넌트가 다시 마운트되면 true가 안 되는 경우가 있어 직접 알린다.
 const DOC_READY = "doc-ready";
 const DEBOUNCE_MS = 500;
+// 캐럿 위치(웹 → RN). 웹뷰는 문서 높이만큼 늘어나 바깥 ScrollView 안에 있으므로
+// 캐럿을 화면에 두는 스크롤은 RN이 한다. 보내는 쪽은 editor-web/extensions.ts.
+export const CARET = "caret";
+// top·bottom은 웹뷰 안 좌표. typing이면 입력·키 이동, 아니면 터치로 놓은 캐럿이다.
+// 에디터가 포커스를 잃으면 null이 온다.
+export type Caret = { top: number; bottom: number; typing: boolean };
 
-type Listener = { onDoc: (doc: PMDoc) => void; onReady: () => void };
+type Listener = { onDoc: (doc: PMDoc) => void; onReady: () => void; onCaret: (c: Caret | null) => void };
 let listener: Listener | null = null;
 export function setDocListener(fn: Listener | null) {
   listener = fn;
@@ -52,6 +58,7 @@ export const DocSyncBridge = new BridgeExtension<object, object, { type: string;
   onEditorMessage: (message) => {
     if (message?.type === DOC_READY) listener?.onReady();
     else if (message?.type === DOC_CHANGED) listener?.onDoc(message.payload as PMDoc);
+    else if (message?.type === CARET) listener?.onCaret(message.payload as Caret | null);
     else return false;
     return true;
   },

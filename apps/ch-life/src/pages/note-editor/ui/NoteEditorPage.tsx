@@ -13,6 +13,7 @@ import {
   HeaderTextButton,
 } from '@/shared/ui';
 import {
+  EditorSkeleton,
   NoteEditor,
   SermonMetaHeader,
   useNoteDraft,
@@ -92,8 +93,8 @@ export function NoteEditorPage() {
     [deleteNote],
   );
 
-  // 불러오는 동안은 빈 화면 — 옛 값이 잠깐 보였다 바뀌지 않게 한다.
-  if (status === 'idle' || status === 'loading') return null;
+  // 불러오는 동안은 스켈레톤 — 옛 값이 잠깐 보였다 바뀌지 않게 하고, 빈 화면이 번쩍이지도 않게 한다.
+  const loading = status === 'idle' || status === 'loading';
   return (
     <View className="flex-1 bg-bg">
       <AppHeader
@@ -125,26 +126,30 @@ export function NoteEditorPage() {
           <Text className="text-err-text">{saveErr}</Text>
         </View>
       )}
-      <NoteEditor
-        ref={editorRef}
-        body={body}
-        onChangeBody={draft.setBody}
-        header={
-          <SermonMetaHeader
-            title={title}
-            sermonDate={sermonDate}
-            preacher={preacher}
-            location={location}
-            scripture={scripture}
-            onChangeTitle={draft.setTitle}
-            onChangeSermonDate={draft.setSermonDate}
-            onChangePreacher={draft.setPreacher}
-            onChangeLocation={draft.setLocation}
-            onChangeScripture={draft.setScripture}
-            onSubmitLast={() => editorRef.current?.focusFirstParagraph()}
-          />
-        }
-      />
+      {loading ? (
+        <EditorSkeleton withMeta />
+      ) : (
+        <NoteEditor
+          ref={editorRef}
+          body={body}
+          onChangeBody={draft.setBody}
+          header={
+            <SermonMetaHeader
+              title={title}
+              sermonDate={sermonDate}
+              preacher={preacher}
+              location={location}
+              scripture={scripture}
+              onChangeTitle={draft.setTitle}
+              onChangeSermonDate={draft.setSermonDate}
+              onChangePreacher={draft.setPreacher}
+              onChangeLocation={draft.setLocation}
+              onChangeScripture={draft.setScripture}
+              onSubmitLast={() => editorRef.current?.focusFirstParagraph()}
+            />
+          }
+        />
+      )}
       <BibleBrowser
         visible={browserOpen}
         onClose={() => setBrowserOpen(false)}

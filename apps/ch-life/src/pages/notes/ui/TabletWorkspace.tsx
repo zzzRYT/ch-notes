@@ -287,21 +287,24 @@ export function TabletWorkspace() {
           </View>
         )}
         {selectedId ? (
-          <>
-            <SermonMetaHeader
-              title={title}
-              sermonDate={sermonDate}
-              preacher={preacher}
-              location={location}
-              scripture={scripture}
-              onChangeTitle={draft.setTitle}
-              onChangeSermonDate={draft.setSermonDate}
-              onChangePreacher={draft.setPreacher}
-              onChangeLocation={draft.setLocation}
-              onChangeScripture={draft.setScripture}
-            />
-            <NoteEditor body={body} onChangeBody={draft.setBody} />
-          </>
+          <NoteEditor
+            body={body}
+            onChangeBody={draft.setBody}
+            header={
+              <SermonMetaHeader
+                title={title}
+                sermonDate={sermonDate}
+                preacher={preacher}
+                location={location}
+                scripture={scripture}
+                onChangeTitle={draft.setTitle}
+                onChangeSermonDate={draft.setSermonDate}
+                onChangePreacher={draft.setPreacher}
+                onChangeLocation={draft.setLocation}
+                onChangeScripture={draft.setScripture}
+              />
+            }
+          />
         ) : (
           <View className="flex-1 items-center justify-center gap-4">
             <Text className="text-label text-ink-3">
