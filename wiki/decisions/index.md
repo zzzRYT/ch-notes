@@ -48,6 +48,7 @@
 | [ADR-0023](ADR-0023-figma-design-system-structure.md) | Figma 디자인 시스템은 한 페이지에 층위로 놓고 근거는 이름에 적는다 | 디자인 토큰·컴포넌트를 더하거나 Figma 파일을 손볼 때 | 기록됨 |
 | [ADR-0024](ADR-0024-fsd-ddd-architecture.md) | FSD 레이어 + 선택적 DDD | 폴더를 옮기거나 새 Slice·의존성을 만들 때 | 기록됨 |
 | [ADR-0028](ADR-0028-dev-branch.md) | 작업은 `dev`에 모으고, `main`에는 나갈 것만 · OTA는 전부 수동 | 브랜치를 만들거나 `main`에 PR을 열 때, OTA를 발행할 때 | 기록됨 (일부 이유 미기록) |
+| [ADR-0029](ADR-0029-firebase-analytics.md) | 익명 사용 통계(GA4)를 수집한다 — ADR-0012 일부 대체 | 네트워크 호출·SDK를 추가할 때, 스토어 개인정보 신고를 바꿀 때 | 기록됨 (이유 미기록) |
 | [ADR-0025](ADR-0025-tailwind-uniwind-tokens.md) | 토큰을 Tailwind(uniwind) 클래스로 — 테마 = 변형, 클래스 = Figma 변수 이름 | className을 쓰거나 토큰을 더할 때 | 기록됨 |
 | [ADR-0026](ADR-0026-visible-inline-delimiters.md) | 편집 중 강조 구분자는 숨기지 않고 보여준다 | 에디터에서 강조를 그리거나 선택 위치를 다룰 때 | 기록됨 |
 | [ADR-0027](ADR-0027-webview-rich-editor.md) | **제안** — 본문을 WebView(TipTap) 리치 에디터로 (ADR-0001·0015 뒤집기). 과도기 구현, 장기적으로 전용 에디터 자체 제작 | 에디터 구조·서식·단축키·"/" 메뉴를 다룰 때 | 기록됨 |
@@ -60,7 +61,7 @@
 
 ## 읽는 순서 (전제가 앞선 것부터)
 
-[ADR-0012](ADR-0012-local-only.md) → [ADR-0015](ADR-0015-no-keyboard-shortcuts.md) → [ADR-0001](ADR-0001-native-block-editor.md) → [ADR-0002](ADR-0002-space-trigger.md).
+[ADR-0012](ADR-0012-local-only.md) → [ADR-0029](ADR-0029-firebase-analytics.md) → [ADR-0015](ADR-0015-no-keyboard-shortcuts.md) → [ADR-0001](ADR-0001-native-block-editor.md) → [ADR-0002](ADR-0002-space-trigger.md).
 로컬 전용이 전체의 틀이고, 단축키 제외와 네이티브 에디터 채택이 함께 space 확정을 낳았다.
 
 그다음 저장 축: [ADR-0003](ADR-0003-sqlite-markdown-hybrid.md) → [ADR-0007](ADR-0007-fts-scope.md) → [ADR-0005](ADR-0005-idempotent-migration.md) → [ADR-0006](ADR-0006-duplicated-schema.md) → [ADR-0008](ADR-0008-created-at-ordering.md) → [ADR-0004](ADR-0004-settings-file.md).
