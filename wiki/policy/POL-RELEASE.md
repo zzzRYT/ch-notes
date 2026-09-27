@@ -8,7 +8,7 @@ requirement: MUST
 statement: OTA 업데이트는 CI(타입체크·린트·테스트)가 통과한 커밋에서만 발행되고, 사용자에게 닿는 production 채널은 release 가지에서만 낸다. 네이티브 변경은 OTA로 전달할 수 없으므로 새 빌드를 낸다.
 confidence: 기록됨
 source:
-  - .github/workflows/eas-update.yml (주석 + workflow_run 조건)
+  - .github/workflows/eas-update.yml (주석 + 발행 전 CI 재실행)
   - apps/ch-life/.claude/skills/eas-release/SKILL.md
 verified_by:
   - test: .github/workflows/ci.yml
@@ -17,7 +17,7 @@ verified_by:
 
 이 앱에는 서버가 없으므로 릴리스가 곧 배포의 전부다. 두 경로를 잘못 고르면 **수정이 사용자에게 아예 닿지 않는다.**
 
-- **자동 OTA**: `main`에 머지 → CI 성공 → `preview` 채널로 자동 발행. CI가 실패하면 발행되지 않는다.
+- **수동 OTA(preview)**: 자동 발행은 없다. 원하는 가지(보통 `dev`)에서 수동 실행하면 발행 워크플로가 같은 커밋으로 CI를 먼저 돌리고, 실패하면 발행하지 않는다([`ADR-0028`](../decisions/ADR-0028-dev-branch.md)).
 - **수동 OTA(production)**: 사용자에게 닿는 발행. `release/<버전>` 가지에서 수동 실행으로만 낸다 — 다른 가지에서 시도하면 워크플로가 거부한다([`ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 - **수동 빌드**: 네이티브 의존성이나 `app.config.ts`가 바뀌면 GitHub Actions에서 수동 실행. 빌드 크레딧을 아끼려 `--no-wait`로 큐에만 넣는다.
 - **함정**: OTA는 `updateStrategy: "appVersion"`이므로 `version`을 올리면 기존 설치본과 번들이 분리된다. 버전을 올리고 OTA만 쏘면 아무에게도 닿지 않는다.

@@ -9,14 +9,14 @@
 | 사용자 정책 `POL` | 12 |
 | 도메인 규칙 `RULE` | 70 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 24 |
-| **합계** | **113** |
+| 결정 `ADR` | 26 |
+| **합계** | **115** |
 
 | 지표 | 값 |
 |---|---|
 | 자동 증거(test/ci)가 붙은 RULE | **41/70 (59%)** |
 | 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 61 |
+| 근거가 기록으로 남아 있는 항목 | 63 |
 | 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -196,6 +196,8 @@
 | [`ADR-0022`](decisions/ADR-0022-store-update-notice.md) | 기록됨 | 스토어의 최신 버전은 GitHub Pages로 이미 발행 중인 website/app-version.json에 플랫폼별로 적고, 앱은 콜드 런치 뒤 한 번 읽어 설치본보다 높을 때만 닫을 수 있는 다이어로그를 띄운다. 강제 업데이트는 두지 않고, 같은 버전은 한 번만 안내한다. |
 | [`ADR-0023`](decisions/ADR-0023-figma-design-system-structure.md) | 기록됨 | Figma 디자인 시스템 파일은 페이지 하나에 토큰·컴포넌트·아이콘 보드 셋을 두고, 컴포넌트 보드는 Atoms/Molecules/Organisms 세 층위로 나눈다. 근거의 세기(코드에 있음/제안/예정)는 층위가 아니라 이름 접두사와 변형 단위 플래그로 표시한다. |
 | [`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md) | 기록됨 | 앱 구조는 FSD의 단방향 레이어와 Slice 공개 인터페이스를 따르고, note와 scripture에만 필요한 만큼 DDD를 적용한다. Expo Router의 src/app은 Route 전용 Composition Root로 유지한다. |
+| [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) | 기록됨 | 앱 화면은 className으로 디자인 토큰을 쓴다(2026-09-20 전면 적용). Tailwind 바인딩은 uniwind이고, uniwind 테마 이름은 Variation(minimal/paper/focus/dark) 그대로이며, 색 클래스 이름은 Figma 변수 이름(minimal/ink-2 → text-ink-2)과 같다. 팔레트의 원본은 여전히 ThemeProvider.tsx 하나이고 CSS는 거기서 생성한다. |
+| [`ADR-0028`](decisions/ADR-0028-dev-branch.md) | 기록됨 | 작업 가지는 dev에서 나서 dev로 돌아가고, main에는 실제로 출시할 내용만 dev→main 머지로 들인다. dev는 직접 푸시를 허용한다. main·dev 병합은 아무것도 발행하지 않으며, preview OTA도 수동 실행으로만 낸다. |
 
 ## 정본이 아닌 것
 

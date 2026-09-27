@@ -1,12 +1,9 @@
 name: Hot Updater (OTA)
 
-# Publishes a signed Hot Updater bundle after CI succeeds. Manual production
-# deploys use the same checked-in workflow and explicit channel choice.
+# Publishes a signed Hot Updater bundle. Manual only — main/dev 병합은 발행하지 않는다
+# (wiki/decisions/ADR-0028-dev-branch.md). 발행 전에 같은 커밋으로 CI를 다시 돌려,
+# 어느 가지에서 쏘든 CI를 통과한 커밋만 나간다.
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       channel:
@@ -24,16 +21,15 @@ defaults:
     working-directory: apps/ch-life
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   update:
     name: Publish OTA update
+    needs: ci
     runs-on: ubuntu-latest
-    # On workflow_run, only proceed when CI passed. Manual runs always proceed.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Publish the exact commit that passed CI (workflow_run), else current ref.
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -55,7 +51,7 @@ jobs:
         # (wiki/decisions/ADR-0020-branch-strategy.md). main 에서 production 을 쏘면 스토어에 올린
         # 것과 다른 코드가 기존 설치본으로 나간다.
         env:
-          HOT_UPDATER_CHANNEL: ${{ github.event.inputs.channel || 'preview' }}
+          HOT_UPDATER_CHANNEL: ${{ inputs.channel }}
         run: |
           if [ "$HOT_UPDATER_CHANNEL" = "production" ]; then
             case "${{ github.ref }}" in
@@ -74,7 +70,7 @@ jobs:
 
       - name: Publish signed update
         env:
-          HOT_UPDATER_CHANNEL: ${{ github.event.inputs.channel || 'preview' }}
+          HOT_UPDATER_CHANNEL: ${{ inputs.channel }}
           HOT_UPDATER_BASE_URL: ${{ vars.HOT_UPDATER_BASE_URL }}
           HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_ACCOUNT_ID }}
           HOT_UPDATER_CLOUDFLARE_API_TOKEN: ${{ secrets.HOT_UPDATER_CLOUDFLARE_API_TOKEN }}
@@ -82,7 +78,7 @@ jobs:
           HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME: ${{ vars.HOT_UPDATER_CLOUDFLARE_R2_BUCKET_NAME }}
           HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID }}
           HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.HOT_UPDATER_CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-          UPDATE_MESSAGE: ${{ github.event.workflow_run.head_commit.message || github.sha }}
+          UPDATE_MESSAGE: ${{ github.sha }}
         run: |
           # 값이 "있는지"가 아니라 "모양이 맞는지" 본다. 존재 검사만 했을 때
           # 잘못된 R2 키(53자)가 통과해 번들링·서명을 다 마친 뒤 업로드에서

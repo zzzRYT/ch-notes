@@ -31,7 +31,8 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
 
 ## Hot Updater (OTA)
 
-- **자동**: `main` CI가 통과하면 `eas-update.yml`이 Hot Updater `preview` 채널로 발행한다.
+- **자동 발행은 없다.** `main`·`dev` 병합은 아무것도 발행하지 않는다(`ADR-0028`).
+- **수동 preview**: GitHub Actions → "Hot Updater (OTA)" → 가지 선택(보통 `dev`) → `preview`. 발행 전에 같은 커밋으로 CI가 다시 돈다.
 - **수동 production**: GitHub Actions → "Hot Updater (OTA)" → `production` 선택. **`release/<버전>` 가지에서만** 된다 — 다른 ref면 워크플로가 거부한다.
 - **발행 전 `src/shared/config/version.ts`의 `OTA_RELEASE`를 +1** 하고, 그 변경도 릴리스 가지로 PR을 열어 CI를 통과시킨 뒤 병합한다. 발행 후 `v<버전>+<번호>` 태그를 붙인다.
 - 발행에 성공하면 해당 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 OTA가 끝난다.

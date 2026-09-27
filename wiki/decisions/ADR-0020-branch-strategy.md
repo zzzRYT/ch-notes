@@ -10,6 +10,8 @@ source:
   - apps/ch-life/.claude/skills/start-feature/SKILL.md
 ```
 
+> **2026-09-27:** 작업 가지의 분기점과 돌아가는 곳은 [`ADR-0028`](ADR-0028-dev-branch.md)이 대체했다(`main` → `dev`). 릴리스 가지 규칙은 그대로다.
+
 ## 맥락
 
 실제 히스토리는 이미 GitHub Flow였다 — `main` 하나에 짧은 작업 가지, PR로 병합. `develop`도 `release`도 없었다. 접두만 갈라져 있었다(`feat/`와 `feature/`가 공존, 거기에 `zzzRYT/CHL-T1` 한 건).
