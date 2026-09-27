@@ -12,11 +12,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BlockNode } from '@/entities/note';
 import {
   detectRefAtCursor,
+  replaceQuoteRef,
   splitParagraphWithQuote,
   type DetectedRef,
 } from '@/features/scripture/insert';
 import { useTheme } from '@/shared/ui';
 import { QuoteBlock } from './QuoteBlock';
+import { QuoteEditModal } from './QuoteEditModal';
 import {
   ParagraphInput,
   type ActiveInputState,
@@ -133,6 +135,20 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
     [onChangeBody],
   );
 
+  // 참조를 고치는 중인 인용의 위치(RULE-EDIT-014).
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const editingQuote = editingIdx === null ? null : body[editingIdx];
+
+  const handleReplaceQuote = useCallback(
+    (ref: string): void => {
+      if (editingIdx === null) return;
+      const next = replaceQuoteRef(bodyRef.current, editingIdx, ref);
+      setEditingIdx(null);
+      if (next) onChangeBody(next);
+    },
+    [editingIdx, onChangeBody],
+  );
+
   const liveHint = active
     ? detectRefAtCursor(active.text, active.cursor)
     : null;
@@ -150,7 +166,13 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
         <View className="px-6 pt-3 gap-1">
           {body.map((block, idx) => {
             if (block.type === 'quote') {
-              return <QuoteBlock key={`q-${idx}`} {...block} />;
+              return (
+                <QuoteBlock
+                  key={`q-${idx}`}
+                  {...block}
+                  onPress={() => setEditingIdx(idx)}
+                />
+              );
             }
             return (
               <ParagraphInput
@@ -169,6 +191,11 @@ export const NoteEditor = forwardRef<NoteEditorHandle, Props>(function NoteEdito
           })}
         </View>
       </KeyboardAwareScrollView>
+      <QuoteEditModal
+        quote={editingQuote?.type === 'quote' ? editingQuote : null}
+        onClose={() => setEditingIdx(null)}
+        onReplace={handleReplaceQuote}
+      />
       {liveHint && (
         <View
           className="absolute left-0 right-0 items-center"

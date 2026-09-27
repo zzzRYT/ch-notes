@@ -7,16 +7,16 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 70 |
+| 도메인 규칙 `RULE` | 71 |
 | 계약 `CONTRACT` | 7 |
 | 결정 `ADR` | 26 |
-| **합계** | **115** |
+| **합계** | **116** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **41/70 (59%)** |
+| 자동 증거(test/ci)가 붙은 RULE | **42/71 (59%)** |
 | 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 63 |
+| 근거가 기록으로 남아 있는 항목 | 64 |
 | 코드에서 추론한 항목 | 47 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -60,7 +60,7 @@
 | [`RULE-EDIT-003`](rules/editor-insert.md) | SHOULD | 수동 | 기록됨 | 인용 블록이 삽입되면 캐럿은 그 아래 새 문단으로 이동해, 사용자가 손을 떼지 않고 계속 쓸 수 있어야 한다. |
 | [`RULE-EDIT-004`](rules/editor-insert.md) | SHOULD | 수동 | 코드추론 | 인용 블록 바로 아래 문단의 맨 앞에서 backspace를 누르면 인용 블록이 삭제되고, 위·아래 문단이 하나로 합쳐진다. |
 | [`RULE-EDIT-005`](rules/editor-insert.md) | SHOULD | 수동 | 기록됨 | 커서 바로 앞이 본문 조회에 성공하는 참조일 때만 화면 하단에 떠 있는 힌트 칩(참조 + space 안내)을 보여준다. |
-| [`RULE-EDIT-006`](rules/editor-insert.md) | SHOULD NOT | 수동 | 코드추론 | 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다. |
+| [`RULE-EDIT-006`](rules/editor-insert.md) | SHOULD NOT | 수동 | 코드추론 | 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다. 참조를 다른 구절로 바꾸는 것은 본문 수정이 아니다 — RULE-EDIT-014의 시트가 인용 블록을 통째로 다시 만든다. |
 | [`RULE-EDIT-007`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다. 인용 블록은 makeQuoteBlock으로만 만들고, 예외는 마크다운 파서 하나다. |
 | [`RULE-EDIT-008`](rules/editor-insert.md) | SHOULD | 자동 | 코드추론 | 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. |
 | [`RULE-EDIT-009`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 노트의 citedRefs는 사용자가 관리하는 값이 아니라, 저장 시점에 body의 quote 블록에서 등장 순서대로 중복 없이 추출한 결과다. |
@@ -68,6 +68,7 @@
 | [`RULE-EDIT-011`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 → 생명양식 순으로 Return 키로 이동하고, 마지막 필드에서 Return을 누르면 본문 첫 문단으로 포커스가 넘어간다. |
 | [`RULE-EDIT-012`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 날짜 입력은 구분자(. - / 공백)를 섞어 쓸 수 있고 연도를 생략하면 올해로 채운다. 저장 형식은 언제나 YYYY-MM-DD 문자열이며, 해석 불가한 입력은 저장하지 않고 직전 값으로 되돌린다. |
 | [`RULE-EDIT-013`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 생명양식 필드는 입력값으로 본문 조회가 성공할 때만 체크 표시를 보여주고 본문 미리보기 버튼을 활성화한다. 실패해도 입력 자체는 그대로 저장된다. |
+| [`RULE-EDIT-014`](rules/editor-insert.md) | SHOULD | 자동 | 기록됨 | 편집기의 인용 블록을 누르면 "인용 고치기" 시트가 열린다. 참조를 다시 입력하면 본문 미리보기가 바로 바뀌고, 조회되며 지금과 다른 구절일 때만 [바꾸기]가 켜진다. 바꾸면 그 자리의 인용이 makeQuoteBlock으로 다시 만들어지고 일반 본문 변경과 같은 자동저장 경로로 저장된다. |
 
 ### 노트 저장 — [`rules/note-persistence.md`](rules/note-persistence.md)
 

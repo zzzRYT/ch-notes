@@ -13,7 +13,7 @@
 | 파일 | ID | 무엇을 정하나 | 대응 코드 | 자동 증거 |
 |---|---|---|---|---|
 | [scripture-ref.md](scripture-ref.md) | RULE-REF-001 ~ RULE-REF-005 | 참조 파싱 → 책 이름 해석 → 본문 조회 → 표시 포맷 | `src/entities/scripture/**` | 5/5 |
-| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-013 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 9/13 |
+| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-014 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 10/14 |
 | [note-persistence.md](note-persistence.md) | RULE-NOTE-001 ~ RULE-NOTE-008 | 로컬 SQLite 저장, id 생성, read-then-merge, 마이그레이션 | `src/entities/note/{model,api}/**` | 6/8 |
 | [search.md](search.md) | RULE-SEARCH-001 ~ RULE-SEARCH-007 | FTS 접두 검색, 대상은 제목·인용뿐 | `src/entities/note/api/sqlite-note-repo.ts` | 5/7 |
 | [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색·위치 기억은 공유하고 삽입만 갈림 | `src/widgets/scripture-browser/**` | 4/7 |
