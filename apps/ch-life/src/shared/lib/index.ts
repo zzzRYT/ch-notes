@@ -16,3 +16,4 @@ export {
   settleSwipeOffset,
   clampSwipeOffset,
 } from "./swipe-geometry";
+export { useHardwareKeyboardDismiss } from './useHardwareKeyboardDismiss';

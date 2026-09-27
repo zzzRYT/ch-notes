@@ -60,3 +60,6 @@ keys/
 
 # editor-web Vite 빌드 산출물 (단일 파일 번들은 src/widgets/note-editor/lib/generated/에 커밋)
 editor-web/build/
+
+# 로컬 Expo 모듈의 Gradle 산출물
+modules/*/android/build/

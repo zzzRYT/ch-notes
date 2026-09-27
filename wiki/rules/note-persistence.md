@@ -139,14 +139,17 @@ source:
 id: RULE-NOTE-007
 requirement: MUST
 policy: POL-NOTE-001
-statement: 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다.
+statement: 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다.
 implemented_by:
   - apps/ch-life/src/features/note/delete/model/note-actions.ts
   - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts
   - apps/ch-life/src/shared/ui/SwipeToDelete.tsx
+  - apps/ch-life/src/pages/note-editor/ui/NoteEditorPage.tsx
+  - apps/ch-life/src/pages/notes/ui/TabletWorkspace.tsx
 verified_by:
   - test: apps/ch-life/src/features/note/delete/model/__tests__/note-actions.test.ts#deleteNoteWithUndo는 삭제 스냅샷과 revision을 등록한다
   - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#delete가 완전한 스냅샷을 반환하고 restore가 그대로 복원한다
+  - manual: 폰·태블릿 에디터 휴지통 → 같은 확인창(confirmNoteDelete), 취소 시 유지, 확인 시 폰은 새 스택 없이 목록 복귀
 confidence: 기록됨
 source:
   - docs/superpowers/specs/2026-08-09-note-delete-and-insert-feedback-design.md

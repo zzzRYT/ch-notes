@@ -11,8 +11,11 @@ it("세로 스크롤보다 뚜렷한 왼쪽 이동만 가로 제스처로 잡는
 });
 
 it("절반 이상 밀면 삭제 폭까지 열고 아니면 닫는다", () => {
-  expect(settleSwipeOffset(-50, 84)).toBe(-84);
-  expect(settleSwipeOffset(-30, 84)).toBe(0);
+  expect(settleSwipeOffset(-50, 84, 0)).toBe(-84);
+  expect(settleSwipeOffset(-30, 84, 0)).toBe(0);
+  expect(settleSwipeOffset(-18, 84, -0.6)).toBe(-84);
+  expect(settleSwipeOffset(-18, 84, 0.6)).toBe(0);
+  expect(settleSwipeOffset(-70, 84, 0.6)).toBe(0);
 });
 
 it("이동값을 삭제 폭과 닫힌 위치 사이로 제한한다", () => {

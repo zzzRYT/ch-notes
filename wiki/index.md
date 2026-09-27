@@ -7,17 +7,17 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 73 |
+| 도메인 규칙 `RULE` | 75 |
 | 계약 `CONTRACT` | 7 |
 | 결정 `ADR` | 28 |
-| **합계** | **120** |
+| **합계** | **122** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **44/73 (60%)** |
-| 나머지 29건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 68 |
-| 코드에서 추론한 항목 | 47 |
+| 자동 증거(test/ci)가 붙은 RULE | **45/75 (60%)** |
+| 나머지 30건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
+| 근거가 기록으로 남아 있는 항목 | 69 |
+| 코드에서 추론한 항목 | 48 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
 자동 증거 비율이 60%에 못 미치는 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없고**([`drift.md`](drift.md) C3), **OTA 규칙은 실기기와 실제 발행 없이는 재현되지 않는다**. 그 규칙들은 대문자 요구를 쓸 때 반드시 `waiver`를 붙인다.
@@ -82,7 +82,7 @@
 | [`RULE-NOTE-004`](rules/note-persistence.md) | MUST | 자동 | 코드추론 | 노트 목록과 검색 결과는 created_at 내림차순으로 정렬하고 한 번에 최대 200건을 읽는다. 노트를 수정해도 순서는 바뀌지 않는다. |
 | [`RULE-NOTE-005`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 스키마 변경은 버전 번호나 마이그레이션 이력 테이블 없이, 매 실행마다 PRAGMA table_info로 누락 컬럼만 찾아 ALTER 한다. 몇 번을 실행해도 결과가 같아야 한다. |
 | [`RULE-NOTE-006`](rules/note-persistence.md) | MAY | 수동 | 기록됨 | 새 노트 버튼을 누르면 빈 문단 하나를 가진 노트가 즉시 DB에 생성된다. 사용자가 아무것도 쓰지 않고 나가도 그 빈 노트는 남는다. |
-| [`RULE-NOTE-007`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다. |
+| [`RULE-NOTE-007`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다. |
 | [`RULE-NOTE-008`](rules/note-persistence.md) | MUST | 자동 | 코드추론 | 노트 목록은 createdAt의 날짜로 묶고 최신 날짜 그룹이 위에 온다. 같은 그룹 안에서도 createdAt 내림차순이며 updatedAt은 무시한다. |
 
 ### 검색 — [`rules/search.md`](rules/search.md)
@@ -143,6 +143,8 @@
 | [`RULE-UI-004`](rules/layout-a11y.md) | SHOULD | 수동 | 기록됨 | 모든 조작 요소는 44~48px 이상의 터치 영역을 갖고, 한국어 accessibilityLabel과 적절한 accessibilityRole을 가진다. |
 | [`RULE-UI-005`](rules/layout-a11y.md) | SHOULD | 수동 | 기록됨 | 인용 블록은 색 막대나 배경만이 아니라 참조 라벨을 항상 함께 표시한다. 선택 상태도 색과 함께 체크 표시나 accessibilityState로 전달한다. |
 | [`RULE-UI-006`](rules/layout-a11y.md) | SHOULD | 수동 | 코드추론 | 네이티브 스택 헤더는 앱 전체에서 숨기고, 화면마다 공통 AppHeader 컴포넌트로 직접 그린다. |
+| [`RULE-UI-007`](rules/layout-a11y.md) | SHOULD | 자동 | 코드추론 | 설교 날짜 달력은 기기 로컬 날짜를 기준으로 일요일부터 토요일까지 7열·6주를 고정하고, 열 때마다 현재 선택값 또는 오늘이 속한 달을 표시한다. |
+| [`RULE-UI-008`](rules/layout-a11y.md) | SHOULD | 수동 | 기록됨 | 소프트 키보드는 물리 키보드가 연결되어 있어도 평소대로 뜬다. 물리 키보드의 키 입력이 실제로 들어오면 입력 포커스는 유지한 채 소프트 키보드만 내린다. 연결 여부만으로 소프트 키보드를 막지 않는다. |
 
 ### OTA 배포 — [`rules/release.md`](rules/release.md)
 

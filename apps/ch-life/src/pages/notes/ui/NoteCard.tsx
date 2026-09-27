@@ -54,17 +54,22 @@ export function NoteCard({
         >
           {title}
         </Text>
-        {hasSub && (
-          <Text numberOfLines={1} className="text-label">
-            {preacher && <Text className="text-ink-3">{preacher}</Text>}
-            {preacher && scripture && (
-              <Text className="text-ink-3">{"  ·  "}</Text>
-            )}
-            {scripture && (
-              <Text className="text-ink-2 font-semibold">{scripture}</Text>
-            )}
-          </Text>
-        )}
+        {/* 부제가 없어도 줄을 비워 두어 카드 높이를 2줄로 고정한다. */}
+        <Text numberOfLines={1} className="text-label">
+          {hasSub ? (
+            <>
+              {preacher && <Text className="text-ink-3">{preacher}</Text>}
+              {preacher && scripture && (
+                <Text className="text-ink-3">{"  ·  "}</Text>
+              )}
+              {scripture && (
+                <Text className="text-ink-2 font-semibold">{scripture}</Text>
+              )}
+            </>
+          ) : (
+            "\u00a0"
+          )}
+        </Text>
       </View>
     </Pressable>
   );

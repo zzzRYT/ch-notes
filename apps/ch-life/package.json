@@ -69,6 +69,11 @@
   "jest": {
     "preset": "jest-expo"
   },
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3"

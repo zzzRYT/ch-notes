@@ -3,7 +3,7 @@ import {
   parseYmd,
   formatKoreanDate,
   formatShortDate,
-  buildMonthGrid,
+  buildMonthWeeks,
   addMonths,
   parseFlexibleDate,
 } from "../calendar";
@@ -32,14 +32,21 @@ describe("calendar helpers", () => {
     expect(formatShortDate("2026-01-01")).toBe("2026.01.01");
   });
 
-  it("buildMonthGrid는 42칸 격자에 해당 월 날짜를 배치한다", () => {
-    const grid = buildMonthGrid(2026, 4); // 2026년 5월
-    expect(grid).toHaveLength(42);
-    expect(grid).toContain("2026-05-01");
-    expect(grid).toContain("2026-05-31");
-    const firstWeekday = new Date(2026, 4, 1).getDay();
-    expect(grid[firstWeekday]).toBe("2026-05-01");
-    if (firstWeekday > 0) expect(grid[firstWeekday - 1]).toBeNull();
+  it("buildMonthWeeks는 일~토 7열을 유지하는 6주 격자를 만든다", () => {
+    const weeks = buildMonthWeeks(2026, 8); // 2026년 9월, 20일은 일요일
+    expect(weeks).toHaveLength(6);
+    expect(weeks.every((week) => week.length === 7)).toBe(true);
+    expect(weeks[0]).toEqual([
+      null,
+      null,
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-05",
+    ]);
+    expect(weeks[3]?.[0]).toBe("2026-09-20");
+    expect(weeks[3]?.[3]).toBe("2026-09-23");
   });
 
   it("addMonths는 연·월 경계를 넘긴다", () => {
