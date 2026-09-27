@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { KeyboardEvents, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -46,8 +46,18 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
     [],
   );
 
+  const css = `:root{--rt-ink:${colors.ink};--rt-ink2:${colors.ink2};--rt-ink3:${colors.ink3};--rt-bg:${colors.bg};--rt-accent:${colors.accent};--rt-accent-soft:${colors.accentSoft};--rt-rule:${colors.rule};}body{background:${colors.bg};}`;
+  // 테마 CSS를 HTML에 처음부터 넣는다 — 로드 뒤 주입하면 기본 색으로 한 번 그려졌다
+  // 바뀌며 깜빡인다. 마운트 때 한 번만 만든다(바꾸면 WebView가 다시 로드된다).
+  // 태그는 injectCSS와 같은 data-tag라서 이후 테마 변경은 이 <style>을 덮어쓴다.
+  const source = useMemo(
+    () => editorHtml.replace('</head>', `<style data-tag="chlife-theme">${css}</style></head>`),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const editor = useEditorBridge({
-    customSource: editorHtml,
+    customSource: source,
     avoidIosKeyboard: true,
     initialContent,
     bridgeExtensions: BRIDGES,
@@ -78,6 +88,8 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   // 본문은 비동기로 로드되고, WebView는 준비되기 전의 setContent를 버린다.
   // 그래서 웹이 "준비됨"을 알릴 때 최신 본문을 넣고, 그 뒤의 바깥 변경만 밀어 넣는다.
   const readyRef = useRef(false);
+  // 준비 전의 WebView는 빈 화면이나 반쯤 그린 문서다 — 가려 두었다가 페이드로 드러낸다.
+  const fade = useRef(new Animated.Value(0)).current;
   const bodyRef = useRef(body);
   bodyRef.current = body;
   const push = useCallback(
@@ -93,6 +105,7 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
       onReady: () => {
         readyRef.current = true;
         push(bodyRef.current);
+        Animated.timing(fade, { toValue: 1, duration: 150, useNativeDriver: true }).start();
       },
       onDoc: (doc) => {
         const blocks = docToBlocks(doc);
@@ -103,7 +116,7 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
       },
     });
     return () => setDocListener(null);
-  }, [onChangeBody, push]);
+  }, [onChangeBody, push, fade]);
 
   useEffect(() => {
     if (readyRef.current && JSON.stringify(body) !== shownRef.current) push(body);
@@ -124,7 +137,6 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
     };
   }, [editor]);
 
-  const css = `:root{--rt-ink:${colors.ink};--rt-ink2:${colors.ink2};--rt-ink3:${colors.ink3};--rt-bg:${colors.bg};--rt-accent:${colors.accent};--rt-accent-soft:${colors.accentSoft};--rt-rule:${colors.rule};}body{background:${colors.bg};}`;
   useEffect(() => {
     editor.injectCSS(css, 'chlife-theme');
   }, [editor, css]);
@@ -132,7 +144,9 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   return (
     <View className="flex-1" style={{ backgroundColor: colors.bg }}>
       {header}
-      <RichText editor={editor} onLoad={() => editor.injectCSS(css, 'chlife-theme')} />
+      <Animated.View style={{ flex: 1, opacity: fade }}>
+        <RichText editor={editor} />
+      </Animated.View>
       <KeyboardStickyView offset={{ closed: -insets.bottom }}>
         <Toolbar editor={editor} items={DEFAULT_TOOLBAR_ITEMS} />
       </KeyboardStickyView>

@@ -6,9 +6,11 @@ import { fileURLToPath } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
 
-// Builds the WebView editor into a single inlined HTML file. The aliases force
-// Vite to load tentap's prebuilt web bundle (and the matching ProseMirror
-// view/state singletons) instead of pulling in React-Native code paths.
+// Builds the WebView editor into a single inlined HTML file. tentap's web entry
+// is aliased to its TypeScript source rather than the prebuilt `/web` bundle:
+// the prebuilt one inlines its own TipTap/ProseMirror, so our extensions'
+// `@tiptap/core` import shipped a second copy (~100KB). From source, both share
+// one copy from node_modules.
 export default defineConfig({
   root,
   build: {
@@ -19,16 +21,8 @@ export default defineConfig({
     alias: [
       { find: /^@\/(.*)$/, replacement: `${root}/../src/$1` },
       {
-        find: "@10play/tentap-editor",
-        replacement: "@10play/tentap-editor/web",
-      },
-      {
-        find: "@tiptap/pm/view",
-        replacement: "@10play/tentap-editor/web",
-      },
-      {
-        find: "@tiptap/pm/state",
-        replacement: "@10play/tentap-editor/web",
+        find: /^@10play\/tentap-editor$/,
+        replacement: `${root}/../node_modules/@10play/tentap-editor/src/webEditorUtils/index.ts`,
       },
     ],
   },

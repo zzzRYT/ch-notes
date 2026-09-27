@@ -72,7 +72,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3"
-    ]
+    ],
+    "patchedDependencies": {
+      "@10play/tentap-editor@1.0.1": "patches/@10play__tentap-editor@1.0.1.patch"
+    }
   },
   "private": true
 }

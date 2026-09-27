@@ -1,0 +1,86 @@
+diff --git a/lib/commonjs/RichText/RichText.js b/lib/commonjs/RichText/RichText.js
+index f1412dfb5526f8cbe2a943b13bb6ed908766f180..9a4f175f40070be4825bfa67cec9153502af8f27 100644
+--- a/lib/commonjs/RichText/RichText.js
++++ b/lib/commonjs/RichText/RichText.js
+@@ -46,7 +46,9 @@ const RichText = ({
+   const source = editor.DEV ? {
+     uri: editor.DEV_SERVER_URL || DEV_SERVER_URL
+   } : {
+-    html: editor.customSource || _editorHtml.editorHtml,
++    // ch-life patch: iOS 첫 로드에서 injectedJavaScriptBeforeContentLoaded가 안 도는 문제(#3578)를
++    // 두 번째 로드 대신 같은 스크립트를 HTML <head>에 미리 넣어 푼다. '<'는 </script> 탈출을 막는다.
++    html: (editor.customSource || _editorHtml.editorHtml).replace('<head>', '<head><script>' + (0, _utils2.getInjectedJSBeforeContentLoad)(editor).replace(/</g, '\\u003c') + '</script>'),
+     baseUrl: editor.webviewBaseURL
+   };
+   const onWebviewMessage = event => {
+@@ -128,11 +130,6 @@ const RichText = ({
+     // Propagated Props
+     onLoad: e => {
+       setLoaded(true);
+-      // This is a workaround for iOS to make sure the webview is loaded
+-      // See https://github.com/react-native-webview/react-native-webview/issues/3578
+-      if (_reactNative.Platform.OS === 'ios' && key === 'webview') {
+-        setKey('webview_reloaded');
+-      }
+       props.onLoad && props.onLoad(e);
+     }
+   })));
+diff --git a/lib/module/RichText/RichText.js b/lib/module/RichText/RichText.js
+index 482260a81fed9adb7485496894648c0dd23b92e0..6226ed6e38e65e0a5a5f93276320d80a8ba58177 100644
+--- a/lib/module/RichText/RichText.js
++++ b/lib/module/RichText/RichText.js
+@@ -38,7 +38,9 @@ export const RichText = ({
+   const source = editor.DEV ? {
+     uri: editor.DEV_SERVER_URL || DEV_SERVER_URL
+   } : {
+-    html: editor.customSource || editorHtml,
++    // ch-life patch: iOS 첫 로드에서 injectedJavaScriptBeforeContentLoaded가 안 도는 문제(#3578)를
++    // 두 번째 로드 대신 같은 스크립트를 HTML <head>에 미리 넣어 푼다. '<'는 </script> 탈출을 막는다.
++    html: (editor.customSource || editorHtml).replace('<head>', '<head><script>' + getInjectedJSBeforeContentLoad(editor).replace(/</g, '\\u003c') + '</script>'),
+     baseUrl: editor.webviewBaseURL
+   };
+   const onWebviewMessage = event => {
+@@ -120,11 +122,6 @@ export const RichText = ({
+     // Propagated Props
+     onLoad: e => {
+       setLoaded(true);
+-      // This is a workaround for iOS to make sure the webview is loaded
+-      // See https://github.com/react-native-webview/react-native-webview/issues/3578
+-      if (Platform.OS === 'ios' && key === 'webview') {
+-        setKey('webview_reloaded');
+-      }
+       props.onLoad && props.onLoad(e);
+     }
+   })));
+diff --git a/src/RichText/RichText.tsx b/src/RichText/RichText.tsx
+index 88867f95bcd0f6804e97f4958647ff334a17a42b..31b3d49f1f5337b26522567e7871b80581539035 100644
+--- a/src/RichText/RichText.tsx
++++ b/src/RichText/RichText.tsx
+@@ -54,7 +54,14 @@ export const RichText = ({
+   const source: WebViewProps['source'] = editor.DEV
+     ? { uri: editor.DEV_SERVER_URL || DEV_SERVER_URL }
+     : {
+-        html: editor.customSource || editorHtml,
++        // ch-life patch: iOS 첫 로드에서 injectedJavaScriptBeforeContentLoaded가 안 도는 문제(#3578)를
++        // 두 번째 로드 대신 같은 스크립트를 HTML <head>에 미리 넣어 푼다. '<'는 </script> 탈출을 막는다.
++        html: (editor.customSource || editorHtml).replace(
++          '<head>',
++          '<head><script>' +
++            getInjectedJSBeforeContentLoad(editor).replace(/</g, '\\u003c') +
++            '</script>'
++        ),
+         baseUrl: editor.webviewBaseURL,
+       };
+ 
+@@ -148,11 +155,6 @@ export const RichText = ({
+         // Propagated Props
+         onLoad={(e) => {
+           setLoaded(true);
+-          // This is a workaround for iOS to make sure the webview is loaded
+-          // See https://github.com/react-native-webview/react-native-webview/issues/3578
+-          if (Platform.OS === 'ios' && key === 'webview') {
+-            setKey('webview_reloaded');
+-          }
+           props.onLoad && props.onLoad(e);
+         }}
+       />

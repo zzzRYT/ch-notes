@@ -4,13 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@10play/tentap-editor@1.0.1':
+    hash: 73073f2553f53bd74f2e7acb45039c8ef88c4b6596751dfb6fcd18d826b104f7
+    path: patches/@10play__tentap-editor@1.0.1.patch
+
 importers:
 
   .:
     dependencies:
       '@10play/tentap-editor':
         specifier: 1.0.1
-        version: 1.0.1(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+        version: 1.0.1(patch_hash=73073f2553f53bd74f2e7acb45039c8ef88c4b6596751dfb6fcd18d826b104f7)(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@hot-updater/react-native':
         specifier: 0.36.8
         version: 0.36.8(expo@54.0.34)(hot-updater@0.36.8(@expo/fingerprint@0.15.5)(@hot-updater/cloudflare@0.36.8))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -6921,7 +6926,7 @@ snapshots:
 
   '@0no-co/graphql.web@1.2.0': {}
 
-  '@10play/tentap-editor@1.0.1(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+  '@10play/tentap-editor@1.0.1(patch_hash=73073f2553f53bd74f2e7acb45039c8ef88c4b6596751dfb6fcd18d826b104f7)(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@tiptap/core': 3.31.3(@tiptap/pm@3.31.3)
       '@tiptap/extension-blockquote': 3.31.3(@tiptap/core@3.31.3(@tiptap/pm@3.31.3))(@tiptap/pm@3.31.3)
