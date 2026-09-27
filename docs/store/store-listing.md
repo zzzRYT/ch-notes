@@ -113,14 +113,19 @@ Bible text from the Open Bible Korean edition (CC BY-SA 4.0).
 
 ## 콘텐츠 등급 / 데이터 안전
 
+> 1.0.3부터 Firebase Analytics(GA4)를 넣어 아래로 바뀌었다(ADR-0029). 광고 ID(IDFA·AAID)는 쓰지 않는다.
+
 ### Google Play — Data Safety 양식
-- 데이터 수집: **없음 (No data collected)**
-- 데이터 공유: **없음**
-- 보안: 전송 중 암호화 해당 없음(서버 전송 없음)
-- 데이터 삭제 요청: 앱 삭제 시 전체 삭제
+- 데이터 수집: **있음** — 앱 활동(앱 상호작용), 기기 또는 기타 ID, 대략적인 위치
+  - 목적: 분석(Analytics)만 · 수집 필수(선택 불가)
+- 데이터 공유: **없음** (Google은 처리 위탁 — 공유에 해당하지 않음)
+- 보안: 전송 중 암호화 **예**
+- 데이터 삭제 요청: 앱 삭제 시 노트 전체 삭제. 익명 통계는 GA 보관 기간 후 자동 삭제
+- 광고 ID 선언: **사용 안 함** (Android `AD_ID` 권한을 `blockedPermissions`로 제거)
 
 ### App Store — App Privacy
-- "Data Not Collected" 선택
+- 수집하는 데이터: 사용 데이터 > 제품 상호작용, 식별자 > 기기 ID, 위치 > 대략적인 위치
+  - 각 항목 용도: 분석만 · 사용자와 연결 안 됨
 - 추적(App Tracking) 사용 안 함
 
 ### 콘텐츠 등급 설문
