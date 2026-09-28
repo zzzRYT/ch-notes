@@ -15,7 +15,10 @@ export function confirmNoteDelete(onConfirm: () => void): void {
   ]);
 }
 
-/** 노트를 지우고 5초짜리 "실행 취소" 배너를 띄운다(POL-NOTE-002). */
+/**
+ * 노트를 지우고 10초짜리 "실행 취소" 배너를 띄운다(RULE-NOTE-007).
+ * 에디터 삭제는 목록으로 화면이 바뀐 뒤에도 읽고 누를 시간이 남아야 한다(#25).
+ */
 export async function deleteNoteWithUndo(
   repo: DeleteRepo,
   id: string,
@@ -27,7 +30,7 @@ export async function deleteNoteWithUndo(
     showFeedback({
       message: "노트를 삭제했습니다",
       tone: "info",
-      durationMs: 5000,
+      durationMs: 10_000,
       action: {
         label: "실행 취소",
         accessibilityLabel: "노트 삭제 실행 취소",
