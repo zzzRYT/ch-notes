@@ -294,7 +294,7 @@ git push -u origin chore/release-1.0.2
 gh pr create --base release/1.0.2      # CI 통과 후 병합
 ```
 
-이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)하고 스토어에 제출한다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
+이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)한다. 빌드가 끝나면 배포 agent가 같은 릴리스 커밋·플랫폼의 성공한 build ID를 확인하고 EAS CLI `eas submit --id <build-id>`로 업로드한다. `--latest`는 다른 빌드를 선택할 수 있어 쓰지 않는다. iOS는 App Store Connect 심사 제출을 사람이 하고, Android는 현재 `alpha` 트랙에 올라가므로 공개 출시 전 production 승격이 필요하다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
 
 **이번 릴리스 대상 플랫폼이 모두 동일한 최종 커밋으로 스토어에 공개된 뒤**, 그 커밋에 태그를 붙인다. 한 플랫폼의 심사 수정으로 릴리스 가지가 바뀌면 다른 대상 플랫폼도 최종 커밋으로 맞춘 뒤 태그한다. 현재 작업 가지가 아니라 원격 릴리스 가지를 명시해, 버전 bump PR의 head나 심사 반려 전 커밋을 잘못 태그하지 않는다.
 
@@ -312,10 +312,10 @@ git push origin v1.0.2
 
 | 채널 | 언제 | 어디서 | 방식 |
 |---|---|---|---|
-| `preview` | 사람이 판단할 때 | 아무 가지(보통 `dev`) | 수동 실행 |
-| `production` | 사람이 판단할 때 | **`release/<버전>`에서만** | 수동 실행 |
+| `preview` | 사용자가 agent에 요청할 때 | 아무 가지(보통 `dev`) | agent가 수동 실행 |
+| `production` | 사용자가 agent에 요청할 때 | **`release/<버전>`에서만** | agent가 수동 실행 |
 
-**자동 발행은 없다.** `main`·`dev` 병합은 아무것도 발행하지 않는다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). 발행 워크플로는 번들을 만들기 전에 **같은 커밋으로 CI를 다시 돌린다.** 그래서 직접 푸시된 `dev` 커밋을 쏘더라도 CI를 통과한 커밋만 나간다.
+`main`·`dev` 병합은 발행하지 않는다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). production OTA는 사용자가 배포를 요청하면 agent가 발행 워크플로를 실행한다. 워크플로는 번들을 만들기 전에 **같은 커밋으로 CI를 다시 돌린다.** 그래서 직접 푸시된 `dev` 커밋을 쏘더라도 CI를 통과한 커밋만 나간다.
 
 `production`을 `main`에서 쏘려 하면 **워크플로도 로컬 `pnpm deploy:ota`도 거부한다** — 스토어에 올린 것과 다른 코드가 기존 설치본으로 나가는 것을 막는다.
 
