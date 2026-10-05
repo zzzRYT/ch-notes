@@ -29,8 +29,10 @@ OTA로 닿지 않는 변경이 실재한다. 네이티브 의존성·`app.config
 ## 결정
 
 **버전 소스는 `website/app-version.json`이다.** 이미 GitHub Pages로 발행 중인 `website/`에 파일 하나를
-더한다(`https://zzzryt.github.io/ch-notes/app-version.json`). 인프라가 늘지 않고, 저장소의 파일이라
-릴리스 절차가 git 위에서 끝나며, 값이 PR 리뷰를 거친다.
+더한다(`https://zzzryt.github.io/ch-notes/app-version.json`). Pages 배포 때 App Store Lookup과 Google Play
+공개 목록에서 플랫폼별 값을 읽어 발행 산출물에 넣는다. 6시간마다 재배포해 스토어 공개 후 늦어도 다음 주기에
+반영한다. 한 스토어 조회가 실패하면 그 플랫폼의 저장된 값을 유지하고 다른 스토어 값은 갱신한다. Pages 배포 후
+워크플로를 실패 처리해 조회 문제를 알린다.
 
 **플랫폼별로 나눠 적는다** — `{"ios": …, "android": …}`. 심사 지연 때문에 두 스토어의 버전은 며칠씩
 어긋난다. 아직 올라가지도 않은 스토어로 사람을 보내는 것은 [`POL-A11Y-001`](../policy/POL-ACCESSIBILITY.md)에
@@ -58,7 +60,9 @@ OTA로 닿지 않는 변경이 실재한다. 네이티브 의존성·`app.config
 - **hot-updater Worker에 엔드포인트를 추가한다.** `extra.hotUpdaterBaseUrl`을 그대로 써서 주소가 하나로
   줄어든다. 채택하지 않았다 — **Worker 소스가 이 저장소에 없다.** hot-updater CLI가 배포하는 것이라
   버전 관리도 PR 리뷰도 이 저장소 밖에서 일어난다. 인프라가 안 는다는 이점보다 정본이 갈라지는 손해가 크다.
-- **스토어 API를 직접 읽는다.** iTunes Lookup은 iOS만 되고 Play는 공식 API가 없다. 절반만 되는 방법이다.
+- **스토어 공식 API를 모두 사용한다.** iTunes Lookup은 iOS만 제공하고 Play 공개 버전 조회 API가 없다.
+  Google Play 공개 페이지의 버전 필드를 읽어 별도 자격증명 없이 양쪽 값을 맞춘다. Play 페이지 구조가 바뀌면
+  동기화는 실패하고 기존 값을 유지한다.
 - **R2 정적 JSON.** Pages와 성격이 같은데 자격증명과 배포 경로가 하나 더 는다. `website/`는 이미
   `pages.yml`이 자동으로 발행한다.
 - **배너로 안내한다**([`ActionBannerHost`](../../apps/ch-life/src/shared/ui/ActionBannerHost.tsx)).
@@ -67,10 +71,8 @@ OTA로 닿지 않는 변경이 실재한다. 네이티브 의존성·`app.config
 
 ## 귀결
 
-- **손으로 옮겨 적는 자리가 하나 더 늘었다.** `app.config.ts`의 `version`, `src/shared/config/version.ts`의
-  `OTA_RELEASE`, `website/app-version.json` — 이제 셋이다. 어긋나면 조용히 틀린다.
-- **`app-version.json`은 스토어 심사가 끝난 뒤에 올린다.** 버전 bump PR에 같이 넣으면 심사 중인
-  버전을 스토어에 없는데도 안내하게 된다. 별도 PR을 `main`에 낸다 — `pages.yml`은 `main` 푸시에만 돈다.
+- `app.config.ts`의 `version`과 `src/shared/config/version.ts`의 `OTA_RELEASE`는 코드에서 관리한다.
+  `website/app-version.json`은 공개 스토어에서 자동으로 읽어 발행하므로 심사 중 버전을 미리 안내하지 않는다.
 - **이 다이어로그가 오늘의 1.0.1 문제를 풀지는 못한다.** 1.0.1에는 이 코드가 없다. 효력은 이 기능이
   들어간 **다음 스토어 빌드부터** 시작된다.
 - 이 영역에 **처음으로 자동 증거가 생겼다** — 버전 비교와 응답 파싱은 순수 함수라 유닛 테스트가 붙는다
