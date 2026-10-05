@@ -44,6 +44,10 @@ export const SlashMenu = Extension.create({
     let index = 0;
     let range = { from: 0, to: 0 };
     let dismissedAt = -1;
+    let editorDom: HTMLElement | null = null;
+    let originalPaddingBottom = "";
+    let basePaddingBottom = 0;
+    let extraPaddingBottom = 0;
 
     const choose = (i: number) => {
       const item = items[i];
@@ -55,6 +59,9 @@ export const SlashMenu = Extension.create({
     const hide = () => {
       open = false;
       menu.style.display = "none";
+      if (editorDom) editorDom.style.paddingBottom = originalPaddingBottom;
+      editorDom = null;
+      extraPaddingBottom = 0;
     };
     const render = (view: EditorView) => {
       menu.replaceChildren(
@@ -75,10 +82,19 @@ export const SlashMenu = Extension.create({
       const c = view.coordsAtPos(range.from);
       menu.style.display = "block";
       menu.style.left = `${Math.min(c.left, window.innerWidth - 220)}px`;
-      // 웹뷰는 문서 높이만큼만 있다 — 아래가 모자라면(끝 줄) 캐럿 위로 띄운다.
+      // 메뉴를 항상 캐럿 아래에 둔다. 부족한 만큼 문서 하단 패딩을 늘려
+      // dynamicHeight WebView와 바깥 ScrollView가 메뉴까지 보이게 한다.
       const below = c.bottom + window.scrollY + 4;
-      const fits = below + menu.offsetHeight <= document.documentElement.scrollHeight;
-      menu.style.top = `${fits ? below : c.top + window.scrollY - menu.offsetHeight - 4}px`;
+      menu.style.top = `${below}px`;
+      if (editorDom !== view.dom) {
+        editorDom = view.dom;
+        originalPaddingBottom = editorDom.style.paddingBottom;
+        basePaddingBottom = Number.parseFloat(getComputedStyle(editorDom).paddingBottom) || 0;
+        extraPaddingBottom = 0;
+      }
+      const editorBottom = view.dom.getBoundingClientRect().bottom + window.scrollY - extraPaddingBottom;
+      extraPaddingBottom = Math.max(0, below + menu.offsetHeight - editorBottom + 8);
+      view.dom.style.paddingBottom = `${basePaddingBottom + extraPaddingBottom}px`;
     };
 
     return [
@@ -174,7 +190,13 @@ function postCaret(payload: Caret | null) {
 function reportCaret(view: EditorView, typing: boolean) {
   requestAnimationFrame(() => {
     const c = view.coordsAtPos(view.state.selection.head);
-    postCaret({ top: c.top, bottom: c.bottom, typing });
+    const menu = document.querySelector<HTMLElement>(".slash-menu");
+    const menuOpen = !!menu && getComputedStyle(menu).display !== "none";
+    postCaret({
+      top: c.top,
+      bottom: menuOpen ? Math.max(c.bottom, menu.getBoundingClientRect().bottom) : c.bottom,
+      typing: typing && !menuOpen,
+    });
   });
 }
 
