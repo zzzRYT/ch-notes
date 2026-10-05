@@ -139,7 +139,7 @@ source:
 id: RULE-NOTE-007
 requirement: MUST
 policy: POL-NOTE-001
-statement: 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다.
+statement: 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. "실행 취소" 배너는 10초 유지된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다.
 implemented_by:
   - apps/ch-life/src/features/note/delete/model/note-actions.ts
   - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts
@@ -154,6 +154,8 @@ confidence: 기록됨
 source:
   - docs/superpowers/specs/2026-08-09-note-delete-and-insert-feedback-design.md
 ```
+
+배너 유지 시간은 1.0.1의 5초에서 10초로 늘렸다(#25). 에디터에서 지우면 곧바로 목록으로 화면이 바뀌므로, 전환이 끝난 뒤에도 어르신 사용자가 배너를 읽고 "실행 취소"를 찾아 누를 시간이 남아야 한다([`POL-A11Y-001`](../policy/POL-ACCESSIBILITY.md)). 스와이프 삭제 버튼 폭(기본 84px)도 `fontScale`에 비례해 늘어난다 — 글자를 키워도 "삭제"가 잘리지 않는다.
 
 `restore`는 `create`와 달리 id를 새로 발급하지 않고 `created_at`도 보존한다 — 되돌린 노트가 목록에서 원래 자리로 돌아가야 하기 때문이다([`RULE-NOTE-004`](#rule-note-004)의 `created_at DESC` 정렬과 묶여 있다). 그래서 `restore`는 **같은 id의 기존 노트를 덮어쓰지 않는다.**
 

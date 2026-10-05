@@ -67,6 +67,8 @@ describe("note actions", () => {
     expect(useFeedbackStore.getState().feedback?.action?.label).toBe(
       "실행 취소",
     );
+    const expiresAt = useFeedbackStore.getState().feedback!.expiresAt;
+    expect(expiresAt - Date.now()).toBeGreaterThan(9_000);
     expect(useNoteDeleteStore.getState().noteRevision).toBe(1);
   });
 
