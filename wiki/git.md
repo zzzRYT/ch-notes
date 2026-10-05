@@ -306,7 +306,7 @@ git push origin v1.0.2
 
 태그 뒤에는 **배포를 완료 처리하기 전에** [4절의 임시 가지 방식](#역머지는-임시-가지로-한다)으로 릴리스 가지를 `main`에 역머지한다. `main` 직접 커밋·푸시는 브랜치 보호가 막으므로 반드시 PR을 거친다. **릴리스 완료 조건은 스토어 공개와 태그뿐 아니라 이 역머지 PR의 병합까지다.** 그래야 `app.config.ts`의 버전 bump와 심사 중 들어간 수정이 `main`에 남는다.
 
-이어서 `website/app-version.json`의 해당 플랫폼 값을 새 버전으로 올리는 별도 PR을 **`main`에** 낸다. 이것이 기존 설치본에서 "스토어에서 업데이트하세요" 다이어로그를 켜는 스위치다([`RULE-OTA-010`](rules/release.md), [`ADR-0022`](decisions/ADR-0022-store-update-notice.md)). ⚠️ **버전 bump와 같은 PR에 넣지 않는다** — 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다. iOS와 Android는 심사 시점이 다르므로 **먼저 올라간 쪽만 먼저** 고친다.
+스토어 버전 안내 JSON은 GitHub Pages 배포 때 각 공개 스토어에서 자동으로 읽고, 6시간마다 다시 동기화한다([`RULE-OTA-010`](rules/release.md), [`ADR-0022`](decisions/ADR-0022-store-update-notice.md)). 공개 스토어에 올라오기 전에는 값이 바뀌지 않는다. Google Play 조회 형식이 바뀌거나 네트워크가 실패하면 기존 JSON을 유지한다.
 
 ### OTA 발행
 
