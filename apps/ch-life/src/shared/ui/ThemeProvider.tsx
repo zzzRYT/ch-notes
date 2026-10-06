@@ -5,20 +5,12 @@ import React, {
   useMemo,
 } from "react";
 import { Uniwind } from "uniwind";
-
-// 테마를 결정하는 표현 축. 도메인 의미가 없으므로 여기(shared)가 정본이고,
-// 설정 모델(features/settings)이 이 타입을 가져다 쓴다.
-export type Variation = "minimal" | "paper" | "focus" | "dark";
-export type BlockStyle = "default" | "card" | "quote" | "collapse";
-export type FontFamily = "sans" | "serif" | "mono";
-export type AccentChoice =
-  | "default"
-  | "#1e6fd9"
-  | "#b15c2e"
-  | "#1f8a5b"
-  | "#f5b35e"
-  | "#7a5af0"
-  | "#6b7280";
+import type {
+  AccentChoice,
+  BlockStyle,
+  FontFamily,
+  Variation,
+} from "@/shared/config";
 
 /** ThemeProvider가 읽는 설정 부분집합. Composition Root가 스토어에서 꺼내 넘긴다. */
 export type ThemeSettings = {
@@ -298,14 +290,3 @@ export function useTheme(): Theme {
 export function scaled(base: number, fontScale: number): number {
   return Math.round(base * fontScale);
 }
-
-export const VARIATION_OPTIONS: ReadonlyArray<{
-  value: Variation;
-  label: string;
-  hint: string;
-}> = [
-  { value: "minimal", label: "A · 미니멀", hint: "깨끗한 화이트 · 파랑" },
-  { value: "paper", label: "B · 종이", hint: "크림 톤 · 갈색" },
-  { value: "focus", label: "C · 포커스", hint: "여백 중심 · 슬레이트" },
-  { value: "dark", label: "D · 다크", hint: "긴 설교용 · 호박" },
-];
