@@ -1,39 +1,21 @@
-import type {
-  AccentChoice,
-  BlockStyle,
-  FontFamily,
-  Variation,
-} from "@/shared/ui";
-import type { Settings } from "./settings-store";
+import {
+  ACCENT_OPTIONS,
+  BLOCK_STYLE_OPTIONS,
+  FONT_FAMILY_OPTIONS,
+  VARIATION_OPTIONS,
+  type Variation,
+} from "@/shared/config";
+import {
+  FONT_SCALE_OPTIONS,
+  THEME_PREFERENCES,
+  type Settings,
+} from "./settings-store";
 
-const ALLOWED_FONT: ReadonlyArray<Settings["fontScale"]> = [1.0, 1.2, 1.4, 1.6];
-const ALLOWED_THEME: ReadonlyArray<Settings["themePreference"]> = [
-  "system",
-  "light",
-  "dark",
-];
-const ALLOWED_VARIATION: ReadonlyArray<Variation> = [
-  "minimal",
-  "paper",
-  "focus",
-  "dark",
-];
-const ALLOWED_BLOCK_STYLE: ReadonlyArray<BlockStyle> = [
-  "default",
-  "card",
-  "quote",
-  "collapse",
-];
-const ALLOWED_FONT_FAMILY: ReadonlyArray<FontFamily> = ["sans", "serif", "mono"];
-const ALLOWED_ACCENT: ReadonlyArray<AccentChoice> = [
-  "default",
-  "#1e6fd9",
-  "#b15c2e",
-  "#1f8a5b",
-  "#f5b35e",
-  "#7a5af0",
-  "#6b7280",
-];
+const ALLOWED_FONT = FONT_SCALE_OPTIONS.map((o) => o.value);
+const ALLOWED_VARIATION = VARIATION_OPTIONS.map((o) => o.value);
+const ALLOWED_BLOCK_STYLE = BLOCK_STYLE_OPTIONS.map((o) => o.value);
+const ALLOWED_FONT_FAMILY = FONT_FAMILY_OPTIONS.map((o) => o.value);
+const ALLOWED_ACCENT = ACCENT_OPTIONS.map((o) => o.value);
 
 function readVariation(value: unknown, themePref: unknown): Variation {
   if (
@@ -74,7 +56,7 @@ export function parseSettings(x: unknown): Settings | null {
     return null;
   if (
     typeof s.themePreference !== "string" ||
-    !(ALLOWED_THEME as ReadonlyArray<string>).includes(s.themePreference)
+    !(THEME_PREFERENCES as ReadonlyArray<string>).includes(s.themePreference)
   )
     return null;
   return {

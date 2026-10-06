@@ -3,62 +3,21 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import { useSettingsStore, type Settings } from '@/features/settings/change';
-import { useContactSupport } from '@/features/support/contact';
-import { OTA_RELEASE } from '@/shared/config';
 import {
-  AppHeader,
-  HeaderBack,
+  FONT_SCALE_OPTIONS,
+  useSettingsStore,
+} from '@/features/settings/change';
+import { useContactSupport } from '@/features/support/contact';
+import {
+  ACCENT_OPTIONS,
+  BLOCK_STYLE_OPTIONS,
+  FONT_FAMILY_OPTIONS,
+  OTA_RELEASE,
   VARIATION_OPTIONS,
-  type AccentChoice,
-  type BlockStyle,
-  type FontFamily,
-} from '@/shared/ui';
+} from '@/shared/config';
+import { AppHeader, HeaderBack } from '@/shared/ui';
 
 const PRIVACY_POLICY_URL = 'https://zzzryt.github.io/ch-notes/';
-
-const FONT_OPTIONS: ReadonlyArray<{
-  label: string;
-  value: Settings['fontScale'];
-}> = [
-  { label: '보통', value: 1.0 },
-  { label: '크게', value: 1.2 },
-  { label: '더 크게', value: 1.4 },
-  { label: '아주 크게', value: 1.6 },
-];
-
-const FONT_FAMILY_OPTIONS: ReadonlyArray<{
-  label: string;
-  value: FontFamily;
-}> = [
-  { label: 'Sans', value: 'sans' },
-  { label: 'Serif', value: 'serif' },
-  { label: 'Mono', value: 'mono' },
-];
-
-const BLOCK_STYLE_OPTIONS: ReadonlyArray<{
-  label: string;
-  value: BlockStyle;
-}> = [
-  { label: '변형별 기본값', value: 'default' },
-  { label: '카드', value: 'card' },
-  { label: '인용바', value: 'quote' },
-  { label: '접힘', value: 'collapse' },
-];
-
-const ACCENT_SWATCHES: ReadonlyArray<{
-  label: string;
-  value: AccentChoice;
-  swatch: string | null;
-}> = [
-  { label: '변형별 기본 색상', value: 'default', swatch: null },
-  { label: '파랑', value: '#1e6fd9', swatch: '#1e6fd9' },
-  { label: '갈색 (종이톤)', value: '#b15c2e', swatch: '#b15c2e' },
-  { label: '녹색 (말씀)', value: '#1f8a5b', swatch: '#1f8a5b' },
-  { label: '호박 (다크)', value: '#f5b35e', swatch: '#f5b35e' },
-  { label: '보라', value: '#7a5af0', swatch: '#7a5af0' },
-  { label: '슬레이트 (포커스)', value: '#6b7280', swatch: '#6b7280' },
-];
 
 export function SettingsPage() {
   const settings = useSettingsStore((s) => s.settings);
@@ -143,7 +102,7 @@ export function SettingsPage() {
         <View className={SECTION}>
           <Text className={SECTION_TITLE}>글꼴 크기</Text>
           <View className={ROW}>
-            {FONT_OPTIONS.map((o) =>
+            {FONT_SCALE_OPTIONS.map((o) =>
               renderChip(o.label, settings.fontScale === o.value, () =>
                 setSettings({ fontScale: o.value }),
               ),
@@ -176,7 +135,7 @@ export function SettingsPage() {
         <View className={SECTION}>
           <Text className={SECTION_TITLE}>강조 색상</Text>
           <View className={ROW}>
-            {ACCENT_SWATCHES.map((o) => {
+            {ACCENT_OPTIONS.map((o) => {
               const selected = settings.accentChoice === o.value;
               return (
                 <Pressable
@@ -189,11 +148,11 @@ export function SettingsPage() {
                     selected ? 'bg-ink' : 'bg-chip-bg'
                   }`}
                 >
-                  {o.swatch && (
+                  {o.value !== 'default' && (
                     // 견본 색은 사용자 데이터(hex)라 토큰이 아니다 — style로 준다.
                     <View
                       className="size-3 rounded-6"
-                      style={{ backgroundColor: o.swatch }}
+                      style={{ backgroundColor: o.value }}
                     />
                   )}
                   <Text className={chipTextClass(selected)}>{o.label}</Text>
