@@ -205,8 +205,9 @@ function softenAccent(hex: string): string {
   return `rgba(${r}, ${g}, ${b}, 0.08)`;
 }
 
-// Tailwind 타입 스케일의 base 값. src/app/global.css의 --text-* 와 같아야 한다
+// Tailwind 타입 스케일의 base 값. src/global.css의 --text-* 와 같아야 한다
 // (CSS는 초기값, 여기는 ×fontScale 갱신용). primitives.js text/size/* 가 출처다.
+// 셋이 어긋나면 __tests__/ThemeProvider.test.tsx가 실패한다(drift B31).
 const TEXT_SCALE = {
   display: 30,
   title: 20,

@@ -221,11 +221,11 @@
 **먼저 읽는다** — [ADR-0025](decisions/ADR-0025-tailwind-uniwind-tokens.md)(className으로 쓰는 법·클래스 표) · [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B31 · E19 · E21 · E22
 
 **코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본 + uniwind 브리지) · `apps/ch-life/src/global.css`(수치 토큰) · `apps/ch-life/src/theme.colors.css`(생성됨) · `apps/ch-life/metro.config.js`
-**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지 · `node scripts/check-classnames.mjs` — 소스의 className이 전부 번들에 있는지(오타는 다른 어떤 검사에도 안 걸린다)
+**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지, 타입 스케일 세 곳이 같은지 · `node scripts/check-classnames.mjs` — 소스의 className이 전부 번들에 있는지(오타는 다른 어떤 검사에도 안 걸린다)
 
 **같은 변경에서 함께 고친다**
 1. **색 토큰을 더하면** `ThemeProvider.tsx` 팔레트 4개 + `extract-colors.py`의 `FIELDS` → `python3 docs/design-system/figma-plugin/extract-colors.py`. `tokens.colors.*`와 `theme.colors.css`가 같이 나온다. CSS를 손으로 고치지 않는다.
-2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`(B31).
+2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`. 하나라도 빠뜨리면 `ThemeProvider.test.tsx`가 실패한다(B31).
 3. `global.css`는 `src/` 루트를 떠나면 안 된다 — Tailwind가 그 폴더 아래만 스캔한다.
 
 **토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
