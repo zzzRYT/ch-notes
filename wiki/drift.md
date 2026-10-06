@@ -113,8 +113,10 @@ FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps
 ### B14. ~~인용 삽입 로직이 네 곳에 손으로 복제되어 있다~~ (2026-09-20 대부분 해소)
 FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/citation.ts`의 `makeQuoteBlock` 하나로 모았고(자동완성·브라우저 삽입·미리보기·태블릿 인용 패널 전부), 폰·태블릿의 불러오기→자동저장→삽입→내보내기 페이로드는 `apps/ch-life/src/widgets/note-editor/model/useNoteDraft.ts` 한 훅이 된다. **남은 리터럴은 하나** — `entities/note/api/markdown-parse.ts`의 가져오기 경로. `(KRV)` 헤더 판별 뒤 `editionId`를 채워야 해서 팩토리를 거치지 않는다. [`RULE-EDIT-007`](rules/editor-insert.md)의 "status는 항상 loaded"는 여전히 타입이 아니라 이 두 곳의 리터럴이 지킨다.
 
-### B15. 설정 enum 값이 세 파일에 중복
+### B15. ~~설정 enum 값이 세 파일에 중복~~ **해소(2026-10-07)**
 `variation`·`blockStyle`·`fontFamily`·`accentChoice` 모두 `shared/ui/ThemeProvider.tsx` 유니온 → `features/settings/change/model/settings-validator.ts`의 `ALLOWED_*` → `src/pages/settings/ui/SettingsPage.tsx`의 옵션 배열 순으로 값이 반복된다. `accentChoice`의 hex 6개는 세 파일에 각각 리터럴로 박혀 있다. `fontScale`은 **전체 거부** 필드라([`RULE-SET-002`](rules/settings-theme.md)) 유니온에만 값을 더하고 validator를 빠뜨리면 사용자의 `settings.json` 전체가 버려지고 기본값으로 리셋된다.
+
+**해소.** 허용값은 이제 축마다 `as const` 배열 하나에만 있다 — `variation`·`blockStyle`·`fontFamily`·`accentChoice`는 `src/shared/config/theme-options.ts`의 `*_OPTIONS`, `fontScale`·`themePreference`는 `src/features/settings/change/model/settings-store.ts`의 `FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`. 유니온 타입은 배열에서 파생되고, 검증기의 `ALLOWED_*`는 배열을 `map`하고, 설정 화면은 같은 배열을 그린다. 옵션 배열이 `shared/ui`가 아니라 `shared/config`에 있는 것은 검증기가 런타임에 import하기 때문이다 — `@/shared/ui` index는 uniwind·React를 함께 싣는다. `settings-validator.test.ts`가 설정 화면의 모든 선택지가 검증을 그대로 통과하는지 확인한다.
 
 ### B16. 가져오기 "덮어쓰기"가 없는 필드를 지운다
 `entities/note/api/markdown-parse.ts`의 `toStringOrNull`/`toDateString`은 frontmatter에 키가 없을 때 `undefined`가 아니라 **`null`**을 반환하고, `features/note/import/model/import-note.ts`는 그대로 `repo.update` 패치에 넣는다. `repo.update`에서 `null`은 "비움"이다([`RULE-NOTE-002`](rules/note-persistence.md)). `preacher:`가 없는 외부 `.md`로 덮어쓰면 **기존 설교자 값이 사라진다.** 자동 테스트 없음.
@@ -201,7 +203,9 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 ### B26. `AccentChoice`의 hex 6개는 스타일 리터럴이 아니라 저장되는 사용자 데이터다
 `AccentChoice` 유니온의 6개 값 중 **4개**(`#1e6fd9`·`#b15c2e`·`#6b7280`·`#f5b35e`)가 각 변형의 기본 `accent`와 같은 문자열이다. 팔레트를 손보며 이 리터럴을 따라 바꾸면, 그 값을 저장해 둔 사용자의 `accentChoice`가 `settings-validator.ts`의 `readEnum` 개별 폴백([`RULE-SET-002`](rules/settings-theme.md))에 걸려 **다음 실행에 조용히 `default`로 리셋된다.** 관대한 파싱이 만드는 무음 데이터 손실이다 — 값을 바꾸려면 구 hex → 신 hex 마이그레이션이 함께 필요하다.
 
-지금 세 파일(`src/entities/note/model/types.ts`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+당시 세 파일(`src/shared/ui/ThemeProvider.tsx`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+
+**2026-10-07 갱신.** hex 6개는 이제 `src/shared/config/theme-options.ts`의 `ACCENT_OPTIONS` 한 곳에만 있다(B15 해소). 팔레트 `accent`와 겹치는 4개는 여전히 `ThemeProvider.tsx` 팔레트에 따로 적힌 값이며, **둘을 묶지 않는 것**이 이 항목의 요지다.
 
 ### B27. ~~글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다~~ **해소(2026-09-20)**
 `fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있었는데, `.tsx`의 `fontSize:` 98건 중 `scaled()`를 거치는 것은 28건뿐이었다. 날짜 선택 달력 하나만 봐도 요일 `일~토`·'오늘' 버튼이 배율을 받지 않았다.
