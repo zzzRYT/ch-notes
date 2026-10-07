@@ -182,7 +182,7 @@
 **같은 변경에서 함께 고친다**
 1. 책 이름은 `src/entities/scripture/api/books-meta.ts`(삽입용)와 `src/entities/scripture/model/book-map.ts`(표시용) 두 표에서 온다 — 어긋나면 **넣은 참조와 보이는 참조가 달라진다**(B13).
 2. 삽입 로직은 `useNoteDraft().insertRef` 하나다. 세 진입점(홈 리더·에디터 시트·태블릿 패널)은 콜백을 넘길 뿐이다.
-3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 세 곳이 의존한다 — 만드는 `src/widgets/scripture-browser/model/useBiblePosition.ts`, 쪼개는 `src/widgets/scripture-browser/lib/browser-search.ts`, 그 결과를 쓰는 `src/widgets/scripture-browser/lib/level-from-ref.ts`. 그리고 [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 표. `src/features/settings/change/model/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
+3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 의존한다 — 만드는 `src/widgets/scripture-browser/model/useBiblePosition.ts`, 쪼개는 `src/widgets/scripture-browser/lib/browser-search.ts`, 에디터 모달·태블릿 패널에서 쓰는 `src/widgets/scripture-browser/lib/level-from-ref.ts`. 홈 전체화면은 매번 책 목록부터 시작한다(RULE-BIBLE-003). [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)에도 기록돼 있다. `src/features/settings/change/model/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
 4. 900px는 `src/shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT` 한 곳이다.
 
 **함정**

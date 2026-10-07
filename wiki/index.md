@@ -116,7 +116,7 @@
 |---|---|---|---|---|
 | [`RULE-BIBLE-001`](rules/bible-reader.md) | SHOULD | 자동 | 기록됨 | 성경은 책 목록 → 장 그리드 → 절 목록 3단으로 탐색한다. 책 목록은 구약/신약 세그먼트로 나뉘고, 리더 안의 "뒤로"는 한 단계씩 거슬러 올라간다. |
 | [`RULE-BIBLE-002`](rules/bible-reader.md) | MUST | 자동 | 코드추론 | 성경 검색창은 "골"(책) / "골 3"(장) / "골 3:20"(절) 세 가지를 구분해 해당 단계로 바로 이동한다. 영어 책 이름도 같게 동작한다. |
-| [`RULE-BIBLE-003`](rules/bible-reader.md) | MUST | 자동 | 기록됨 | 마지막으로 본 책과 장을 settings.lastBibleRef에 "Gen 1" 형태로 저장하고, 다음에 리더를 열면 그 장부터 시작한다. 절 스크롤 위치는 저장하지 않는다. |
+| [`RULE-BIBLE-003`](rules/bible-reader.md) | MUST | 자동 | 기록됨 | 에디터 모달·태블릿 패널은 마지막으로 본 책과 장을 settings.lastBibleRef에 "Gen 1" 형태로 저장하고 다음 진입 때 그 장부터 시작한다. 홈 성경은 매번 책 목록부터 연다. 절 스크롤 위치는 저장하지 않는다. |
 | [`RULE-BIBLE-004`](rules/bible-reader.md) | SHOULD | 수동 | 기록됨 | 홈에서 연 성경은 읽기 전용이라 삽입 버튼을 렌더하지 않는다. 에디터 모달과 태블릿 패널에서만 절 옆 ＋ 버튼으로 현재 노트에 인용을 넣는다. |
 | [`RULE-BIBLE-005`](rules/bible-reader.md) | MUST | 자동 | 코드추론 | 이전/다음 장 버튼은 1장과 마지막 장에서 비활성화된다. 장 수는 bible.json에서 계산한다. |
 | [`RULE-BIBLE-006`](rules/bible-reader.md) | SHOULD | 수동 | 코드추론 | 절 옆 ＋로 넣는 인용의 참조 문자열은 "{정식한국어책명} {장}:{절}" 이며 언제나 한 절이다. 범위 인용은 이 경로로 만들 수 없다. |
