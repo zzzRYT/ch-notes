@@ -78,11 +78,11 @@ FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps
 세 번째가 특히 문제다 — [`RULE-SEARCH-001`](rules/search.md)의 "본문 검색은 동작하지 않는다"가 태블릿에서는 그대로 참이 아니다.
 
 ### B9. 테마 토큰이 두 세대 공존
-`ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다.
+`ThemeProvider`의 팔레트에 남은 구 필드와 신 토큰(`ink/paper/rule/ink2..4`)이 일부 공존한다. **완전히 중복된 네 필드는 2026-10-07에 제거했다** — `surface→paper`, `text→ink`, `line→rule`, `quoteBar→ink4`. 네 변형에서 각 값이 같아 색 변화는 없다.
 
-~~성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`/`ChapterGrid`)와 `SwipeToDelete`는 테마를 쓰지 않고 하드코딩된 색(`#f4f4f4`, `#222`)을 썼고, 성경 본문은 항상 16px 고정이었다 → 다크 변형에서 이 화면들만 밝았다.~~ **하드코딩 부분은 해소(2026-09-20)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용으로 다섯 파일 전부 `bg-chip-bg`·`text-ink`·`border-rule`·`bg-err-bar` 토큰을 쓰고, 본문은 `text-body-large`로 fontScale을 받는다. **구·신 필드 공존은 그대로다** — 팔레트 `ThemeColors` 타입은 손대지 않았고, `useTheme().colors`는 이제 아이콘 `color` prop·Animated·서드파티(`KeyboardAwareScrollView`) 배경에만 쓰인다.
+~~성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`/`ChapterGrid`)와 `SwipeToDelete`는 테마를 쓰지 않고 하드코딩된 색(`#f4f4f4`, `#222`)을 썼고, 성경 본문은 항상 16px 고정이었다 → 다크 변형에서 이 화면들만 밝았다.~~ **하드코딩 부분은 해소(2026-09-20)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용으로 다섯 파일 전부 `bg-chip-bg`·`text-ink`·`border-rule`·`bg-err-bar` 토큰을 쓰고, 본문은 `text-body-large`로 fontScale을 받는다. `useTheme().colors`는 이제 아이콘 `color` prop·Animated·서드파티(`KeyboardAwareScrollView`) 배경에만 쓰인다.
 
-두 세대의 관계도 균일하지 않다. 레거시 필드를 읽는 파일 18개, 신 토큰을 읽는 파일 17개, **양쪽을 동시에 쓰는 파일이 15개**다. 값으로 보면 `surface`·`text`·`line`·`quoteBar` 네 필드는 4개 팔레트 **전부에서** `paper`·`ink`·`rule`·`ink4`와 바이트 단위로 동일해 순수 개명으로 지울 수 있지만, `bg`·`subtle`·`chipBg`·`chipText`·`accentText`는 대응하는 신 토큰이 없거나 값이 달라 그대로 살려야 한다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
+남은 필드도 관계가 균일하지 않아 계속 둔다. `bg`는 `paper`와 네 변형 중 하나만 같고, `subtle`은 `ink2`와 네 변형 모두 다르다. `chipBg`는 대응 토큰이 없고, `chipText`는 `ink2`와 두 변형에서만 같으며, `accentText`도 대응 토큰이 없다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
 
 ### B10. 자동완성 문법이 `parseRef` 문법과 어긋난다
 `useAutocomplete`의 트리거 패턴은 영어 책 토큰을 `[A-Za-z]{2,20}`으로 잡아 **숫자로 시작하는 책 이름을 표현하지 못한다.** `parseRef`는 `[A-Za-z][A-Za-z\s]{0,20}`이라 공백을 허용하지만 역시 선행 숫자는 못 받는다. 결과:
