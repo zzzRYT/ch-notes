@@ -131,6 +131,8 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 
 **2026-09-06에 원인을 걷어냈다** — 루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`과 `packages/editor-core` 스캐폴드를 `main`에서 제거했다 — 스캐폴드를 `main`에 둘 것인가라는 질문(옛 E15)의 답이다. 앱을 아무도 소비하지 않는 패키지 하나 때문에 세 워크플로가 우회 플래그를 달고 있을 이유가 없다. 플래그도 함께 지웠다. Phase 2를 시작할 때 브랜치에서 다시 세우고, 앱이 실제로 그 패키지를 쓰기 전까지 `main`에 올리지 않는다(`docs/editor-core/extraction-plan.md`).
 
+**2026-10-07, 통합 브랜치에서 Phase 1 재구성.** #50은 `feat/editor-core-pkg` 대상 PR로만 진행한다. 앱은 워크스페이스 멤버로 넣지 않고, 이 브랜치의 CI 앱 설치에만 `--ignore-workspace`를 사용한다. 별도 CI job이 패키지 빌드·타입·스모크 테스트를 검사한다. EAS Build·OTA 설치 단계는 바꾸지 않았으므로 이 브랜치에서 수동 배포 워크플로를 실행하지 않는다. 명령과 범위는 [`packages/editor-core/README.md`](../packages/editor-core/README.md)에 기록했다.
+
 ### B19. OTA는 한 번도 성공한 적이 없다
 `hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
 

@@ -30,6 +30,8 @@
 
 ## 0. 구조·레이어
 
+**editor-core 통합 브랜치 전용** — 루트 워크스페이스와 `packages/editor-core`는 Phase 1 스캐폴드이며 앱이 아직 소비하지 않는다. 검증 명령과 앱 독립 설치는 [`패키지 안내`](../packages/editor-core/README.md), 설치 함정은 drift B18을 따른다. 앱의 순수 소스나 위키 구현 경로를 옮기는 단계가 아니다.
+
 `src/`는 FSD 레이어다 — `app → pages → widgets → features → entities → shared`, 의존은 이 방향으로만. Slice 밖에서는 그 Slice의 `index.ts`만 import한다. 어기면 `pnpm lint`가 실패한다.
 
 **먼저 읽는다** — [ADR-0024](decisions/ADR-0024-fsd-ddd-architecture.md)
