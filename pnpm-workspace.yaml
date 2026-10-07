@@ -1,0 +1,7 @@
+# pnpm workspace
+#
+# Phase 1: only the new shared packages are workspace members.
+# apps/ch-life is not a member until Phase 4. pnpm 10 still discovers this root
+# from the app, so app installs must use the CLI flag --ignore-workspace.
+packages:
+  - 'packages/*'
