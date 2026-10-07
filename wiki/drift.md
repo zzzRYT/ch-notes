@@ -225,8 +225,10 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 같은 동작인데 기호도 크기도 다르다(`PanelRail.glyph` 16px vs 브레드크럼 `crumbBtnText` 15px). 어느 쪽이 정본인지 코드에 근거가 없다. 아이콘 인벤토리에서 '펼치기/접기' 하나에 기호 체계가 넷인 것도 여기서 갈라진다.
 
-### B31. 타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다
+### B31. ~~타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다~~ **해소(2026-10-07)** — 일치 테스트로 막는다
 `display 30 · title 20 · body-large 17 · body 15 · label 13 · caption 11`이 `docs/design-system/figma-plugin/primitives.js`(`text/size/*`, Figma용) · `apps/ch-life/src/global.css`(`--text-*`, Tailwind 초기값) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx`(`TEXT_SCALE`, ×fontScale 갱신용)에 각각 있다. 색 토큰은 `extract-colors.py`가 한 원본에서 생성하지만 수치 토큰에는 그런 생성기가 없다. 한 곳만 바꾸면 Figma·초기 렌더·fontScale 반영 후가 서로 다른 크기가 된다. → [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md), B9
+
+**2026-10-07 해소(#60).** 생성기 대신 일치 테스트를 골랐다 — 값 여섯 개에 생성 단계를 두는 것보다 작다. `src/shared/ui/__tests__/ThemeProvider.test.tsx`의 "타입 스케일 base 값이 global.css·primitives.js와 같다"가 `fontScale: 1`에서 `ThemeProvider`가 uniwind에 넘기는 `--text-*`를 기준으로 `global.css`의 `--text-*`와 `primitives.js`의 `text/size/*`를 대조한다. 세 곳에 손으로 적는 것은 그대로지만, 어긋나면 `pnpm test`가 실패한다.
 
 ### B32. 네이티브 에디터의 규칙 셋이 앱에 연결돼 있지 않다 — **부분 해소(2026-09-27)**
 2026-09-27에 `feat/quote-ref-edit`·`feat/editor-format-toolbar`·`feat/tentap-editor`를 `dev`에 함께 머지했다. tentap 가지가 `widgets/note-editor`의 공개 `NoteEditor`를 `RichNoteEditor`(WebView)로 바꿔 내보내므로, **네이티브 `ui/NoteEditor.tsx`는 어느 화면에서도 쓰이지 않는다.** 그 결과 이 파일에만 구현된 동작이 앱에서 사라졌다.
