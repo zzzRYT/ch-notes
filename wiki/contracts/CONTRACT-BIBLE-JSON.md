@@ -6,6 +6,7 @@ policy: POL-LICENSE-001
 statement: 성경 본문은 assets/bible.json 하나로 앱에 번들되며, 책코드 → 장 → 절 → 본문의 3단 중첩 객체다. 출처는 Open Bible 한국어판, 라이선스는 CC BY-SA 4.0이다.
 implemented_by:
   - apps/ch-life/assets/bible.json
+  - apps/ch-life/src/entities/scripture/api/bible-lookup.ts
   - apps/ch-life/src/entities/scripture/api/verse-lookup.ts
   - apps/ch-life/src/entities/scripture/api/books-meta.ts
 verified_by:
