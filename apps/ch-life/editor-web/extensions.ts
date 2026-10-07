@@ -29,6 +29,7 @@ const ITEMS: Item[] = [
 
 // 캐럿 앞이 `/검색어`(줄 처음 또는 공백 뒤)이면 메뉴를 띄운다.
 const SLASH = /(?:^|\s)\/([^\s/]*)$/;
+const SLASH_MENU_GAP = 8;
 
 // Notion식 "/" 메뉴. ↑↓로 고르고 Enter, Esc로 닫는다. 터치로 눌러도 된다.
 export const SlashMenu = Extension.create({
@@ -93,7 +94,7 @@ export const SlashMenu = Extension.create({
         extraPaddingBottom = 0;
       }
       const editorBottom = view.dom.getBoundingClientRect().bottom + window.scrollY - extraPaddingBottom;
-      extraPaddingBottom = Math.max(0, below + menu.offsetHeight - editorBottom + 8);
+      extraPaddingBottom = Math.max(0, below + menu.offsetHeight - editorBottom + SLASH_MENU_GAP);
       view.dom.style.paddingBottom = `${basePaddingBottom + extraPaddingBottom}px`;
     };
 
