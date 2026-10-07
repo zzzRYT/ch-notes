@@ -7,6 +7,9 @@ export {
   type ThemeSettings,
 } from "./ThemeProvider";
 export { AppHeader } from "./AppHeader";
+export { Button } from "./Button";
+export { IconButton } from "./IconButton";
+export { SettingRow } from "./SettingRow";
 export {
   HeaderIconButton,
   HeaderBack,

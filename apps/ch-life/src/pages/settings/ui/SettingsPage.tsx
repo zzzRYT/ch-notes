@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
@@ -15,7 +15,7 @@ import {
   OTA_RELEASE,
   VARIATION_OPTIONS,
 } from '@/shared/config';
-import { AppHeader, HeaderBack } from '@/shared/ui';
+import { AppHeader, Button, HeaderBack, SettingRow } from '@/shared/ui';
 
 const PRIVACY_POLICY_URL = 'https://zzzryt.github.io/ch-notes/';
 
@@ -44,18 +44,12 @@ export function SettingsPage() {
     selected: boolean,
     onPress: () => void,
   ) => (
-    <Pressable
+    <Button
       key={label}
+      label={label}
+      selected={selected}
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      accessibilityLabel={label}
-      className={`px-4 py-3 rounded-full min-h-touch justify-center ${
-        selected ? 'bg-ink' : 'bg-chip-bg'
-      }`}
-    >
-      <Text className={chipTextClass(selected)}>{label}</Text>
-    </Pressable>
+    />
   );
 
   return (
@@ -72,28 +66,14 @@ export function SettingsPage() {
             {VARIATION_OPTIONS.map((o) => {
               const selected = settings.variation === o.value;
               return (
-                <Pressable
+                <SettingRow
                   key={o.value}
+                  label={o.label}
+                  description={o.hint}
+                  selected={selected}
                   onPress={() => setSettings({ variation: o.value })}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
                   accessibilityLabel={`${o.label} — ${o.hint}`}
-                  className={`flex-row items-center justify-between px-3.5 py-3 rounded-10 border-hairline min-h-14 ${
-                    selected
-                      ? 'bg-accent-soft border-accent'
-                      : 'bg-paper border-rule'
-                  }`}
-                >
-                  <View className="gap-0.5">
-                    <Text className="text-body font-semibold text-ink">
-                      {o.label}
-                    </Text>
-                    <Text className="text-caption text-ink-3">{o.hint}</Text>
-                  </View>
-                  {selected && (
-                    <Text className="text-accent font-semibold">✓</Text>
-                  )}
-                </Pressable>
+                />
               );
             })}
           </View>
@@ -137,26 +117,21 @@ export function SettingsPage() {
           <View className={ROW}>
             {ACCENT_OPTIONS.map((o) => {
               const selected = settings.accentChoice === o.value;
+              const swatch = o.value === 'default' ? null : o.value;
               return (
-                <Pressable
+                <Button
                   key={o.value}
+                  label={o.label}
+                  selected={selected}
                   onPress={() => setSettings({ accentChoice: o.value })}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={o.label}
-                  className={`flex-row items-center gap-2 px-3.5 py-2.5 rounded-full min-h-touch ${
-                    selected ? 'bg-ink' : 'bg-chip-bg'
-                  }`}
-                >
-                  {o.value !== 'default' && (
+                  leading={swatch ? (
                     // 견본 색은 사용자 데이터(hex)라 토큰이 아니다 — style로 준다.
                     <View
-                      className="size-3 rounded-6"
-                      style={{ backgroundColor: o.value }}
+                      className="size-3 shrink-0 rounded-6"
+                      style={{ backgroundColor: swatch }}
                     />
-                  )}
-                  <Text className={chipTextClass(selected)}>{o.label}</Text>
-                </Pressable>
+                  ) : null}
+                />
               );
             })}
           </View>
@@ -172,33 +147,25 @@ export function SettingsPage() {
         <View className={SECTION}>
           <Text className={SECTION_TITLE}>정보</Text>
           <Text className="text-ink">버전 {version}</Text>
-          <Pressable
+          <SettingRow
+            label="출처 및 라이선스"
+            marker="›"
             onPress={() => router.push('/licenses')}
-            accessibilityRole="button"
-            accessibilityLabel="출처 및 라이선스"
-            className={NAV_ROW}
-          >
-            <Text className={NAV_ROW_LABEL}>출처 및 라이선스</Text>
-            <Text className={NAV_ROW_CHEVRON}>›</Text>
-          </Pressable>
-          <Pressable
+          />
+          <SettingRow
+            label="개인정보 처리방침"
+            marker="↗"
             onPress={openPrivacyPolicy}
             accessibilityRole="link"
             accessibilityLabel="개인정보 처리방침 (웹페이지 열기)"
-            className={NAV_ROW}
-          >
-            <Text className={NAV_ROW_LABEL}>개인정보 처리방침</Text>
-            <Text className={NAV_ROW_CHEVRON}>↗</Text>
-          </Pressable>
-          <Pressable
+          />
+          <SettingRow
+            label="문의하기"
+            marker="✉"
             onPress={openContact}
             accessibilityRole="button"
             accessibilityLabel="문의하기 (메일 앱으로 문의 메일 작성)"
-            className={NAV_ROW}
-          >
-            <Text className={NAV_ROW_LABEL}>문의하기</Text>
-            <Text className={NAV_ROW_CHEVRON}>✉</Text>
-          </Pressable>
+          />
           {showAddressFallback && (
             <View
               accessibilityRole="alert"
@@ -228,12 +195,3 @@ const SECTION_TITLE =
   'text-caption uppercase tracking-eyebrow font-semibold text-ink-3';
 const ROW = 'flex-row flex-wrap gap-2';
 const HINT = 'text-label leading-[1.46]';
-const NAV_ROW =
-  'flex-row items-center justify-between py-3 mt-1 min-h-12 border-t-hairline border-rule';
-const NAV_ROW_LABEL = 'text-body text-ink';
-// 글리프(› ↗ ✉)는 아이콘 — 고정 크기
-const NAV_ROW_CHEVRON = 'text-[22px] text-ink-3';
-
-function chipTextClass(selected: boolean): string {
-  return `text-label ${selected ? 'text-paper font-semibold' : 'text-ink-2 font-normal'}`;
-}
