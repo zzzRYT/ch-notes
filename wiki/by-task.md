@@ -55,7 +55,7 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · RULE-REF-001 · RULE-REF-002 · RULE-REF-003 · RULE-REF-004 · RULE-REF-005 · [CONTRACT-BIBLE-JSON](contracts/CONTRACT-BIBLE-JSON.md)
 
-**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
+**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{bible-lookup,verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
 **테스트** `src/entities/scripture/model/__tests__/*.test.ts` · `src/entities/scripture/api/__tests__/*.test.ts` (5/5 자동 증거)
 
 **같은 변경에서 함께 고친다**
