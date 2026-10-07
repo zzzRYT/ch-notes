@@ -4,11 +4,21 @@ import type {
   BlockStyle,
   FontFamily,
   Variation,
-} from "@/shared/ui";
+} from "@/shared/config";
+
+// 허용값은 여기에만 적는다 — 타입·검증기·설정 화면이 이 배열에서 나온다.
+// 검증기에서 빠진 fontScale 값은 settings.json 전체를 버리게 한다(RULE-SET-002).
+export const FONT_SCALE_OPTIONS = [
+  { value: 1.0, label: "보통" },
+  { value: 1.2, label: "크게" },
+  { value: 1.4, label: "더 크게" },
+  { value: 1.6, label: "아주 크게" },
+] as const;
+export const THEME_PREFERENCES = ["system", "light", "dark"] as const;
 
 export type Settings = {
-  fontScale: 1.0 | 1.2 | 1.4 | 1.6;
-  themePreference: "system" | "light" | "dark";
+  fontScale: (typeof FONT_SCALE_OPTIONS)[number]["value"];
+  themePreference: (typeof THEME_PREFERENCES)[number];
   variation: Variation;
   blockStyle: BlockStyle;
   fontFamily: FontFamily;

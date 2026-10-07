@@ -198,12 +198,12 @@
 
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
-**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
+**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
 **테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**) · `node scripts/check-classnames.mjs`(소스의 className이 전부 번들에 컴파일됐는지 — uniwind는 모르는 클래스를 조용히 버린다)
 
 **같은 변경에서 함께 고친다**
-1. ⚠️ **`fontScale`에 값을 더한다면 세 곳 전부** — `src/features/settings/change/model/settings-store.ts`의 `Settings` 유니온 → 같은 폴더 `settings-validator.ts`의 `ALLOWED_FONT` → `src/pages/settings/ui/SettingsPage.tsx`의 `FONT_OPTIONS`(사용자가 실제로 고르는 목록). `settings-store.ts`의 기본값 `1.2`는 그대로 둔다 — 형제 필드들과 같은 3단 구조다(B15). validator를 빠뜨리면 사용자가 그 값을 고른 순간 **다음 실행에서 `settings.json` 전체가 버려지고 기본값으로 리셋된다.**
-2. `variation`·`blockStyle`·`fontFamily`·`accentChoice`도 같은 3중 구조다 — 다만 이 넷의 **타입은 `src/shared/ui/ThemeProvider.tsx`가 정본**이고 `Settings`가 가져다 쓴다. `accentChoice`의 hex 6개는 세 파일에 리터럴로 박혀 있다(B15).
+1. ⚠️ **설정 허용값은 축마다 배열 하나에만 더한다** — `fontScale`·`themePreference`는 `src/features/settings/change/model/settings-store.ts`의 `FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`, `variation`·`blockStyle`·`fontFamily`·`accentChoice`는 `src/shared/config/theme-options.ts`의 `*_OPTIONS`. 유니온 타입·`settings-validator.ts`의 `ALLOWED_*`·설정 화면 선택지가 모두 여기서 파생된다(B15 해소). 옵션 배열은 React가 없는 `src/shared/config`에 둔다 — 검증기가 런타임에 import한다. `settings-store.ts`의 기본값 `1.2`는 그대로 둔다.
+2. `accentChoice`의 hex는 저장되는 사용자 데이터다. 팔레트 `accent`와 값이 같아도 따라 바꾸지 않는다 — 바꾸면 구 hex를 저장한 사용자가 다음 실행에 `default`로 리셋된다(B26).
 3. 테마는 `ThemeProvider settings={…}` prop으로 받는다. 설정 필드가 테마에 영향을 주면 `ThemeSettings` 타입에도 넣는다.
 4. [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 스키마 표와 `rules/settings-theme.md`도 같은 커밋에서.
 
