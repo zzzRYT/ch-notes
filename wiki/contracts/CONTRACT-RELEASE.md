@@ -35,7 +35,7 @@ source:
 | appVersionSource | `remote` (동적 `app.config.ts` + `autoIncrement` 조합에 필요) |
 | 채널 | development / preview / production — `eas.json`의 `env.HOT_UPDATER_CHANNEL`로 주입 |
 | iOS 스토어 제출 | EAS Submit — ASC App ID `6772700147`, Apple Team `43ZASDF2J7`, API 키 `credentials/AuthKey_58F737893F.p8` |
-| Android 스토어 제출 | EAS Submit — Play `alpha` 트랙, `releaseStatus: completed`, 서비스 계정 키 `credentials/play-service-account.json` |
+| Android 스토어 제출 | EAS Submit — Play `production` 트랙(공개 출시), `releaseStatus: completed`, 서비스 계정 키 `credentials/play-service-account.json` |
 
 ## 두 경로
 
@@ -52,7 +52,7 @@ release/<버전> → agent 요청 → GitHub Actions → CI 재실행 → deploy
 
 ⚠️ **OTA 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
 
-빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
+빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `production` 트랙에 올라가 Google 검토를 거쳐 바로 공개된다.
 
 `main`·`dev` 병합은 OTA를 발행하지 않는다([`../decisions/ADR-0028`](../decisions/ADR-0028-dev-branch.md)). 사용자가 요청하면 agent가 기존 발행 워크플로를 실행한다. 발행 워크플로는 `ci.yml`을 `workflow_call`로 불러 **같은 커밋으로 CI를 먼저 돌리고**, 실패하면 발행하지 않는다. Native 빌드도 수동으로 시작하고, 완료 후 agent가 별도 EAS CLI 제출을 수행한다.
 
