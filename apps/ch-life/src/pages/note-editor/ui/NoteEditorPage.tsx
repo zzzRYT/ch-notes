@@ -1,16 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Keyboard, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BookOpen, Keyboard as KeyboardIcon, Share, Trash2 } from 'lucide-react-native';
+import { BookOpen, Share, Trash2 } from 'lucide-react-native';
 import { useNoteRepo } from '@/entities/note';
 import { confirmNoteDelete, deleteNoteWithUndo } from '@/features/note/delete';
 import { exportNote } from '@/features/note/export';
 import { showFeedback } from '@/shared/lib';
-import {
-  AppHeader,
-  HeaderBack,
-  HeaderIconButton,
-} from '@/shared/ui';
+import { AppHeader, HeaderBack, HeaderIconButton } from '@/shared/ui';
 import {
   EditorSkeleton,
   NoteEditor,
@@ -115,11 +111,6 @@ export function NoteEditorPage() {
               label="현재 노트 삭제"
               tint="error"
               onPress={handleDelete}
-            />
-            <HeaderIconButton
-              icon={KeyboardIcon}
-              label="키보드 닫기"
-              onPress={() => Keyboard.dismiss()}
             />
           </>
         }

@@ -166,12 +166,12 @@ confidence: 코드추론
 id: RULE-EDIT-008
 policy: POL-NOTE-001
 requirement: SHOULD
-statement: 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. 에디터 상단의 키보드 아이콘은 키보드만 닫으며 저장을 실행하지 않는다.
+statement: 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. 에디터 상단에는 완료·키보드 닫기 버튼을 두지 않는다.
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx (COMMIT_DEBOUNCE_MS = 800)
   - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (delayMs = 500)
   - apps/ch-life/src/widgets/note-editor/model/useNoteDraft.ts (폰·태블릿 공통 배선)
-  - apps/ch-life/src/pages/note-editor/ui/NoteEditorPage.tsx (접근성 이름 "키보드 닫기", Keyboard.dismiss만 호출)
+  - apps/ch-life/src/pages/note-editor/ui/NoteEditorPage.tsx (완료·키보드 닫기 버튼 없음)
 verified_by:
   - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts
   - manual: 입력 중단 후 약 1.3초 뒤 저장, 앱 재시작 시 보존
