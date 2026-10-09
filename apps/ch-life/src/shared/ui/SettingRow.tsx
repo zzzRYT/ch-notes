@@ -7,7 +7,6 @@ export function SettingRow({
   marker,
   onPress,
   selected,
-  preview,
   leading,
   disabled = false,
   accessibilityLabel = label,
@@ -19,7 +18,6 @@ export function SettingRow({
   marker?: string;
   onPress: () => void;
   selected?: boolean;
-  preview?: React.ReactNode;
   leading?: React.ReactNode;
   disabled?: boolean;
   accessibilityLabel?: string;
@@ -58,7 +56,6 @@ export function SettingRow({
           <Text className="text-[22px] text-ink-3">{marker}</Text>
         ) : null}
       </View>
-      {preview}
     </Pressable>
   );
 }

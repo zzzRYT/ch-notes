@@ -12,8 +12,6 @@ jest.mock("@/features/support/contact", () => ({
   useContactSupport: () => ({ openContact: jest.fn(), showAddressFallback: false, supportEmail: "test@example.com" }),
 }));
 const mockPush = jest.fn();
-let mockLayoutMode: 'sheet' | 'sidebar' = 'sidebar';
-jest.mock('@/shared/lib', () => ({ useResponsiveLayout: () => ({ mode: mockLayoutMode }) }));
 jest.mock("expo-router", () => ({ useRouter: () => ({ back: jest.fn(), push: mockPush }) }));
 jest.mock("uniwind", () => ({ Uniwind: { setTheme: jest.fn(), updateCSSVariables: jest.fn() } }));
 jest.mock("react-native-safe-area-context", () => ({
@@ -23,7 +21,6 @@ jest.mock("react-native-safe-area-context", () => ({
 beforeEach(() => {
   useSettingsStore.setState({ settings: { ...DEFAULT_SETTINGS } });
   mockPush.mockClear();
-  mockLayoutMode = 'sidebar';
 });
 afterEach(() => act(() => { useSettingsStore.setState({ settings: { ...DEFAULT_SETTINGS } }); }));
 
@@ -49,7 +46,7 @@ test("설정에서 테마 변경 페이지로 이동하고 기존 디자인 선�
   act(() => { tree.unmount(); });
 });
 
-test("테마 페이지의 다섯 설정은 서로 유지되며 선택 상태와 미리보기에 반영된다", () => {
+test("테마 페이지의 다섯 설정은 서로 유지되며 선택 상태에 반영된다", () => {
   const tree = mount(<ThemeSettingsPage />);
   for (const label of ["밝은 화면", "아주 크게", "고정폭", "왼쪽 선", "초록"]) {
     press(tree, label);
@@ -61,36 +58,16 @@ test("테마 페이지의 다섯 설정은 서로 유지되며 선택 상태와 
     ...DEFAULT_SETTINGS, variation: "minimal", fontScale: 1.6,
     fontFamily: "mono", blockStyle: "quote", accentChoice: "#1f8a5b",
   });
-  const body = tree.root.findAllByProps({ testID: 'theme-preview-body' })[0];
-  expect(body!.props.style.fontSize).toBe(27);
   const { Uniwind } = jest.requireMock('uniwind');
   expect(Uniwind.setTheme).not.toHaveBeenCalled();
   act(() => { tree.unmount(); });
 });
 
-test("배경을 바꿔도 명시한 강조색과 인용 모양이 유지되고 기본값으로 돌아갈 수 있다", () => {
-  const tree = mount(<ThemeSettingsPage />);
-  press(tree, "초록");
-  press(tree, "카드");
-  press(tree, "어두운 화면");
-  expect(useSettingsStore.getState().settings).toMatchObject({
-    variation: 'dark', accentChoice: '#1f8a5b', blockStyle: 'card',
-  });
-  const defaults = [...tree.root.findAllByType(Button), ...tree.root.findAllByType(SettingRow)]
-    .filter((node) => node.props.label === '테마에 맞추기');
-  expect(defaults).toHaveLength(2);
-  act(() => { defaults.forEach((node) => node.props.onPress()); });
-  expect(useSettingsStore.getState().settings).toMatchObject({ accentChoice: 'default', blockStyle: 'default' });
-  act(() => { tree.unmount(); });
-});
-
-test("모바일은 전체 미리보기 없이 작은 견본으로 같은 설정을 고른다", () => {
-  mockLayoutMode = 'sheet';
+test("폰·태블릿 구분 없이 전체 미리보기 없이 작은 견본 행으로 고른다", () => {
   const tree = mount(<ThemeSettingsPage />);
   expect(tree.root.findAllByProps({ testID: 'theme-preview-body' })).toHaveLength(0);
   for (const row of tree.root.findAllByType(SettingRow)) {
     expect(row.props.leading).toBeTruthy();
-    expect(row.props.preview).toBe(false);
     expect(row.props.description).toBeUndefined();
     expect(row.props.accessibilityHint).toBeTruthy();
   }
@@ -98,20 +75,11 @@ test("모바일은 전체 미리보기 없이 작은 견본으로 같은 설정�
   expect(useSettingsStore.getState().settings).toMatchObject({
     variation: 'paper', fontScale: 1.6, fontFamily: 'serif', blockStyle: 'collapse', accentChoice: '#1f8a5b',
   });
-  mockLayoutMode = 'sidebar';
-  act(() => { tree.update(<ThemeSettingsPage />); });
-  expect(tree.root.findAllByProps({ testID: 'theme-preview-body' }).length).toBeGreaterThan(0);
-  expect(useSettingsStore.getState().settings.fontFamily).toBe('serif');
   act(() => { tree.unmount(); });
 });
 
-
-test("예시 구절을 접고 펼치는 조작은 저장된 설정을 바꾸지 않는다", () => {
-  const tree = mount(<ThemeSettingsPage />);
-  press(tree, "미리보기 구절 접기");
-  expect(tree.root.findAllByProps({ accessibilityLabel: "미리보기 구절 펼치기" }).length).toBeGreaterThan(0);
-  expect(useSettingsStore.getState().settings).toEqual(DEFAULT_SETTINGS);
-  press(tree, "미리보기 구절 펼치기");
-  expect(useSettingsStore.getState().settings).toEqual(DEFAULT_SETTINGS);
+test("설정 화면에는 내보내기 섹션이 없다", () => {
+  const tree = mount(<SettingsPage />);
+  expect(JSON.stringify(tree.toJSON())).not.toContain("내보내기");
   act(() => { tree.unmount(); });
 });

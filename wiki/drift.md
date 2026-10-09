@@ -251,7 +251,7 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 ### B33. ~~WebView 노트 본문에 테마 설정 세 축이 연결되지 않았다~~ **해소(2026-10-09)**
 `ThemeProvider`는 `fontScale`·`fontStack`·`blockStyle`을 계산했지만 `RichNoteEditor`는 색만 CSS로 전달했다. 본문은 17px로 고정되고 인용도 항상 왼쪽 선 모양이었다. `RULE-SET-004`의 인용 모양 설명과 `RULE-SET-005`의 본문 배율 설명은 현재 편집기에는 맞지 않았다.
 
-`editorThemeCss`로 첫 HTML과 이후 CSS 갱신에 다섯 테마 축을 모두 전달한다. 인용 접기는 DOM 표시만 바꾸며, `verse-appearance.test.ts`가 구절 JSON 유지·참조 편집 이벤트 분리·다른 모양 선택 시 본문 복귀를 확인한다. 설정은 별도 테마 변경 페이지에서 견본과 함께 선택한다.
+`editorThemeCss`로 첫 HTML과 이후 CSS 갱신에 다섯 테마 축을 모두 전달한다. 인용 접기는 DOM 표시만 바꾸며, `verse-appearance.test.ts`가 구절 JSON 유지·참조 편집 이벤트 분리·다른 모양 선택 시 본문 복귀를 확인한다. 설정은 별도 테마 변경 페이지에서 견본과 함께 선택한다. 태블릿에도 폰과 같은 한 열 견본 화면을 쓴다(전체 예시 노트 미리보기는 제거).
 
 ---
 

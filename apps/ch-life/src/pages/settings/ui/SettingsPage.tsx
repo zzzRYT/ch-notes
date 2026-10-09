@@ -48,13 +48,6 @@ export function SettingsPage() {
         </View>
 
         <View className={SECTION}>
-          <Text className={SECTION_TITLE}>내보내기</Text>
-          <Text className={`${HINT} text-ink-3`}>
-            내보내기는 노트 화면 오른쪽 위의 ↑ 버튼을 사용하세요.
-          </Text>
-        </View>
-
-        <View className={SECTION}>
           <Text className={SECTION_TITLE}>정보</Text>
           <Text className="text-ink">버전 {version}</Text>
           <SettingRow
