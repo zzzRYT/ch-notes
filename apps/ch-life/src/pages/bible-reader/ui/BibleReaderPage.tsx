@@ -6,13 +6,12 @@ import { BibleReader, useBiblePosition } from "@/widgets/scripture-browser";
 
 /**
  * Full-screen, read-only Bible reader reached from the notes list header.
- * Unlike the editor's modal browser, there is no insert affordance here —
- * this is purely for reading (insertMode="none"). Reading position is shared
- * with the editor modal via useBiblePosition (settings.lastBibleRef).
+ * It starts at the book list; the editor browser still remembers the last
+ * selected book and chapter through settings.lastBibleRef.
  */
 export function BibleReaderPage() {
   const router = useRouter();
-  const { initialRef, onPositionChange } = useBiblePosition();
+  const { onPositionChange } = useBiblePosition();
   const [title, setTitle] = useState("성경");
 
   return (
@@ -23,11 +22,9 @@ export function BibleReaderPage() {
       />
       <BibleReader
         insertMode="none"
-        initialRef={initialRef}
         onPositionChange={onPositionChange}
         onTitleChange={(next) => setTitle(next)}
       />
     </View>
   );
 }
-
