@@ -1,6 +1,6 @@
 name: 버그 신고
 description: 앱이 의도와 다르게 동작합니다
-labels: ["type:bug"]
+labels: ["type:bug", "deploy:pending"]
 body:
   - type: markdown
     attributes:
