@@ -1,6 +1,6 @@
 name: 기능 제안
 description: 이런 게 있으면 좋겠습니다
-labels: ["type:feat"]
+labels: ["type:feat", "deploy:pending"]
 body:
   - type: markdown
     attributes:
