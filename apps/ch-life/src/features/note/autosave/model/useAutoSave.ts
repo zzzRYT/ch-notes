@@ -1,17 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { BlockNode } from "@/entities/note";
-import { extractCitedRefs } from "@/entities/note";
-
-type SaveState = {
-  title: string | null;
-  body: BlockNode[];
-  sermonDate: string | null;
-  preacher: string | null;
-  location: string | null;
-  scripture: string | null;
-};
-
-type SavePayload = SaveState & { citedRefs: string[] };
+import { buildSavePayload, type SavePayload } from "./save-payload";
 
 type SaveFn = (patch: SavePayload) => Promise<void>;
 
@@ -19,18 +8,6 @@ export type AutoSaveHandle = {
   flush: () => Promise<void>;
   cancel: () => void;
 };
-
-export function buildSavePayload(state: SaveState): SavePayload {
-  return {
-    title: state.title,
-    body: state.body,
-    citedRefs: extractCitedRefs(state.body),
-    sermonDate: state.sermonDate,
-    preacher: state.preacher,
-    location: state.location,
-    scripture: state.scripture,
-  };
-}
 
 export function useAutoSave(opts: {
   title: string | null;

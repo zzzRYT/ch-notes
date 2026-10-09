@@ -55,7 +55,7 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · RULE-REF-001 · RULE-REF-002 · RULE-REF-003 · RULE-REF-004 · RULE-REF-005 · [CONTRACT-BIBLE-JSON](contracts/CONTRACT-BIBLE-JSON.md)
 
-**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
+**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{bible-lookup,verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
 **테스트** `src/entities/scripture/model/__tests__/*.test.ts` · `src/entities/scripture/api/__tests__/*.test.ts` (5/5 자동 증거)
 
 **같은 변경에서 함께 고친다**
@@ -195,6 +195,8 @@
 ---
 
 ## 7. UI·테마·레이아웃·접근성
+
+설정 화면의 조작 UI는 `src/shared/ui/{Button,IconButton,SettingRow}.tsx`를 쓴다. 사용 예시와 실기기 검수 항목은 `src/shared/ui/README.md`에 있다.
 
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 

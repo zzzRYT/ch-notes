@@ -193,7 +193,7 @@ requirement: MUST
 statement: 노트의 citedRefs는 사용자가 관리하는 값이 아니라, 저장 시점에 body의 quote 블록에서 등장 순서대로 중복 없이 추출한 결과다.
 implemented_by:
   - apps/ch-life/src/entities/note/model/cited-refs.ts
-  - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (buildSavePayload)
+  - apps/ch-life/src/features/note/autosave/model/save-payload.ts (buildSavePayload)
 verified_by:
   - test: apps/ch-life/src/entities/note/model/__tests__/cited-refs.test.ts
   - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts

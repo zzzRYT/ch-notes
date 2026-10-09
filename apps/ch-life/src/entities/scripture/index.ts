@@ -4,6 +4,7 @@ export { parseRef, type ParsedRef } from "./model/ref-parser";
 export { formatRef } from "./model/format-ref";
 export type { Verse } from "./model/types";
 export { BUNDLED_EDITION_ID } from "./model/edition";
+export { createBibleLookup } from "./api/bible-lookup";
 export { lookupVerses } from "./api/verse-lookup";
 export {
   BOOKS_META,
