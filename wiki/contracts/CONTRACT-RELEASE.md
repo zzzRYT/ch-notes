@@ -52,7 +52,7 @@ main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 �
 
 `production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 
-⚠️ **OTA 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
+**2026-10-09에 1.0.3+1과 1.0.4+1의 production OTA 발행을 확인했다.** 이전 R2 자격증명 오류는 해소 상태다([`../drift.md`](../drift.md) B19). 실제 기기 적용은 발행 결과와 별도로 확인한다.
 
 빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
 

@@ -131,8 +131,8 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 
 **2026-09-06에 원인을 걷어냈다** — 루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`과 `packages/editor-core` 스캐폴드를 `main`에서 제거했다 — 스캐폴드를 `main`에 둘 것인가라는 질문(옛 E15)의 답이다. 앱을 아무도 소비하지 않는 패키지 하나 때문에 세 워크플로가 우회 플래그를 달고 있을 이유가 없다. 플래그도 함께 지웠다. Phase 2를 시작할 때 브랜치에서 다시 세우고, 앱이 실제로 그 패키지를 쓰기 전까지 `main`에 올리지 않는다(`docs/editor-core/extraction-plan.md`).
 
-### B19. OTA는 한 번도 성공한 적이 없다
-`hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
+### B19. R2 자격증명 형식 오류로 OTA 실패 — 해소됨
+`hot-updater` 전환 직후 OTA 워크플로가 **같은 지점에서 실패했다**(`33952417840`, `33954929255`).
 
 ```
 ◆  ✅ Bundle Signing Complete
@@ -141,9 +141,11 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 ■  Failed to upload bundle to storage
 ```
 
-번들 생성·Hermes 컴파일·서명까지는 전부 통과하고 **R2 업로드에서만** 죽는다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있다 — 다른 자격증명(API 토큰 등)을 이 슬롯에 넣었을 가능성이 크다.
+당시 번들 생성·Hermes 컴파일·서명까지는 통과하고 **R2 업로드에서만** 실패했다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있었다.
 
-워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다. 다만 **시크릿 값 자체는 아직 고쳐지지 않았다.** 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 OTA 경로는 **실제로는 닫혀 있다.**
+워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다.
+
+**2026-10-09에 해소 상태를 확인했다.** `release/1.0.3`의 [production 발행](https://github.com/zzzRYT/ch-notes/actions/runs/37890296322)과 `release/1.0.4`의 [production 발행](https://github.com/zzzRYT/ch-notes/actions/runs/37890274387)이 모두 CI·자격증명 검사·서명·R2 업로드·D1 등록을 통과했다. 각 앱 버전에 iOS/Android 번들이 등록됐고 태그는 `v1.0.3+1`, `v1.0.4+1`이다. 실제 기기에서의 다운로드·적용과 화면 검수는 별도 확인이 필요하다.
 
 ### B20. 알 수 없는 블록 타입은 조용히 사라지거나 앱을 깨뜨린다
 `BlockNode`는 닫힌 유니온이지만, 그 값을 읽는 네 경로 중 **모르는 `type`을 다룰 준비가 된 곳이 하나도 없다.**
