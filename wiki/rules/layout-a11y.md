@@ -81,6 +81,7 @@ implemented_by:
   - apps/ch-life/src/shared/ui/IconButton.tsx
   - apps/ch-life/src/shared/ui/SettingRow.tsx
   - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/pages/settings/ui/ThemeSettingsPage.tsx
   - apps/ch-life/src/widgets/scripture-browser/ui/VerseList.tsx
   - apps/ch-life/src/pages/notes/ui/NoteCard.tsx
 verified_by:
@@ -108,6 +109,7 @@ statement: 인용 블록은 색 막대나 배경만이 아니라 참조 라벨�
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
   - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/pages/settings/ui/ThemeSettingsPage.tsx
 verified_by:
   - manual: 흑백 모드에서 인용 블록과 선택 상태를 구분할 수 있다
 confidence: 기록됨

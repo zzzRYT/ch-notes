@@ -199,6 +199,8 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 웹(react-native-web)에서는 CSS 문법이 그대로 동작해 제네릭 `serif`/`monospace` 차이는 난다 — **네이티브와 웹의 동작이 갈린다**(E7과 연결). → [`RULE-SET-005`](rules/settings-theme.md)
 
+**2026-10-09 부분 해소.** WebView 노트 본문에는 `editorThemeCss`가 글꼴 스택을 CSS로 전달하므로 서체 선택이 반영된다. 테마 미리보기는 플랫폼 기본 서체로 견본을 그린다. 네이티브 UI의 폰트 스택 제약과 폰트 파일 미번들링은 그대로 남아 있다.
+
 ### B25. `theme.isDark`는 계산만 되고 소비처가 없다
 `src/shared/ui/ThemeProvider.tsx:211`에서 `isDark: variation === "dark"`로 계산되어 `Theme` 타입에 실리지만, 앱 전체에서 이 필드를 읽는 코드가 **0건**이다(정의부 3줄 — `:37`, `:185`, `:211` — 이 전부). 다크 화면은 `isDark` 분기가 아니라 `DARK` 팔레트 값 자체로 렌더링된다. [`RULE-SET-003`](rules/settings-theme.md)은 `isDark`의 정의를 서술하지만 그것이 미사용이라는 사실은 적지 않는다. → [`ADR-0010`](decisions/ADR-0010-variation-theming.md)
 
@@ -245,6 +247,13 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 순수 로직(`replaceQuoteRef`·`toggleInlineMark`·`list-blocks`)과 그 테스트는 살아 있다. 정할 것은 두 가지다. ⑴ 인용 고치기를 WebView 에디터로 옮길 것인가, ⑵ 네이티브 에디터와 RULE-EDIT-015·016을 걷어낼 것인가([`ADR-0027`](decisions/ADR-0027-webview-rich-editor.md)이 채택되면 뒤집히는 ADR-0001과 함께).
 
 **2026-09-27 갱신.** ⑴은 사용자 결정으로 옮겼다 — WebView의 인용 카드를 누르면 `verse-bridge`가 RN에 알리고, RN이 같은 `QuoteEditModal`·`replaceQuoteRef`로 새 인용을 만들어 그 자리 노드를 바꾼다([`RULE-EDIT-014`](rules/editor-insert.md)). 남은 것은 ⑵다.
+
+### B33. ~~WebView 노트 본문에 테마 설정 세 축이 연결되지 않았다~~ **해소(2026-10-09)**
+`ThemeProvider`는 `fontScale`·`fontStack`·`blockStyle`을 계산했지만 `RichNoteEditor`는 색만 CSS로 전달했다. 본문은 17px로 고정되고 인용도 항상 왼쪽 선 모양이었다. `RULE-SET-004`의 인용 모양 설명과 `RULE-SET-005`의 본문 배율 설명은 현재 편집기에는 맞지 않았다.
+
+`editorThemeCss`로 첫 HTML과 이후 CSS 갱신에 다섯 테마 축을 모두 전달한다. 인용 접기는 DOM 표시만 바꾸며, `verse-appearance.test.ts`가 구절 JSON 유지·참조 편집 이벤트 분리·다른 모양 선택 시 본문 복귀를 확인한다. 설정은 별도 테마 변경 페이지에서 견본과 함께 선택한다. 태블릿에도 폰과 같은 한 열 견본 화면을 쓴다(전체 예시 노트 미리보기는 제거).
+
+---
 
 ## C. 테스트(오라클)의 신뢰도 문제
 

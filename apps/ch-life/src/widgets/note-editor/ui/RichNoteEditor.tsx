@@ -31,6 +31,7 @@ import {
   VerseQuoteBridge,
   type VerseEdit,
 } from '../lib/verse-bridge';
+import { editorThemeCss } from '../lib/editor-theme';
 import { EditorSkeleton } from './EditorSkeleton';
 import { QuoteEditModal } from './QuoteEditModal';
 
@@ -66,7 +67,8 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   { body, onChangeBody, header },
   ref,
 ) {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const insets = useSafeAreaInsets();
   // 에디터 안에 지금 들어 있는 본문. 에디터가 보낸 변경(메아리)과 바깥 변경을 가른다.
   const shownRef = useRef(JSON.stringify(body));
@@ -78,7 +80,7 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
     [],
   );
 
-  const css = `:root{--rt-ink:${colors.ink};--rt-ink2:${colors.ink2};--rt-ink3:${colors.ink3};--rt-bg:${colors.bg};--rt-accent:${colors.accent};--rt-accent-soft:${colors.accentSoft};--rt-rule:${colors.rule};}body{background:${colors.bg};}`;
+  const css = editorThemeCss(theme);
   // 테마 CSS를 HTML에 처음부터 넣는다 — 로드 뒤 주입하면 기본 색으로 한 번 그려졌다
   // 바뀌며 깜빡인다. 마운트 때 한 번만 만든다(바꾸면 WebView가 다시 로드된다).
   // 태그는 injectCSS와 같은 data-tag라서 이후 테마 변경은 이 <style>을 덮어쓴다.
