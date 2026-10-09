@@ -12,6 +12,8 @@ jest.mock("@/features/support/contact", () => ({
   useContactSupport: () => ({ openContact: jest.fn(), showAddressFallback: false, supportEmail: "test@example.com" }),
 }));
 const mockPush = jest.fn();
+let mockLayoutMode: 'sheet' | 'sidebar' = 'sidebar';
+jest.mock('@/shared/lib', () => ({ useResponsiveLayout: () => ({ mode: mockLayoutMode }) }));
 jest.mock("expo-router", () => ({ useRouter: () => ({ back: jest.fn(), push: mockPush }) }));
 jest.mock("uniwind", () => ({ Uniwind: { setTheme: jest.fn(), updateCSSVariables: jest.fn() } }));
 jest.mock("react-native-safe-area-context", () => ({
@@ -21,6 +23,7 @@ jest.mock("react-native-safe-area-context", () => ({
 beforeEach(() => {
   useSettingsStore.setState({ settings: { ...DEFAULT_SETTINGS } });
   mockPush.mockClear();
+  mockLayoutMode = 'sidebar';
 });
 afterEach(() => act(() => { useSettingsStore.setState({ settings: { ...DEFAULT_SETTINGS } }); }));
 
@@ -78,6 +81,27 @@ test("배경을 바꿔도 명시한 강조색과 인용 모양이 유지되고 �
   expect(defaults).toHaveLength(2);
   act(() => { defaults.forEach((node) => node.props.onPress()); });
   expect(useSettingsStore.getState().settings).toMatchObject({ accentChoice: 'default', blockStyle: 'default' });
+  act(() => { tree.unmount(); });
+});
+
+test("모바일은 전체 미리보기 없이 작은 견본으로 같은 설정을 고른다", () => {
+  mockLayoutMode = 'sheet';
+  const tree = mount(<ThemeSettingsPage />);
+  expect(tree.root.findAllByProps({ testID: 'theme-preview-body' })).toHaveLength(0);
+  for (const row of tree.root.findAllByType(SettingRow)) {
+    expect(row.props.leading).toBeTruthy();
+    expect(row.props.preview).toBe(false);
+    expect(row.props.description).toBeUndefined();
+    expect(row.props.accessibilityHint).toBeTruthy();
+  }
+  for (const label of ['종이색', '아주 크게', '명조', '접고 펼치기', '초록']) press(tree, label);
+  expect(useSettingsStore.getState().settings).toMatchObject({
+    variation: 'paper', fontScale: 1.6, fontFamily: 'serif', blockStyle: 'collapse', accentChoice: '#1f8a5b',
+  });
+  mockLayoutMode = 'sidebar';
+  act(() => { tree.update(<ThemeSettingsPage />); });
+  expect(tree.root.findAllByProps({ testID: 'theme-preview-body' }).length).toBeGreaterThan(0);
+  expect(useSettingsStore.getState().settings.fontFamily).toBe('serif');
   act(() => { tree.unmount(); });
 });
 

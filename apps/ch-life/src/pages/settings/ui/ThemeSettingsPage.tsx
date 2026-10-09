@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FONT_SCALE_OPTIONS, useSettingsStore } from '@/features/settings/change';
+import { useResponsiveLayout } from '@/shared/lib';
 import {
   ACCENT_OPTIONS,
   BLOCK_STYLE_OPTIONS,
@@ -23,6 +24,7 @@ export function ThemeSettingsPage() {
   const setSettings = useSettingsStore((s) => s.setSettings);
   const router = useRouter();
   const theme = resolveTheme(settings);
+  const compact = useResponsiveLayout().mode === 'sheet';
 
   return (
     <View className="flex-1 bg-bg">
@@ -31,10 +33,10 @@ export function ThemeSettingsPage() {
         title="테마 변경"
         showRule
       />
-      <ScrollView className="flex-1" contentContainerClassName="p-4 gap-8 pb-20">
+      <ScrollView className="flex-1" contentContainerClassName={compact ? 'p-4 gap-5 pb-8' : 'p-4 gap-8 pb-20'}>
         <View className="gap-3">
           <Text className="text-label text-ink-2">선택하면 바로 적용됩니다.</Text>
-          <NotePreview theme={theme} />
+          {!compact && <NotePreview theme={theme} />}
         </View>
 
         <View className="gap-3">
@@ -45,10 +47,18 @@ export function ThemeSettingsPage() {
               <SettingRow
                 key={o.value}
                 label={o.label}
-                description={o.hint}
+                description={compact ? undefined : o.hint}
+                accessibilityHint={o.hint}
                 selected={settings.variation === o.value}
                 onPress={() => setSettings({ variation: o.value })}
-                preview={
+                leading={compact && (
+                  <View className="size-8 rounded-8 border-hairline items-center justify-center"
+                    style={{ backgroundColor: candidate.colors.bg, borderColor: theme.colors.ink4 }}
+                    accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                    <Text style={{ color: candidate.colors.ink, fontSize: 16 }}>가</Text>
+                  </View>
+                )}
+                preview={!compact && (
                   <View
                     className="gap-2 rounded-8 p-3 border-hairline"
                     style={{ backgroundColor: candidate.colors.bg, borderColor: candidate.colors.rule }}
@@ -59,7 +69,7 @@ export function ThemeSettingsPage() {
                     <Text className="text-body font-semibold" style={{ color: candidate.colors.ink }}>주일 설교</Text>
                     <Text className="text-label" style={{ color: candidate.colors.accent }}>오늘 마음에 남은 말씀</Text>
                   </View>
-                }
+                )}
               />
             );
           })}
@@ -67,7 +77,7 @@ export function ThemeSettingsPage() {
 
         <View className="gap-3">
           <Text className={TITLE}>글자 크기</Text>
-          <Text className={HINT}>위 예시에서 읽기 편한 크기를 확인하세요.</Text>
+          {!compact && <Text className={HINT}>위 예시에서 읽기 편한 크기를 확인하세요.</Text>}
           <View className={ROW}>
             {FONT_SCALE_OPTIONS.map((o) => (
               <Button key={o.value} label={o.label} selected={settings.fontScale === o.value}
@@ -79,30 +89,41 @@ export function ThemeSettingsPage() {
 
         <View className="gap-3">
           <Text className={TITLE}>글꼴</Text>
-          <Text className={HINT}>노트 본문의 글꼴을 바꿉니다. 기기에 따라 모양이 다를 수 있습니다.</Text>
+          {!compact && <Text className={HINT}>노트 본문의 글꼴을 바꿉니다. 기기에 따라 모양이 다를 수 있습니다.</Text>}
           <View className={ROW}>
             {FONT_FAMILY_OPTIONS.map((o) => (
               <Button key={o.value} label={o.label} selected={settings.fontFamily === o.value}
                 onPress={() => setSettings({ fontFamily: o.value })}
                 leading={<Text className={settings.fontFamily === o.value ? 'text-paper text-body' : 'text-ink text-body'}
-                  style={{ fontFamily: previewFont(resolveTheme({ ...settings, fontFamily: o.value })) }}>가 Aa</Text>} />
+                  style={{ fontFamily: previewFont(resolveTheme({ ...settings, fontFamily: o.value })) }}>{compact ? 'Aa' : '가 Aa'}</Text>} />
             ))}
           </View>
         </View>
 
         <View className="gap-3">
           <Text className={TITLE}>성경 인용 모양</Text>
-          {BLOCK_STYLE_OPTIONS.map((o) => (
-            <SettingRow key={o.value} label={o.label} description={o.hint}
+          {BLOCK_STYLE_OPTIONS.map((o) => {
+            const candidate = resolveTheme({ ...settings, blockStyle: o.value });
+            return <SettingRow key={o.value} label={o.label} description={compact ? undefined : o.hint} accessibilityHint={o.hint}
               selected={settings.blockStyle === o.value}
               onPress={() => setSettings({ blockStyle: o.value })}
-              preview={<QuotePreview theme={resolveTheme({ ...settings, blockStyle: o.value })} />} />
-          ))}
+              leading={compact && (
+                <View className="size-8 rounded-8 items-center justify-center"
+                  style={{ backgroundColor: candidate.blockStyle === 'quote' ? theme.colors.accentSoft : theme.colors.paper,
+                    borderColor: candidate.blockStyle === 'quote' ? theme.colors.accent : theme.colors.ink4,
+                    borderWidth: candidate.blockStyle === 'quote' ? 0 : 1,
+                    borderLeftWidth: candidate.blockStyle === 'quote' ? 3 : 1 }}
+                  accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                  <Text style={{ color: theme.colors.accent, fontSize: 14 }}>{candidate.blockStyle === 'collapse' ? '▾' : '가'}</Text>
+                </View>
+              )}
+              preview={!compact && <QuotePreview theme={candidate} />} />;
+          })}
         </View>
 
         <View className="gap-3">
           <Text className={TITLE}>강조색</Text>
-          <Text className={HINT}>성경 참조와 선택 표시 등에 쓰는 색입니다.</Text>
+          {!compact && <Text className={HINT}>성경 참조와 선택 표시 등에 쓰는 색입니다.</Text>}
           <View className={ROW}>
             {ACCENT_OPTIONS.map((o) => (
               <Button key={o.value} label={o.label} selected={settings.accentChoice === o.value}

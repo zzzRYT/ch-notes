@@ -8,8 +8,10 @@ export function SettingRow({
   onPress,
   selected,
   preview,
+  leading,
   disabled = false,
   accessibilityLabel = label,
+  accessibilityHint = description,
   accessibilityRole = "button",
 }: {
   label: string;
@@ -18,8 +20,10 @@ export function SettingRow({
   onPress: () => void;
   selected?: boolean;
   preview?: React.ReactNode;
+  leading?: React.ReactNode;
   disabled?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   accessibilityRole?: "button" | "link";
 }) {
   return (
@@ -28,7 +32,7 @@ export function SettingRow({
       disabled={disabled}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
-      accessibilityHint={description}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ selected, disabled }}
       className={`gap-3 py-3 justify-center ${
         selected !== undefined
@@ -39,6 +43,7 @@ export function SettingRow({
       } ${disabled ? "opacity-40" : "active:opacity-60"}`}
     >
       <View className="flex-row items-center justify-between gap-3">
+        {leading}
         <View className="flex-1 min-w-0 gap-0.5">
           <Text className={`text-body text-ink ${description ? "font-semibold" : ""}`}>
             {label}
