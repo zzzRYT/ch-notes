@@ -5,8 +5,10 @@ import {
   isHorizontalSwipe,
   settleSwipeOffset,
 } from "../lib/swipe-geometry";
+import { scaled, useTheme } from "./ThemeProvider";
 
-const ACTION_WIDTH = 84;
+// 기본 폭. 글자를 키운 만큼 늘려 "삭제"가 잘리지 않게 한다(POL-A11Y-001).
+const BASE_ACTION_WIDTH = 84;
 
 type Props = {
   open: boolean;
@@ -25,6 +27,8 @@ export function SwipeToDelete({
   deleteLabel,
   children,
 }: Props) {
+  const { fontScale } = useTheme();
+  const actionWidth = scaled(BASE_ACTION_WIDTH, fontScale);
   const translateX = useRef(new Animated.Value(0)).current;
   const startOffset = useRef(0);
 
@@ -38,8 +42,8 @@ export function SwipeToDelete({
   }, [translateX]);
 
   useEffect(() => {
-    animateTo(open ? -ACTION_WIDTH : 0);
-  }, [open, animateTo]);
+    animateTo(open ? -actionWidth : 0);
+  }, [open, animateTo, actionWidth]);
 
   const panResponder = useMemo(
     () =>
@@ -57,28 +61,28 @@ export function SwipeToDelete({
         onMoveShouldSetPanResponderCapture: (_, gesture) =>
           isHorizontalSwipe(gesture.dx, gesture.dy),
         onPanResponderGrant: () => {
-          startOffset.current = open ? -ACTION_WIDTH : 0;
+          startOffset.current = open ? -actionWidth : 0;
           translateX.stopAnimation();
         },
         onPanResponderMove: (_, gesture) => {
           translateX.setValue(
             clampSwipeOffset(
               startOffset.current + gesture.dx,
-              ACTION_WIDTH,
+              actionWidth,
             ),
           );
         },
         onPanResponderRelease: (_, gesture) => {
           const finalOffset = clampSwipeOffset(
             startOffset.current + gesture.dx,
-            ACTION_WIDTH,
+            actionWidth,
           );
           const target = settleSwipeOffset(
             finalOffset,
-            ACTION_WIDTH,
+            actionWidth,
             gesture.vx,
           );
-          if (target === -ACTION_WIDTH) onOpen();
+          if (target === -actionWidth) onOpen();
           else onClose();
           animateTo(target);
         },
@@ -88,13 +92,13 @@ export function SwipeToDelete({
         },
         onPanResponderTerminationRequest: () => true,
       }),
-    [open, onOpen, onClose, translateX, animateTo],
+    [open, onOpen, onClose, translateX, animateTo, actionWidth],
   );
 
   // 자식 배경이 반투명(예: 선택 행의 accent-soft)이어도 삭제 레이어가 비치지 않게,
   // 행이 왼쪽으로 실제 움직인 만큼만 드러낸다.
   const actionOpacity = translateX.interpolate({
-    inputRange: [-ACTION_WIDTH / 2, 0],
+    inputRange: [-actionWidth / 2, 0],
     outputRange: [1, 0],
     extrapolate: "clamp",
   });
@@ -108,7 +112,7 @@ export function SwipeToDelete({
           top: 0,
           right: 0,
           bottom: 0,
-          width: ACTION_WIDTH,
+          width: actionWidth,
           opacity: actionOpacity,
         }}
       >
