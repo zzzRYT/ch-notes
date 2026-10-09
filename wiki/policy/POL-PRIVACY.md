@@ -10,14 +10,14 @@ confidence: 기록됨
 waiver: 네트워크 코드의 부재로 성립하는 정책이라 자동 검증 수단이 없다. 릴리스 전 의존성·통신 경로 수동 점검으로 대신한다.
 source:
   - docs/legal/privacy-policy.md 1~6장
-  - docs/store/store-listing.md (Data Safety - No data collected)
+  - docs/store/store-listing.md (Data Safety · App Privacy, 1.0.3 갱신)
   - DESIGN.md "Constraints" (로컬 저장 V1)
   - wiki/decisions/ADR-0029-firebase-analytics.md
 ```
 
 모든 노트·설정은 기기 내부(SQLite + `settings.json`)에만 저장된다. 네트워크 통신은 **OTA 업데이트 확인**과 **Firebase Analytics 자동 수집 이벤트** 두 가지다. 앱 코드는 Analytics에 이벤트를 직접 보내지 않으며, 광고 식별자(IDFA)는 쓰지 않는다([`ADR-0029`](../decisions/ADR-0029-firebase-analytics.md)).
 
-이 정책은 스토어 심사에 제출된 공개 약속이다. ⚠️ Analytics를 넣으며 App Store "App Privacy"·Play "Data safety" 신고를 "수집 없음"에서 바꿔야 한다 — 코드와 신고가 어긋나면 안 된다. 어떤 기능도 이 정책을 넘어설 수 없다.
+이 정책은 스토어 심사에 제출된 공개 약속이다. App Store "App Privacy"·Play "Data safety" 신고는 1.0.3 제출과 함께(2026-09-27) "수집 없음"에서 분석 목적 익명 수집(대략적 위치·기기 ID·앱 상호작용, 연결·추적·공유 없음)으로 바꿨다(`docs/store/store-listing.md`). 코드와 신고가 어긋나면 안 된다. 어떤 기능도 이 정책을 넘어설 수 없다.
 
 ### 이 정책의 귀결 — 관측 계층이 얕다
 

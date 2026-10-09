@@ -77,6 +77,9 @@ requirement: SHOULD
 statement: 모든 조작 요소는 44~48px 이상의 터치 영역을 갖고, 한국어 accessibilityLabel과 적절한 accessibilityRole을 가진다.
 implemented_by:
   - apps/ch-life/src/shared/ui/HeaderControls.tsx
+  - apps/ch-life/src/shared/ui/Button.tsx
+  - apps/ch-life/src/shared/ui/IconButton.tsx
+  - apps/ch-life/src/shared/ui/SettingRow.tsx
   - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
   - apps/ch-life/src/widgets/scripture-browser/ui/VerseList.tsx
   - apps/ch-life/src/pages/notes/ui/NoteCard.tsx
@@ -88,6 +91,8 @@ source:
 ```
 
 작은 아이콘에는 `hitSlop`으로 실제 터치 영역을 넓힌다. 노트 카드는 시각·제목·설교자·생명양식을 한 문장으로 합쳐 읽어 준다.
+
+설정 화면의 버튼·아이콘 버튼·설정 행은 `shared/ui` 공통 컴포넌트를 쓴다. 눌림은 투명도, 비활성은 입력 차단과 `accessibilityState.disabled`, 선택은 `accessibilityState.selected`로 표시한다. 라벨은 큰 글씨에서 줄바꿈한다. 사용 예시는 [`shared/ui/README.md`](../../apps/ch-life/src/shared/ui/README.md)에 있다.
 
 목록의 왼쪽 스와이프는 세로 스크롤보다 수평 이동이 뚜렷할 때만 선점한다. 절반 이상 끌거나 빠르게 왼쪽으로 플릭하면 84px 삭제 영역을 열고, 빠르게 오른쪽으로 플릭하면 닫는다(`shared/lib/swipe-geometry.ts`).
 
