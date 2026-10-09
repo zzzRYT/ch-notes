@@ -168,7 +168,7 @@ function PhoneNotesList() {
                 className="py-2 text-label min-h-10 text-ink"
                 value={query}
                 onChangeText={setQuery}
-                placeholder="검색 — 제목, 본문, 인용"
+                placeholder="검색 — 제목, 인용"
                 placeholderTextColorClassName="text-ink-3"
                 accessibilityLabel="노트 검색"
                 autoCorrect={false}
