@@ -5,20 +5,12 @@ import React, {
   useMemo,
 } from "react";
 import { Uniwind } from "uniwind";
-
-// 테마를 결정하는 표현 축. 도메인 의미가 없으므로 여기(shared)가 정본이고,
-// 설정 모델(features/settings)이 이 타입을 가져다 쓴다.
-export type Variation = "minimal" | "paper" | "focus" | "dark";
-export type BlockStyle = "default" | "card" | "quote" | "collapse";
-export type FontFamily = "sans" | "serif" | "mono";
-export type AccentChoice =
-  | "default"
-  | "#1e6fd9"
-  | "#b15c2e"
-  | "#1f8a5b"
-  | "#f5b35e"
-  | "#7a5af0"
-  | "#6b7280";
+import type {
+  AccentChoice,
+  BlockStyle,
+  FontFamily,
+  Variation,
+} from "@/shared/config";
 
 /** ThemeProvider가 읽는 설정 부분집합. Composition Root가 스토어에서 꺼내 넘긴다. */
 export type ThemeSettings = {
@@ -35,15 +27,11 @@ export type ThemeSettings = {
 export type ThemeColors = {
   // Legacy fields used across the existing app.
   bg: string;
-  surface: string;
-  text: string;
   subtle: string;
-  line: string;
   accent: string;
   accentText: string;
   chipBg: string;
   chipText: string;
-  quoteBar: string;
   errBar: string;
   errBg: string;
   errText: string;
@@ -70,21 +58,17 @@ export type Theme = {
 const MINIMAL: ThemeColors = {
   bg: "#fafaf7",
   paper: "#ffffff",
-  surface: "#ffffff",
   ink: "#0c0a08",
-  text: "#0c0a08",
   ink2: "rgba(12,10,8,0.6)",
   ink3: "rgba(12,10,8,0.4)",
   ink4: "rgba(12,10,8,0.18)",
   subtle: "rgba(12,10,8,0.55)",
   rule: "rgba(12,10,8,0.08)",
-  line: "rgba(12,10,8,0.08)",
   accent: "#1e6fd9",
   accentSoft: "rgba(30,111,217,0.08)",
   accentText: "#ffffff",
   chipBg: "rgba(12,10,8,0.06)",
   chipText: "rgba(12,10,8,0.6)",
-  quoteBar: "rgba(12,10,8,0.18)",
   errBar: "#c8342a",
   errBg: "#fde2e1",
   errText: "#c8342a",
@@ -93,21 +77,17 @@ const MINIMAL: ThemeColors = {
 const PAPER: ThemeColors = {
   bg: "#f7f3ec",
   paper: "#fcf9f3",
-  surface: "#fcf9f3",
   ink: "#1f1a13",
-  text: "#1f1a13",
   ink2: "rgba(31,26,19,0.68)",
   ink3: "rgba(31,26,19,0.44)",
   ink4: "rgba(31,26,19,0.2)",
   subtle: "rgba(31,26,19,0.6)",
   rule: "rgba(31,26,19,0.09)",
-  line: "rgba(31,26,19,0.09)",
   accent: "#b15c2e",
   accentSoft: "rgba(177,92,46,0.09)",
   accentText: "#fcf9f3",
   chipBg: "rgba(31,26,19,0.06)",
   chipText: "rgba(31,26,19,0.6)",
-  quoteBar: "rgba(31,26,19,0.2)",
   errBar: "#9a3823",
   errBg: "rgba(154,56,35,0.12)",
   errText: "#9a3823",
@@ -116,21 +96,17 @@ const PAPER: ThemeColors = {
 const FOCUS: ThemeColors = {
   bg: "#ffffff",
   paper: "#ffffff",
-  surface: "#ffffff",
   ink: "#15140e",
-  text: "#15140e",
   ink2: "rgba(21,20,14,0.55)",
   ink3: "rgba(21,20,14,0.35)",
   ink4: "rgba(21,20,14,0.15)",
   subtle: "rgba(21,20,14,0.5)",
   rule: "rgba(21,20,14,0.06)",
-  line: "rgba(21,20,14,0.06)",
   accent: "#6b7280",
   accentSoft: "rgba(107,114,128,0.08)",
   accentText: "#ffffff",
   chipBg: "rgba(21,20,14,0.05)",
   chipText: "rgba(21,20,14,0.55)",
-  quoteBar: "rgba(21,20,14,0.15)",
   errBar: "#c8342a",
   errBg: "#fde2e1",
   errText: "#c8342a",
@@ -139,21 +115,17 @@ const FOCUS: ThemeColors = {
 const DARK: ThemeColors = {
   bg: "#0e0d0c",
   paper: "#1a1916",
-  surface: "#1a1916",
   ink: "#f5f3ee",
-  text: "#f5f3ee",
   ink2: "rgba(245,243,238,0.66)",
   ink3: "rgba(245,243,238,0.42)",
   ink4: "rgba(245,243,238,0.2)",
   subtle: "rgba(245,243,238,0.6)",
   rule: "rgba(245,243,238,0.1)",
-  line: "rgba(245,243,238,0.1)",
   accent: "#f5b35e",
   accentSoft: "rgba(245,179,94,0.14)",
   accentText: "#1a1916",
   chipBg: "rgba(245,243,238,0.06)",
   chipText: "rgba(245,243,238,0.7)",
-  quoteBar: "rgba(245,243,238,0.2)",
   errBar: "#ff6b6b",
   errBg: "#3a1716",
   errText: "#ff8b80",
@@ -205,8 +177,9 @@ function softenAccent(hex: string): string {
   return `rgba(${r}, ${g}, ${b}, 0.08)`;
 }
 
-// Tailwind 타입 스케일의 base 값. src/app/global.css의 --text-* 와 같아야 한다
+// Tailwind 타입 스케일의 base 값. src/global.css의 --text-* 와 같아야 한다
 // (CSS는 초기값, 여기는 ×fontScale 갱신용). primitives.js text/size/* 가 출처다.
+// 셋이 어긋나면 __tests__/ThemeProvider.test.tsx가 실패한다(drift B31).
 const TEXT_SCALE = {
   display: 30,
   title: 20,
@@ -297,14 +270,3 @@ export function useTheme(): Theme {
 export function scaled(base: number, fontScale: number): number {
   return Math.round(base * fontScale);
 }
-
-export const VARIATION_OPTIONS: ReadonlyArray<{
-  value: Variation;
-  label: string;
-  hint: string;
-}> = [
-  { value: "minimal", label: "A · 미니멀", hint: "깨끗한 화이트 · 파랑" },
-  { value: "paper", label: "B · 종이", hint: "크림 톤 · 갈색" },
-  { value: "focus", label: "C · 포커스", hint: "여백 중심 · 슬레이트" },
-  { value: "dark", label: "D · 다크", hint: "긴 설교용 · 호박" },
-];

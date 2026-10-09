@@ -1,17 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Keyboard, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BookOpen, Share, Trash2 } from 'lucide-react-native';
 import { useNoteRepo } from '@/entities/note';
 import { confirmNoteDelete, deleteNoteWithUndo } from '@/features/note/delete';
 import { exportNote } from '@/features/note/export';
 import { showFeedback } from '@/shared/lib';
-import {
-  AppHeader,
-  HeaderBack,
-  HeaderIconButton,
-  HeaderTextButton,
-} from '@/shared/ui';
+import { AppHeader, HeaderBack, HeaderIconButton } from '@/shared/ui';
 import {
   EditorSkeleton,
   NoteEditor,
@@ -117,7 +112,6 @@ export function NoteEditorPage() {
               tint="error"
               onPress={handleDelete}
             />
-            <HeaderTextButton label="완료" onPress={() => Keyboard.dismiss()} />
           </>
         }
       />
