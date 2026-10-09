@@ -169,7 +169,7 @@
 | [`CONTRACT-DB-NOTES`](contracts/CONTRACT-DB-NOTES.md) | 기록됨 | 노트는 ch-life.db의 notes 테이블에 저장되고, 검색은 notes_fts 가상 테이블에 트리거로 동기화된다. 이 DDL은 두 파일에 중복 기록되어 있으며 항상 함께 바뀌어야 한다. |
 | [`CONTRACT-DOMAIN-NOTE`](contracts/CONTRACT-DOMAIN-NOTE.md) | 코드추론 | 노트 엔티티가 소유하는 Note / BlockNode / CitationVerse 타입 정의. DB 행, 마크다운 파일, 화면 상태가 모두 이 모양으로 수렴한다. 인용 스냅샷은 성경 엔티티를 참조하지 않고 본문·참조·판본(editionId)을 스스로 든다. |
 | [`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md) | 기록됨 | 노트 하나는 YAML frontmatter + 표준 Markdown 본문을 가진 .md 파일 하나로 표현된다. 이 형식은 앱 밖으로 나가므로 하위 호환을 깨면 이미 내보낸 파일을 다시 읽을 수 없다. |
-| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 일곱 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
+| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 여덟 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
 | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) | 기록됨 | 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다. |
 | [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) | 기록됨 | 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 그대로 직렬화된다. fontScale과 themePreference는 필수이며, 나머지 필드는 없거나 잘못돼도 개별 폴백한다. |
 
