@@ -242,13 +242,15 @@
 
 ## 8. 릴리스·개발 하네스
 
-**먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~010) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md) · [ADR-0022](decisions/ADR-0022-store-update-notice.md)
+**먼저 읽는다** — POL-RELEASE-001 · [POL-RELEASE-002](policy/POL-RELEASE.md) · [POL-RELEASE-003](policy/POL-RELEASE.md) · [rules/release.md](rules/release.md)(RULE-OTA-001~010) · [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md) · [ADR-0013](decisions/ADR-0013-release-path.md) · [ADR-0016](decisions/ADR-0016-cold-launch-apply.md) · [ADR-0014](decisions/ADR-0014-worktree-workflow.md) · [ADR-0022](decisions/ADR-0022-store-update-notice.md) · [ADR-0029](decisions/ADR-0029-firebase-analytics.md) · [POL-PRIVACY-001](policy/POL-PRIVACY.md)
 
 **번들을 발행하기 전에는 [rules/release.md](rules/release.md)를 먼저 본다.** 오프라인이 기본인 앱에 OTA를 얹었기 때문에, 다른 앱에서는 안전한 변경이 여기서는 되돌릴 수 없는 변경이 된다.
 
 **코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `src/app/_layout.tsx` · `scripts/{deploy-ota,sync-store-versions}.mjs` · `src/features/app-update/notice/model/{compare-version,latest-store-version,store-link}.ts` · `src/features/app-update/notice/ui/StoreUpdateDialog.tsx` · `src/shared/config/version.ts` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
 **스킬** `.claude/skills/eas-release/SKILL.md`(릴리스), `.claude/skills/start-feature/SKILL.md`(새 작업)
 **테스트** `src/features/app-update/notice/model/__tests__/{compare-version,latest-store-version}.test.ts` — 이 영역의 **유일한** 자동 증거다. CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`는 열어 보지 않는다.
+
+**화면 통계** `firebase.json` · `src/shared/analytics/useScreenTracking.ts` · 루트 `_layout.tsx`. `src/shared/analytics/__tests__/useScreenTracking.test.tsx`로 라우트 매핑·재방문·중복 방지·전송 값과 자동 화면 수집 비활성화 설정을 확인한다. `firebase.json` 변경은 새 네이티브 빌드로 반영하며 iOS·Android DebugView는 수동 검증한다([ADR-0029](decisions/ADR-0029-firebase-analytics.md)).
 
 **같은 변경에서 함께 고친다**
 1. `eas.json`은 [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md)의 `implemented_by`에 올라 있다 — 동작을 바꾸면 같은 커밋에서 계약도.

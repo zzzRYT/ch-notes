@@ -116,7 +116,7 @@ Bible text from the Open Bible Korean edition (CC BY-SA 4.0).
 > 1.0.3부터 Firebase Analytics(GA4)를 넣어 아래로 바뀌었다(ADR-0029). 광고 ID(IDFA·AAID)는 쓰지 않는다.
 
 ### Google Play — Data Safety 양식 (1.0.3, 2026-09-27 갱신)
-- 데이터 수집: **예** — Firebase Analytics 자동 수집 이벤트만(ADR-0029)
+- 데이터 수집: **예** — Firebase Analytics 자동 통계와 고정 라우트 이름의 화면 조회(ADR-0029, #95). 수집 항목·목적은 동일하며 사용자 콘텐츠는 전송하지 않음
   - 대략적인 위치 · 앱 상호작용 · 기기 또는 기타 ID — 수집됨, 공유 안 됨, 일시적 처리 아님, 필수, 목적 = 애널리틱스
 - 데이터 공유: **없음**
 - 보안: 전송 중 암호화 **예**
