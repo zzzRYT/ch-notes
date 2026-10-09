@@ -33,17 +33,27 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
 
 - **자동 발행은 없다.** `main`·`dev` 병합은 아무것도 발행하지 않는다(`ADR-0028`).
 - **수동 preview**: GitHub Actions → "Hot Updater (OTA)" → 가지 선택(보통 `dev`) → `preview`. 발행 전에 같은 커밋으로 CI가 다시 돈다.
-- **수동 production**: GitHub Actions → "Hot Updater (OTA)" → `production` 선택. **`release/<버전>` 가지에서만** 된다 — 다른 ref면 워크플로가 거부한다.
+- **agent production**: 사용자가 배포를 요청하면 변경을 OTA/네이티브로 분류하고 안전성 점검 후 GitHub Actions의 "Hot Updater (OTA)"를 `production`으로 실행한다. **`release/<버전>` 가지에서만** 된다 — 다른 ref면 워크플로가 거부한다. 발행 직전 워크플로가 같은 커밋으로 CI를 다시 실행한다.
+- agent는 워크플로 실행 후 결과를 기다리고, 성공한 run과 배포 SHA를 사용자에게 보고한다. 실패하면 같은 번들을 로컬 CLI로 우회 발행하지 않는다.
 - **발행 전 `src/shared/config/version.ts`의 `OTA_RELEASE`를 +1** 하고, 그 변경도 릴리스 가지로 PR을 열어 CI를 통과시킨 뒤 병합한다. 발행 후 `v<버전>+<번호>` 태그를 붙인다.
 - 발행에 성공하면 해당 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 OTA가 끝난다.
-- 로컬: `pnpm exec hot-updater deploy --channel production --target-app-version <version>`.
+- 직접 로컬 `hot-updater deploy`는 쓰지 않는다. CI를 거치지 않으므로 agent는 발행 워크플로를 실행하고 완료까지 확인한다.
 - `--force-update`는 사용하지 않는다. 현재 세션은 재시작하지 않는다.
 
 ## EAS Build
 
-- **수동만**: GitHub Actions → "EAS Build" → Run workflow → profile(`preview`/`production`/
-  `development`) + platform(`all`/`ios`/`android`) 선택. 크레딧 절약 위해 `--no-wait`로
-  큐에 넣고 빌드 URL만 반환한다.
+- **2단계 배포**: GitHub Actions → "EAS Build" → Run workflow → `production` + 대상 platform을
+  선택한다. 워크플로는 `--no-wait`로 큐에 넣고 build URL만 반환한다. build가 완료되면
+  agent가 해당 commit·앱 버전·platform의 성공 build ID를 조회한다:
+  `eas build:list --platform all --build-profile production --git-commit-hash <SHA> --status finished --json`.
+  각 플랫폼의 ID를 지정해 따로 제출한다:
+  `eas submit --platform ios --id <IOS_BUILD_ID> --profile production --non-interactive --wait`
+  `eas submit --platform android --id <ANDROID_BUILD_ID> --profile production --non-interactive --wait`.
+- `--latest`는 다른 build를 잘못 선택할 수 있으므로 쓰지 않는다. 저장소의 submit 자격증명은
+  `apps/ch-life/credentials/` 파일 경로로 설정되어 있으므로 EAS CLI 실행 환경에 해당 파일과
+  `EXPO_TOKEN`이 있어야 한다. 키 내용은 로그·대화에 출력하지 않는다.
+- 제출은 스토어 업로드 단계다. iOS는 App Store Connect에서 심사 제출을 사람이 진행한다.
+  Android는 현재 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
 - `production` 프로필은 `autoIncrement: true`(빌드번호 자동 증가).
 - 스토어 공개와 태그 뒤, 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 릴리스가 끝난다.
 

@@ -42,9 +42,9 @@ source:
 ## 두 경로
 
 ```text
-아무 가지(보통 dev) → GitHub Actions 수동 실행 → CI 재실행 → deploy --channel preview [수동]
-release/<버전> → GitHub Actions 수동 실행 → CI 재실행 → deploy --channel production   [수동]
-네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait          [수동]
+아무 가지(보통 dev) → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel preview [요청형]
+release/<버전> → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel production   [요청형]
+네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait → 완료 build ID → eas submit --id <ID> [agent 2단계]
 main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 동기화 → GitHub Pages [자동]
 ```
 
@@ -54,12 +54,9 @@ main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 �
 
 ⚠️ **OTA 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
 
-빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS Submit**이고, 이제 두 플랫폼 모두 자격증명이 붙어 있다
-(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). 자격증명은 `apps/ch-life/credentials/`에만
-있고 저장소에는 없으므로 **제출은 그 파일을 가진 기기에서만 된다.** Android는 `internal`이 아니라 `alpha` 트랙으로
-나간다 — 이 선택의 이유는 기록되지 않았다([`../drift.md`](../drift.md) E23).
+빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
 
-자동 발행은 없다 — `main`·`dev` 병합은 아무것도 발행하지 않는다([`../decisions/ADR-0028`](../decisions/ADR-0028-dev-branch.md)). 발행 워크플로는 `ci.yml`을 `workflow_call`로 불러 **같은 커밋으로 CI를 먼저 돌리고**, 실패하면 발행하지 않는다. 빌드는 크레딧 소모 때문에 자동화하지 않는다.
+`main`·`dev` 병합은 OTA를 발행하지 않는다([`../decisions/ADR-0028`](../decisions/ADR-0028-dev-branch.md)). 사용자가 요청하면 agent가 기존 발행 워크플로를 실행한다. 발행 워크플로는 `ci.yml`을 `workflow_call`로 불러 **같은 커밋으로 CI를 먼저 돌리고**, 실패하면 발행하지 않는다. Native 빌드도 수동으로 시작하고, 완료 후 agent가 별도 EAS CLI 제출을 수행한다.
 
 ## 함정 넷
 
