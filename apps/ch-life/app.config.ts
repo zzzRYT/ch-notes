@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { ExpoConfig } from "expo/config";
+import { ConfigPlugin, withAndroidManifest } from "expo/config-plugins";
 
 const hotUpdaterChannel = process.env.HOT_UPDATER_CHANNEL ?? "production";
 const hotUpdaterBaseUrl = process.env.HOT_UPDATER_BASE_URL ?? null;
@@ -28,6 +29,19 @@ if (process.env.EAS_BUILD_PROFILE && !hotUpdaterBaseUrl) {
   );
 }
 
+// 네이티브 자동 screen_view는 단일 Activity/VC라 라우트를 구분 못 한다. 끄고 JS에서 직접 보낸다(#95).
+const AUTO_SCREEN_KEY = "google_analytics_automatic_screen_reporting_enabled";
+const withoutAutoScreenReporting: ConfigPlugin = (c) =>
+  withAndroidManifest(c, (m) => {
+    const app = m.modResults.manifest.application?.[0];
+    if (!app) throw new Error("AndroidManifest has no <application>.");
+    const meta = (app["meta-data"] ??= []);
+    if (!meta.some((e) => e.$["android:name"] === AUTO_SCREEN_KEY)) {
+      meta.push({ $: { "android:name": AUTO_SCREEN_KEY, "android:value": "false" } });
+    }
+    return m;
+  });
+
 const config: ExpoConfig = {
   name: "씀씀",
   slug: "ch-note",
@@ -52,6 +66,7 @@ const config: ExpoConfig = {
       LSSupportsOpeningDocumentsInPlace: true,
       // HTTPS 외 자체 암호화 미사용 → 수출규정 면제. 매 빌드 질문 방지.
       ITSAppUsesNonExemptEncryption: false,
+      FirebaseAutomaticScreenReportingEnabled: false,
     },
   },
   android: {
@@ -99,4 +114,4 @@ const config: ExpoConfig = {
   },
 };
 
-export default config;
+export default withoutAutoScreenReporting(config);
