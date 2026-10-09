@@ -199,6 +199,31 @@ const Ctx = createContext<Theme>({
   density: "regular",
 });
 
+export function resolveTheme(settings: ThemeSettings): Theme {
+  const variation = settings.variation;
+  const base = PALETTES[variation];
+  const accent =
+    settings.accentChoice === "default" ? base.accent : settings.accentChoice;
+  const accentSoft =
+    settings.accentChoice === "default"
+      ? base.accentSoft
+      : softenAccent(accent);
+  const colors: ThemeColors = { ...base, accent, accentSoft };
+  const blockStyle =
+    settings.blockStyle === "default"
+      ? VARIATION_BLOCK_STYLE[variation]
+      : settings.blockStyle;
+  return {
+    colors,
+    fontScale: settings.fontScale,
+    variation,
+    isDark: variation === "dark",
+    blockStyle,
+    fontStack: fontStackFor(settings.fontFamily),
+    density: VARIATION_DENSITY[variation],
+  };
+}
+
 export function ThemeProvider({
   settings,
   children,
@@ -207,35 +232,7 @@ export function ThemeProvider({
   children: React.ReactNode;
 }) {
   const variation: Variation = settings.variation;
-  const value = useMemo<Theme>(() => {
-    const base = PALETTES[variation];
-    const accent =
-      settings.accentChoice === "default" ? base.accent : settings.accentChoice;
-    const accentSoft =
-      settings.accentChoice === "default"
-        ? base.accentSoft
-        : softenAccent(accent);
-    const colors: ThemeColors = { ...base, accent, accentSoft };
-    const blockStyle =
-      settings.blockStyle === "default"
-        ? VARIATION_BLOCK_STYLE[variation]
-        : settings.blockStyle;
-    return {
-      colors,
-      fontScale: settings.fontScale,
-      variation,
-      isDark: variation === "dark",
-      blockStyle,
-      fontStack: fontStackFor(settings.fontFamily),
-      density: VARIATION_DENSITY[variation],
-    };
-  }, [
-    variation,
-    settings.fontScale,
-    settings.blockStyle,
-    settings.fontFamily,
-    settings.accentChoice,
-  ]);
+  const value = useMemo(() => resolveTheme(settings), [settings]);
   // Tailwind(uniwind) 쪽에 같은 결정을 흘린다 — 테마 = variation, accent 덮어쓰기와
   // fontScale은 변수 갱신. className을 쓰는 곳은 이 한 군데만 믿으면 된다.
   // ponytail: __DEV__에서 global.css를 핫 리로드하면 uniwind가 변수를 처음부터 다시 만들어

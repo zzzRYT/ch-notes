@@ -9,12 +9,13 @@ import { ChevronLeft } from "lucide-react-native";
 <Button label="크게" selected={fontScale === 1.2} onPress={() => setSettings({ fontScale: 1.2 })} />
 <Button label="사용할 수 없음" disabled onPress={() => {}} />
 <IconButton icon={ChevronLeft} label="뒤로" onPress={() => router.back()} />
-<SettingRow label="종이" description="크림 톤 · 갈색" selected={variation === "paper"} onPress={() => setSettings({ variation: "paper" })} />
+<SettingRow label="종이색" description="크림색 배경" selected={variation === "paper"} onPress={() => setSettings({ variation: "paper" })} />
 <SettingRow label="출처 및 라이선스" marker="›" onPress={() => router.push("/licenses")} />
 ```
 
 - 기본·눌림·선택·비활성 상태는 컴포넌트가 처리한다. `selected`와 `disabled`는 접근성 상태에도 전달한다. 비활성일 때는 Pressable이 입력을 받지 않는다.
 - `Button.leading`은 강조색 견본 같은 부가 표시에 쓴다. 견본의 hex는 사용자 데이터라 inline style로 전달한다.
+- `SettingRow.preview`는 선택지 아래의 테마·인용 견본에 쓴다. 견본에 별도 조작 버튼을 넣지 않고 행 전체를 눌러 선택한다.
 - `SettingRow`는 `selected`를 넘기면 선택 카드, 생략하면 구분선이 있는 이동 행이다. 외부 링크는 `accessibilityRole="link"`를 전달한다.
 - 라벨은 큰 글씨에서 줄바꿈하며, 행의 체크 표시·아이콘은 라벨 옆에 별도로 둔다. 색과 텍스트 크기는 uniwind 토큰을 따른다.
 - `HeaderIconButton`은 기존 호출처 호환을 위한 `IconButton` 별칭이다.

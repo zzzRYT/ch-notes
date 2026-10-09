@@ -7,6 +7,7 @@ export function SettingRow({
   marker,
   onPress,
   selected,
+  preview,
   disabled = false,
   accessibilityLabel = label,
   accessibilityRole = "button",
@@ -16,6 +17,7 @@ export function SettingRow({
   marker?: string;
   onPress: () => void;
   selected?: boolean;
+  preview?: React.ReactNode;
   disabled?: boolean;
   accessibilityLabel?: string;
   accessibilityRole?: "button" | "link";
@@ -26,8 +28,9 @@ export function SettingRow({
       disabled={disabled}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={description}
       accessibilityState={{ selected, disabled }}
-      className={`flex-row items-center justify-between gap-3 py-3 ${
+      className={`gap-3 py-3 justify-center ${
         selected !== undefined
           ? "px-3.5 rounded-10 border-hairline min-h-14"
           : "mt-1 min-h-12 border-t-hairline border-rule"
@@ -35,19 +38,22 @@ export function SettingRow({
         selected === undefined ? "" : selected ? "bg-accent-soft border-accent" : "bg-paper border-rule"
       } ${disabled ? "opacity-40" : "active:opacity-60"}`}
     >
-      <View className="flex-1 min-w-0 gap-0.5">
-        <Text className={`text-body text-ink ${description ? "font-semibold" : ""}`}>
-          {label}
-        </Text>
-        {description ? (
-          <Text className="text-caption text-ink-3">{description}</Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-1 min-w-0 gap-0.5">
+          <Text className={`text-body text-ink ${description ? "font-semibold" : ""}`}>
+            {label}
+          </Text>
+          {description ? (
+            <Text className="text-caption text-ink-3">{description}</Text>
+          ) : null}
+        </View>
+        {selected ? (
+          <Text className="text-accent font-semibold">✓</Text>
+        ) : marker ? (
+          <Text className="text-[22px] text-ink-3">{marker}</Text>
         ) : null}
       </View>
-      {selected ? (
-        <Text className="text-accent font-semibold">✓</Text>
-      ) : marker ? (
-        <Text className="text-[22px] text-ink-3">{marker}</Text>
-      ) : null}
+      {preview}
     </Pressable>
   );
 }

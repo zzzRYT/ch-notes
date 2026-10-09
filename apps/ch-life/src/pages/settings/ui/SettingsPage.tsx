@@ -3,25 +3,16 @@ import { Alert, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import {
-  FONT_SCALE_OPTIONS,
-  useSettingsStore,
-} from '@/features/settings/change';
+import { useSettingsStore } from '@/features/settings/change';
 import { useContactSupport } from '@/features/support/contact';
-import {
-  ACCENT_OPTIONS,
-  BLOCK_STYLE_OPTIONS,
-  FONT_FAMILY_OPTIONS,
-  OTA_RELEASE,
-  VARIATION_OPTIONS,
-} from '@/shared/config';
-import { AppHeader, Button, HeaderBack, SettingRow } from '@/shared/ui';
+import { OTA_RELEASE, VARIATION_OPTIONS } from '@/shared/config';
+import { AppHeader, HeaderBack, SettingRow } from '@/shared/ui';
 
 const PRIVACY_POLICY_URL = 'https://zzzryt.github.io/ch-notes/';
 
 export function SettingsPage() {
   const settings = useSettingsStore((s) => s.settings);
-  const setSettings = useSettingsStore((s) => s.setSettings);
+  const themeLabel = VARIATION_OPTIONS.find((o) => o.value === settings.variation)?.label;
 
   const storeVersion = Constants.expoConfig?.version ?? '?';
   // 스토어 버전 + OTA 발행 번호. 번들만 갈아탄 기기도 어느 번들인지 보인다.
@@ -39,19 +30,6 @@ export function SettingsPage() {
     }
   };
 
-  const renderChip = (
-    label: string,
-    selected: boolean,
-    onPress: () => void,
-  ) => (
-    <Button
-      key={label}
-      label={label}
-      selected={selected}
-      onPress={onPress}
-    />
-  );
-
   return (
     <View className="flex-1 bg-bg">
       <AppHeader
@@ -61,80 +39,12 @@ export function SettingsPage() {
       />
       <ScrollView className="flex-1" contentContainerClassName="p-4 gap-2 pb-20">
         <View className={SECTION}>
-          <Text className={SECTION_TITLE}>테마 (variation)</Text>
-          <View className="gap-2">
-            {VARIATION_OPTIONS.map((o) => {
-              const selected = settings.variation === o.value;
-              return (
-                <SettingRow
-                  key={o.value}
-                  label={o.label}
-                  description={o.hint}
-                  selected={selected}
-                  onPress={() => setSettings({ variation: o.value })}
-                  accessibilityLabel={`${o.label} — ${o.hint}`}
-                />
-              );
-            })}
-          </View>
-        </View>
-
-        <View className={SECTION}>
-          <Text className={SECTION_TITLE}>글꼴 크기</Text>
-          <View className={ROW}>
-            {FONT_SCALE_OPTIONS.map((o) =>
-              renderChip(o.label, settings.fontScale === o.value, () =>
-                setSettings({ fontScale: o.value }),
-              ),
-            )}
-          </View>
-        </View>
-
-        <View className={SECTION}>
-          <Text className={SECTION_TITLE}>폰트</Text>
-          <View className={ROW}>
-            {FONT_FAMILY_OPTIONS.map((o) =>
-              renderChip(o.label, settings.fontFamily === o.value, () =>
-                setSettings({ fontFamily: o.value }),
-              ),
-            )}
-          </View>
-        </View>
-
-        <View className={SECTION}>
-          <Text className={SECTION_TITLE}>성경 블록 스타일</Text>
-          <View className={ROW}>
-            {BLOCK_STYLE_OPTIONS.map((o) =>
-              renderChip(o.label, settings.blockStyle === o.value, () =>
-                setSettings({ blockStyle: o.value }),
-              ),
-            )}
-          </View>
-        </View>
-
-        <View className={SECTION}>
-          <Text className={SECTION_TITLE}>강조 색상</Text>
-          <View className={ROW}>
-            {ACCENT_OPTIONS.map((o) => {
-              const selected = settings.accentChoice === o.value;
-              const swatch = o.value === 'default' ? null : o.value;
-              return (
-                <Button
-                  key={o.value}
-                  label={o.label}
-                  selected={selected}
-                  onPress={() => setSettings({ accentChoice: o.value })}
-                  leading={swatch ? (
-                    // 견본 색은 사용자 데이터(hex)라 토큰이 아니다 — style로 준다.
-                    <View
-                      className="size-3 shrink-0 rounded-6"
-                      style={{ backgroundColor: swatch }}
-                    />
-                  ) : null}
-                />
-              );
-            })}
-          </View>
+          <SettingRow
+            label="테마 변경"
+            description={`${themeLabel} · 배경, 글자, 인용 모양, 강조색`}
+            marker="›"
+            onPress={() => router.push('/settings/theme')}
+          />
         </View>
 
         <View className={SECTION}>
@@ -193,5 +103,4 @@ export function SettingsPage() {
 const SECTION = 'gap-3 mb-5';
 const SECTION_TITLE =
   'text-caption uppercase tracking-eyebrow font-semibold text-ink-3';
-const ROW = 'flex-row flex-wrap gap-2';
 const HINT = 'text-label leading-[1.46]';
