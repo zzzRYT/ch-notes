@@ -1,4 +1,4 @@
-import { lookupVerses } from "@/entities/scripture";
+import { bookDisplayName, lookupVerses } from "@/entities/scripture";
 import type { MapData } from "./types";
 
 /** 연결표의 무결성 오류 목록. 비어 있으면 통과. */
@@ -35,7 +35,8 @@ export function validateMapData(
     for (const id of s.placeIds)
       if (!placeIds.has(id)) errors.push(`사건 ${s.id}: 없는 장소 ${id}`);
     if (s.end < s.start) errors.push(`사건 ${s.id}: 끝 절이 시작 절보다 앞`);
-    else if (!lookup(`${s.book} ${s.chapter}:${s.start}-${s.end}`))
+    // 책 코드(`2Ch`)는 숫자로 시작해 parseRef가 읽지 못하므로 표시 이름으로 조회한다.
+    else if (!lookup(`${bookDisplayName(s.book)} ${s.chapter}:${s.start}-${s.end}`))
       errors.push(`사건 ${s.id}: 본문에 없는 범위`);
   }
   return errors;

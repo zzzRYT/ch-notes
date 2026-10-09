@@ -1,0 +1,62 @@
+[
+  {
+    "id": "jericho-joshua",
+    "regionKey": "jericho",
+    "regionName": "여리고",
+    "periodId": "joshua",
+    "name": "여리고 성 (텔 에스술탄)",
+    "lat": 31.871719,
+    "lon": 35.444564,
+    "precision": "site",
+    "locationNote": "텔 에스술탄 유적 위의 한 점(오차 약 50m). OpenBible의 'Jericho 1' 식별이며 위치 논쟁이 크지 않은 곳으로 표시돼 있다. 성벽이 무너진 정확한 지점이나 개별 장면의 위치는 아니다.",
+    "source": "OpenBible.info Bible Geocoding Data, 'Jericho 1' (a231f80) → Tell es Sultan (m95349d; Wikidata Q2402267). CC BY 4.0. https://www.openbible.info/geo/ancient/a231f80/jericho-1"
+  },
+  {
+    "id": "jericho-ministry",
+    "regionKey": "jericho",
+    "regionName": "여리고",
+    "periodId": "ministry",
+    "name": "신약 시대 여리고 (텔 엘알라이크)",
+    "lat": 31.851872,
+    "lon": 35.436238,
+    "precision": "city",
+    "locationNote": "텔 엘알라이크(하스모니아·헤롯 궁전 터) 유적의 한 점(오차 약 5m). 신약 시대 여리고는 이 궁전 주변으로 발달한 지역이라 점은 도시의 한 지표일 뿐 도시 중심이나 삭개오 장면의 위치가 아니다. 구약 여리고(텔 에스술탄)에서 남쪽으로 약 2km 떨어져 있다.",
+    "source": "OpenBible.info Bible Geocoding Data, 'Jericho 2' (aaf03fa) → Tell el Alayiq (mdf4652). 누가복음 19:1을 이 장소에 연결한다. CC BY 4.0. https://www.openbible.info/geo/ancient/aaf03fa/jericho-2"
+  },
+  {
+    "id": "jerusalem-temple-kingdom",
+    "regionKey": "jerusalem",
+    "regionName": "예루살렘",
+    "periodId": "kingdom",
+    "name": "솔로몬 성전 터 (성전산 일대)",
+    "lat": 31.777778,
+    "lon": 35.235556,
+    "precision": "area",
+    "locationNote": "성전산(모리아 산) 일대의 한 점(오차 약 300m). 대하 3:1이 성전 터를 모리아 산으로 적는다. 성전 건물의 정확한 자리는 아니며, 성전산에서는 발굴이 제한돼 있다.",
+    "source": "OpenBible.info Bible Geocoding Data, 'Mount Moriah' (aac1fcf; 대하 3:1) → Mount Moriah (m6a8ed6; Wikidata Q193163 'Temple Mount'). CC BY 4.0. https://www.openbible.info/geo/ancient/aac1fcf/mount-moriah"
+  },
+  {
+    "id": "jerusalem-temple-ministry",
+    "regionKey": "jerusalem",
+    "regionName": "예루살렘",
+    "periodId": "ministry",
+    "name": "예루살렘 성전 (성전산 일대)",
+    "lat": 31.777778,
+    "lon": 35.235556,
+    "precision": "area",
+    "locationNote": "솔로몬 시대와 같은 성전산 일대의 점이다. 두 성전이 같은 성전산에 있었다는 것이 근거이며, 헤롯의 확장으로 성전산 영역이 넓어졌으므로 건물이나 뜰의 정확한 자리는 아니다. 시대가 달라도 좌표를 옮기지 않는다.",
+    "source": "좌표: OpenBible.info 'Mount Moriah' (m6a8ed6; Wikidata Q193163), CC BY 4.0. 위치 근거: Wikipedia 'Second Temple' — 'The Temple Mount, where both Solomon's Temple and the Second Temple stood' (2026-10-09 확인). OpenBible은 눅 19:45-48 구절 자체를 이 장소에 연결하지 않고 눅 19:11·28·41을 예루살렘에 연결한다."
+  },
+  {
+    "id": "capernaum-ministry",
+    "regionKey": "capernaum",
+    "regionName": "가버나움",
+    "periodId": "ministry",
+    "name": "가버나움 (텔훔)",
+    "lat": 32.881111,
+    "lon": 35.575,
+    "precision": "city",
+    "locationNote": "텔훔 유적의 한 점(오차 약 5m). OpenBible은 텔훔을 우세한 후보로 두지만 키르벳 미니예(32.864722, 35.536111)도 제안돼 있어 동정이 완전히 확정된 것은 아니다. 마가복음 2장의 '집'의 위치는 알려져 있지 않다.",
+    "source": "OpenBible.info Bible Geocoding Data, 'Capernaum' (af2161c; 막 2:1) → Tell Hum (m66efd0) 우세, Khirbet Minyeh (m51f0e2) 대안. CC BY 4.0. https://www.openbible.info/geo/ancient/af2161c/capernaum"
+  }
+]
