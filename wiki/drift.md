@@ -78,11 +78,11 @@ FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps
 세 번째가 특히 문제다 — [`RULE-SEARCH-001`](rules/search.md)의 "본문 검색은 동작하지 않는다"가 태블릿에서는 그대로 참이 아니다.
 
 ### B9. 테마 토큰이 두 세대 공존
-`ThemeProvider`의 팔레트에 구 필드(`bg/surface/text/subtle/line`)와 신 토큰(`ink/paper/rule/ink2..4`)이 함께 있다.
+`ThemeProvider`의 팔레트에 남은 구 필드와 신 토큰(`ink/paper/rule/ink2..4`)이 일부 공존한다. **완전히 중복된 네 필드는 2026-10-07에 제거했다** — `surface→paper`, `text→ink`, `line→rule`, `quoteBar→ink4`. 네 변형에서 각 값이 같아 색 변화는 없다.
 
-~~성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`/`ChapterGrid`)와 `SwipeToDelete`는 테마를 쓰지 않고 하드코딩된 색(`#f4f4f4`, `#222`)을 썼고, 성경 본문은 항상 16px 고정이었다 → 다크 변형에서 이 화면들만 밝았다.~~ **하드코딩 부분은 해소(2026-09-20)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용으로 다섯 파일 전부 `bg-chip-bg`·`text-ink`·`border-rule`·`bg-err-bar` 토큰을 쓰고, 본문은 `text-body-large`로 fontScale을 받는다. **구·신 필드 공존은 그대로다** — 팔레트 `ThemeColors` 타입은 손대지 않았고, `useTheme().colors`는 이제 아이콘 `color` prop·Animated·서드파티(`KeyboardAwareScrollView`) 배경에만 쓰인다.
+~~성경 리더 계열 컴포넌트(`BibleReader`/`VerseList`/`BibleBrowser`/`ChapterGrid`)와 `SwipeToDelete`는 테마를 쓰지 않고 하드코딩된 색(`#f4f4f4`, `#222`)을 썼고, 성경 본문은 항상 16px 고정이었다 → 다크 변형에서 이 화면들만 밝았다.~~ **하드코딩 부분은 해소(2026-09-20)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용으로 다섯 파일 전부 `bg-chip-bg`·`text-ink`·`border-rule`·`bg-err-bar` 토큰을 쓰고, 본문은 `text-body-large`로 fontScale을 받는다. `useTheme().colors`는 이제 아이콘 `color` prop·Animated·서드파티(`KeyboardAwareScrollView`) 배경에만 쓰인다.
 
-두 세대의 관계도 균일하지 않다. 레거시 필드를 읽는 파일 18개, 신 토큰을 읽는 파일 17개, **양쪽을 동시에 쓰는 파일이 15개**다. 값으로 보면 `surface`·`text`·`line`·`quoteBar` 네 필드는 4개 팔레트 **전부에서** `paper`·`ink`·`rule`·`ink4`와 바이트 단위로 동일해 순수 개명으로 지울 수 있지만, `bg`·`subtle`·`chipBg`·`chipText`·`accentText`는 대응하는 신 토큰이 없거나 값이 달라 그대로 살려야 한다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
+남은 필드도 관계가 균일하지 않아 계속 둔다. `bg`는 `paper`와 네 변형 중 하나만 같고, `subtle`은 `ink2`와 네 변형 모두 다르다. `chipBg`는 대응 토큰이 없고, `chipText`는 `ink2`와 두 변형에서만 같으며, `accentText`도 대응 토큰이 없다. 전수 census는 [`docs/design-system/2026-09-06-token-and-component-survey.md`](../docs/design-system/2026-09-06-token-and-component-survey.md) 1절.
 
 ### B10. 자동완성 문법이 `parseRef` 문법과 어긋난다
 `useAutocomplete`의 트리거 패턴은 영어 책 토큰을 `[A-Za-z]{2,20}`으로 잡아 **숫자로 시작하는 책 이름을 표현하지 못한다.** `parseRef`는 `[A-Za-z][A-Za-z\s]{0,20}`이라 공백을 허용하지만 역시 선행 숫자는 못 받는다. 결과:
@@ -113,8 +113,10 @@ FSD 전환([`ADR-0024`](decisions/ADR-0024-fsd-ddd-architecture.md))에서 `apps
 ### B14. ~~인용 삽입 로직이 네 곳에 손으로 복제되어 있다~~ (2026-09-20 대부분 해소)
 FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/citation.ts`의 `makeQuoteBlock` 하나로 모았고(자동완성·브라우저 삽입·미리보기·태블릿 인용 패널 전부), 폰·태블릿의 불러오기→자동저장→삽입→내보내기 페이로드는 `apps/ch-life/src/widgets/note-editor/model/useNoteDraft.ts` 한 훅이 된다. **남은 리터럴은 하나** — `entities/note/api/markdown-parse.ts`의 가져오기 경로. `(KRV)` 헤더 판별 뒤 `editionId`를 채워야 해서 팩토리를 거치지 않는다. [`RULE-EDIT-007`](rules/editor-insert.md)의 "status는 항상 loaded"는 여전히 타입이 아니라 이 두 곳의 리터럴이 지킨다.
 
-### B15. 설정 enum 값이 세 파일에 중복
+### B15. ~~설정 enum 값이 세 파일에 중복~~ **해소(2026-10-07)**
 `variation`·`blockStyle`·`fontFamily`·`accentChoice` 모두 `shared/ui/ThemeProvider.tsx` 유니온 → `features/settings/change/model/settings-validator.ts`의 `ALLOWED_*` → `src/pages/settings/ui/SettingsPage.tsx`의 옵션 배열 순으로 값이 반복된다. `accentChoice`의 hex 6개는 세 파일에 각각 리터럴로 박혀 있다. `fontScale`은 **전체 거부** 필드라([`RULE-SET-002`](rules/settings-theme.md)) 유니온에만 값을 더하고 validator를 빠뜨리면 사용자의 `settings.json` 전체가 버려지고 기본값으로 리셋된다.
+
+**해소.** 허용값은 이제 축마다 `as const` 배열 하나에만 있다 — `variation`·`blockStyle`·`fontFamily`·`accentChoice`는 `src/shared/config/theme-options.ts`의 `*_OPTIONS`, `fontScale`·`themePreference`는 `src/features/settings/change/model/settings-store.ts`의 `FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`. 유니온 타입은 배열에서 파생되고, 검증기의 `ALLOWED_*`는 배열을 `map`하고, 설정 화면은 같은 배열을 그린다. 옵션 배열이 `shared/ui`가 아니라 `shared/config`에 있는 것은 검증기가 런타임에 import하기 때문이다 — `@/shared/ui` index는 uniwind·React를 함께 싣는다. `settings-validator.test.ts`가 설정 화면의 모든 선택지가 검증을 그대로 통과하는지 확인한다.
 
 ### B16. 가져오기 "덮어쓰기"가 없는 필드를 지운다
 `entities/note/api/markdown-parse.ts`의 `toStringOrNull`/`toDateString`은 frontmatter에 키가 없을 때 `undefined`가 아니라 **`null`**을 반환하고, `features/note/import/model/import-note.ts`는 그대로 `repo.update` 패치에 넣는다. `repo.update`에서 `null`은 "비움"이다([`RULE-NOTE-002`](rules/note-persistence.md)). `preacher:`가 없는 외부 `.md`로 덮어쓰면 **기존 설교자 값이 사라진다.** 자동 테스트 없음.
@@ -201,7 +203,9 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 ### B26. `AccentChoice`의 hex 6개는 스타일 리터럴이 아니라 저장되는 사용자 데이터다
 `AccentChoice` 유니온의 6개 값 중 **4개**(`#1e6fd9`·`#b15c2e`·`#6b7280`·`#f5b35e`)가 각 변형의 기본 `accent`와 같은 문자열이다. 팔레트를 손보며 이 리터럴을 따라 바꾸면, 그 값을 저장해 둔 사용자의 `accentChoice`가 `settings-validator.ts`의 `readEnum` 개별 폴백([`RULE-SET-002`](rules/settings-theme.md))에 걸려 **다음 실행에 조용히 `default`로 리셋된다.** 관대한 파싱이 만드는 무음 데이터 손실이다 — 값을 바꾸려면 구 hex → 신 hex 마이그레이션이 함께 필요하다.
 
-지금 세 파일(`src/entities/note/model/types.ts`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+당시 세 파일(`src/shared/ui/ThemeProvider.tsx`·`src/features/settings/change/model/settings-validator.ts`·`src/pages/settings/ui/SettingsPage.tsx`)의 hex 6개는 순서·대소문자까지 **정확히 일치**한다(문자 단위 대조 완료). B15가 지적한 3중 복제 구조는 그대로다. → [`RULE-SET-004`](rules/settings-theme.md), B15
+
+**2026-10-07 갱신.** hex 6개는 이제 `src/shared/config/theme-options.ts`의 `ACCENT_OPTIONS` 한 곳에만 있다(B15 해소). 팔레트 `accent`와 겹치는 4개는 여전히 `ThemeProvider.tsx` 팔레트에 따로 적힌 값이며, **둘을 묶지 않는 것**이 이 항목의 요지다.
 
 ### B27. ~~글자 크기 설정이 닿지 않는 텍스트가 절반을 넘는다~~ **해소(2026-09-20)**
 `fontScale`은 이 앱의 대표 설정이고 기본값도 `1.2`로 한 단계 크게 잡혀 있었는데, `.tsx`의 `fontSize:` 98건 중 `scaled()`를 거치는 것은 28건뿐이었다. 날짜 선택 달력 하나만 봐도 요일 `일~토`·'오늘' 버튼이 배율을 받지 않았다.
@@ -225,8 +229,10 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 같은 동작인데 기호도 크기도 다르다(`PanelRail.glyph` 16px vs 브레드크럼 `crumbBtnText` 15px). 어느 쪽이 정본인지 코드에 근거가 없다. 아이콘 인벤토리에서 '펼치기/접기' 하나에 기호 체계가 넷인 것도 여기서 갈라진다.
 
-### B31. 타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다
+### B31. ~~타입 스케일 여섯 값이 세 곳에 손으로 적혀 있다~~ **해소(2026-10-07)** — 일치 테스트로 막는다
 `display 30 · title 20 · body-large 17 · body 15 · label 13 · caption 11`이 `docs/design-system/figma-plugin/primitives.js`(`text/size/*`, Figma용) · `apps/ch-life/src/global.css`(`--text-*`, Tailwind 초기값) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx`(`TEXT_SCALE`, ×fontScale 갱신용)에 각각 있다. 색 토큰은 `extract-colors.py`가 한 원본에서 생성하지만 수치 토큰에는 그런 생성기가 없다. 한 곳만 바꾸면 Figma·초기 렌더·fontScale 반영 후가 서로 다른 크기가 된다. → [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md), B9
+
+**2026-10-07 해소(#60).** 생성기 대신 일치 테스트를 골랐다 — 값 여섯 개에 생성 단계를 두는 것보다 작다. `src/shared/ui/__tests__/ThemeProvider.test.tsx`의 "타입 스케일 base 값이 global.css·primitives.js와 같다"가 `fontScale: 1`에서 `ThemeProvider`가 uniwind에 넘기는 `--text-*`를 기준으로 `global.css`의 `--text-*`와 `primitives.js`의 `text/size/*`를 대조한다. 세 곳에 손으로 적는 것은 그대로지만, 어긋나면 `pnpm test`가 실패한다.
 
 ### B32. 네이티브 에디터의 규칙 셋이 앱에 연결돼 있지 않다 — **부분 해소(2026-09-27)**
 2026-09-27에 `feat/quote-ref-edit`·`feat/editor-format-toolbar`·`feat/tentap-editor`를 `dev`에 함께 머지했다. tentap 가지가 `widgets/note-editor`의 공개 `NoteEditor`를 `RichNoteEditor`(WebView)로 바꿔 내보내므로, **네이티브 `ui/NoteEditor.tsx`는 어느 화면에서도 쓰이지 않는다.** 그 결과 이 파일에만 구현된 동작이 앱에서 사라졌다.

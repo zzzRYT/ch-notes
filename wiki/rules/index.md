@@ -16,7 +16,7 @@
 | [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-016 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 12/16 |
 | [note-persistence.md](note-persistence.md) | RULE-NOTE-001 ~ RULE-NOTE-008 | 로컬 SQLite 저장, id 생성, read-then-merge, 마이그레이션 | `src/entities/note/{model,api}/**` | 6/8 |
 | [search.md](search.md) | RULE-SEARCH-001 ~ RULE-SEARCH-007 | FTS 접두 검색, 대상은 제목·인용뿐 | `src/entities/note/api/sqlite-note-repo.ts` | 5/7 |
-| [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색·위치 기억은 공유하고 삽입만 갈림 | `src/widgets/scripture-browser/**` | 4/7 |
+| [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색은 공유하고 위치 복원·삽입은 진입점마다 다름 | `src/widgets/scripture-browser/**` | 4/7 |
 | [share-markdown.md](share-markdown.md) | RULE-MD-001 ~ RULE-MD-008 | `.md` 왕복에서 무엇이 보존되고 무엇이 사라지는가 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | 6/8 |
 | [settings-theme.md](settings-theme.md) | RULE-SET-001 ~ RULE-SET-006 | 설정 파싱 엄격도, 색은 `variation` 하나로 결정 | `src/features/settings/change/**`, `src/shared/ui/**` | 4/6 |
 | [layout-a11y.md](layout-a11y.md) | RULE-UI-001 ~ RULE-UI-008 | 900px 폰/태블릿 분기, 터치 크기·라벨·대비·입력 장치 | `src/pages/notes/**`, `src/shared/ui/**`, `modules/hardware-keyboard/**` | **1/8** |

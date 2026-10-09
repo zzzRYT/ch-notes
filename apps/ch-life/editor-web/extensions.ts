@@ -29,6 +29,7 @@ const ITEMS: Item[] = [
 
 // 캐럿 앞이 `/검색어`(줄 처음 또는 공백 뒤)이면 메뉴를 띄운다.
 const SLASH = /(?:^|\s)\/([^\s/]*)$/;
+const SLASH_MENU_GAP = 8;
 
 // Notion식 "/" 메뉴. ↑↓로 고르고 Enter, Esc로 닫는다. 터치로 눌러도 된다.
 export const SlashMenu = Extension.create({
@@ -44,6 +45,7 @@ export const SlashMenu = Extension.create({
     let index = 0;
     let range = { from: 0, to: 0 };
     let dismissedAt = -1;
+    let extraBottomPadding = 0;
 
     const choose = (i: number) => {
       const item = items[i];
@@ -55,6 +57,10 @@ export const SlashMenu = Extension.create({
     const hide = () => {
       open = false;
       menu.style.display = "none";
+      if (extraBottomPadding) {
+        extraBottomPadding = 0;
+        editor.view.dom.style.paddingBottom = "";
+      }
     };
     const render = (view: EditorView) => {
       menu.replaceChildren(
@@ -75,10 +81,18 @@ export const SlashMenu = Extension.create({
       const c = view.coordsAtPos(range.from);
       menu.style.display = "block";
       menu.style.left = `${Math.min(c.left, window.innerWidth - 220)}px`;
-      // 웹뷰는 문서 높이만큼만 있다 — 아래가 모자라면(끝 줄) 캐럿 위로 띄운다.
       const below = c.bottom + window.scrollY + 4;
-      const fits = below + menu.offsetHeight <= document.documentElement.scrollHeight;
-      menu.style.top = `${fits ? below : c.top + window.scrollY - menu.offsetHeight - 4}px`;
+      menu.style.top = `${below}px`;
+      // dynamicHeight 웹뷰가 메뉴 아래까지 늘어나도록 문서 끝 패딩을 보탠다.
+      const basePadding =
+        Number.parseFloat(window.getComputedStyle(view.dom).paddingBottom) - extraBottomPadding;
+      const contentBottom =
+        view.dom.getBoundingClientRect().bottom + window.scrollY - extraBottomPadding;
+      extraBottomPadding = Math.max(
+        0,
+        below + menu.offsetHeight + SLASH_MENU_GAP - contentBottom,
+      );
+      view.dom.style.paddingBottom = `${basePadding + extraBottomPadding}px`;
     };
 
     return [
@@ -174,7 +188,15 @@ function postCaret(payload: Caret | null) {
 function reportCaret(view: EditorView, typing: boolean) {
   requestAnimationFrame(() => {
     const c = view.coordsAtPos(view.state.selection.head);
-    postCaret({ top: c.top, bottom: c.bottom, typing });
+    const menu = document.querySelector<HTMLElement>(".slash-menu");
+    const menuOpen = menu?.style.display === "block";
+    const bottom =
+      menuOpen && menu ? Math.max(c.bottom, menu.getBoundingClientRect().bottom) : c.bottom;
+    postCaret({
+      top: c.top,
+      bottom,
+      typing: menuOpen ? false : typing,
+    });
   });
 }
 

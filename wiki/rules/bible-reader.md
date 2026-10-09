@@ -2,7 +2,7 @@
 
 상위 정책: [`POL-SCRIPTURE-002`](../policy/POL-SCRIPTURE.md), [`POL-SCRIPTURE-001`](../policy/POL-SCRIPTURE.md)(RULE-BIBLE-006)
 
-리더는 **하나의 컴포넌트(`BibleReader`)가 세 진입점에 재사용**되는 구조다. 진입점이 다르면 삽입 동작만 달라지고 탐색·검색·위치 기억은 동일하다.
+리더는 **하나의 컴포넌트(`BibleReader`)가 세 진입점에 재사용**되는 구조다. 탐색·검색은 같고, 홈은 책 목록부터 시작하며 에디터 모달·태블릿 패널만 저장 위치를 복원한다.
 
 ```text
 BibleReader ─┬─ src/pages/bible-reader/ui/BibleReaderPage.tsx           (홈 → 전체화면, insertMode="none")
@@ -61,11 +61,13 @@ confidence: 코드추론
 id: RULE-BIBLE-003
 policy: POL-SCRIPTURE-002
 requirement: MUST
-statement: 마지막으로 본 책과 장을 settings.lastBibleRef에 "Gen 1" 형태로 저장하고, 다음에 리더를 열면 그 장부터 시작한다. 절 스크롤 위치는 저장하지 않는다.
+statement: 에디터 모달·태블릿 패널은 마지막으로 본 책과 장을 settings.lastBibleRef에 "Gen 1" 형태로 저장하고 다음 진입 때 그 장부터 시작한다. 홈 성경은 매번 책 목록부터 연다. 절 스크롤 위치는 저장하지 않는다.
 implemented_by:
   - apps/ch-life/src/widgets/scripture-browser/model/useBiblePosition.ts
   - apps/ch-life/src/features/settings/change/model/settings-validator.ts
+  - apps/ch-life/src/pages/bible-reader/ui/BibleReaderPage.tsx
 verified_by:
+  - test: apps/ch-life/src/pages/bible-reader/ui/__tests__/BibleReaderPage.test.tsx
   - test: apps/ch-life/src/widgets/scripture-browser/lib/__tests__/level-from-ref.test.ts
   - test: apps/ch-life/src/features/settings/change/model/__tests__/settings-validator.test.ts#lastBibleRef
 confidence: 기록됨
@@ -73,7 +75,7 @@ source:
   - docs/plans/2026-06-07-bible-reader-default-design.md 5절
 ```
 
-위치는 **전역 하나**다. 홈 전체화면, 에디터 모달, 태블릿 패널이 같은 값을 공유한다. 저장 실패나 값 손상 시에는 책 목록부터 시작한다.
+위치는 `settings.lastBibleRef` 하나를 공유한다. 홈에서도 책이나 장을 선택하면 위치를 저장하지만, 홈 진입 시에는 그 값을 복원하지 않고 책 목록부터 연다. 저장 실패나 값 손상 시 에디터 모달·태블릿 패널도 책 목록부터 시작한다.
 
 이 필드는 `settings.json` 파싱에서 **관대하게** 처리한다 — 값이 없거나 타입이 틀려도 파일 전체를 버리지 않고 `null`로 떨어진다. 구버전 설정 파일이 통째로 날아가는 회귀를 막기 위한 명시적 설계다([`RULE-SET-002`](settings-theme.md)).
 

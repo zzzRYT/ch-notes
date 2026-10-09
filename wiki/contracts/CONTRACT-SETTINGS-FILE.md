@@ -7,7 +7,8 @@ statement: 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 �
 implemented_by:
   - apps/ch-life/src/features/settings/change/model/settings-persist.ts
   - apps/ch-life/src/features/settings/change/model/settings-validator.ts
-  - apps/ch-life/src/entities/note/model/types.ts
+  - apps/ch-life/src/features/settings/change/model/settings-store.ts
+  - apps/ch-life/src/shared/config/theme-options.ts
 verified_by:
   - test: apps/ch-life/src/features/settings/change/model/__tests__/settings-validator.test.ts
 confidence: 기록됨
@@ -41,4 +42,4 @@ source:
 
 ## 바꾸려면
 
-`features/settings/change/model/settings-store.ts`의 `Settings`·`DEFAULT_SETTINGS` → 같은 폴더 `settings-validator.ts`의 허용값·폴백 → 필요하면 설정 화면. 테마에 영향을 주는 필드면 `shared/ui/ThemeProvider.tsx`의 `ThemeSettings`에도. 저장은 스토어 구독이 자동으로 처리하므로 별도 배선이 없다.
+`features/settings/change/model/settings-store.ts`의 `Settings`·`DEFAULT_SETTINGS` → 같은 폴더 `settings-validator.ts`의 폴백 → 필요하면 설정 화면. 기존 필드의 **허용값**은 옵션 배열 한 곳에만 더한다 — `fontScale`·`themePreference`는 `settings-store.ts`의 `FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`, 테마 축 넷은 `shared/config/theme-options.ts`의 `*_OPTIONS`. 타입·검증기·설정 화면이 따라온다. 테마에 영향을 주는 필드면 `shared/ui/ThemeProvider.tsx`의 `ThemeSettings`에도. 저장은 스토어 구독이 자동으로 처리하므로 별도 배선이 없다.
