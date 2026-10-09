@@ -45,7 +45,10 @@ export const SlashMenu = Extension.create({
     let index = 0;
     let range = { from: 0, to: 0 };
     let dismissedAt = -1;
-    let extraBottomPadding = 0;
+    let editorDom: HTMLElement | null = null;
+    let originalPaddingBottom = "";
+    let basePaddingBottom = 0;
+    let extraPaddingBottom = 0;
 
     const choose = (i: number) => {
       const item = items[i];
@@ -57,10 +60,9 @@ export const SlashMenu = Extension.create({
     const hide = () => {
       open = false;
       menu.style.display = "none";
-      if (extraBottomPadding) {
-        extraBottomPadding = 0;
-        editor.view.dom.style.paddingBottom = "";
-      }
+      if (editorDom) editorDom.style.paddingBottom = originalPaddingBottom;
+      editorDom = null;
+      extraPaddingBottom = 0;
     };
     const render = (view: EditorView) => {
       menu.replaceChildren(
@@ -81,18 +83,19 @@ export const SlashMenu = Extension.create({
       const c = view.coordsAtPos(range.from);
       menu.style.display = "block";
       menu.style.left = `${Math.min(c.left, window.innerWidth - 220)}px`;
+      // 메뉴를 항상 캐럿 아래에 둔다. 부족한 만큼 문서 하단 패딩을 늘려
+      // dynamicHeight WebView와 바깥 ScrollView가 메뉴까지 보이게 한다.
       const below = c.bottom + window.scrollY + 4;
       menu.style.top = `${below}px`;
-      // dynamicHeight 웹뷰가 메뉴 아래까지 늘어나도록 문서 끝 패딩을 보탠다.
-      const basePadding =
-        Number.parseFloat(window.getComputedStyle(view.dom).paddingBottom) - extraBottomPadding;
-      const contentBottom =
-        view.dom.getBoundingClientRect().bottom + window.scrollY - extraBottomPadding;
-      extraBottomPadding = Math.max(
-        0,
-        below + menu.offsetHeight + SLASH_MENU_GAP - contentBottom,
-      );
-      view.dom.style.paddingBottom = `${basePadding + extraBottomPadding}px`;
+      if (editorDom !== view.dom) {
+        editorDom = view.dom;
+        originalPaddingBottom = editorDom.style.paddingBottom;
+        basePaddingBottom = Number.parseFloat(getComputedStyle(editorDom).paddingBottom) || 0;
+        extraPaddingBottom = 0;
+      }
+      const editorBottom = view.dom.getBoundingClientRect().bottom + window.scrollY - extraPaddingBottom;
+      extraPaddingBottom = Math.max(0, below + menu.offsetHeight - editorBottom + SLASH_MENU_GAP);
+      view.dom.style.paddingBottom = `${basePaddingBottom + extraPaddingBottom}px`;
     };
 
     return [
@@ -189,13 +192,11 @@ function reportCaret(view: EditorView, typing: boolean) {
   requestAnimationFrame(() => {
     const c = view.coordsAtPos(view.state.selection.head);
     const menu = document.querySelector<HTMLElement>(".slash-menu");
-    const menuOpen = menu?.style.display === "block";
-    const bottom =
-      menuOpen && menu ? Math.max(c.bottom, menu.getBoundingClientRect().bottom) : c.bottom;
+    const menuOpen = !!menu && getComputedStyle(menu).display !== "none";
     postCaret({
       top: c.top,
-      bottom,
-      typing: menuOpen ? false : typing,
+      bottom: menuOpen ? Math.max(c.bottom, menu.getBoundingClientRect().bottom) : c.bottom,
+      typing: typing && !menuOpen,
     });
   });
 }

@@ -11,6 +11,8 @@ implemented_by:
   - .github/workflows/ci.yml
   - .github/workflows/eas-update.yml
   - .github/workflows/eas-build.yml
+  - .github/workflows/pages.yml
+  - apps/ch-life/scripts/sync-store-versions.mjs
 verified_by:
   - ci: .github/workflows/ci.yml
 confidence: 기록됨
@@ -43,14 +45,14 @@ source:
 아무 가지(보통 dev) → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel preview [요청형]
 release/<버전> → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel production   [요청형]
 네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait → 완료 build ID → eas submit --id <ID> [agent 2단계]
-스토어 심사 통과 → website/app-version.json PR → main → pages.yml                    [수동]
+main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 동기화 → GitHub Pages [자동]
 ```
 
-**마지막 줄이 앱 안의 업데이트 안내를 켠다**([`RULE-OTA-010`](../rules/release.md)). 심사가 끝난 **뒤에** 올린다 — 버전 bump와 같은 PR에 넣으면 아직 스토어에 없는 버전을 안내하게 된다. `pages.yml`은 `main` 푸시에만 돌므로 릴리스 가지가 아니라 `main`으로 낸다.
+**마지막 줄이 앱 안의 업데이트 안내를 켠다**([`RULE-OTA-010`](../rules/release.md)). 버전은 공개 App Store Lookup 결과와 Google Play 공개 목록에서 읽는다. 두 스토어의 공개 시점이 다르므로 플랫폼별로 독립 갱신한다. 한쪽 조회에 실패하면 해당 플랫폼의 이전 값을 유지하고 Pages를 배포한 뒤 워크플로를 실패 처리해 확인할 수 있게 한다.
 
 `production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
 
-⚠️ **OTA 경로는 2026-09-05 기준 실제로는 닫혀 있다.** R2 자격증명이 잘못돼 있어 OTA가 업로드 단계에서 매번 실패한다([`../drift.md`](../drift.md) B19).
+**2026-10-09에 1.0.3+1과 1.0.4+1의 production OTA 발행을 확인했다.** 이전 R2 자격증명 오류는 해소 상태다([`../drift.md`](../drift.md) B19). 실제 기기 적용은 발행 결과와 별도로 확인한다.
 
 빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
 
