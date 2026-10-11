@@ -200,6 +200,14 @@ export function ScriptureMapPage() {
       />
       <ScrollView className="flex-1" contentContainerClassName="pb-20">
         {body}
+        <Pressable
+          onPress={() => router.push("/licenses")}
+          accessibilityRole="link"
+          accessibilityLabel="지도 안내와 출처 및 라이선스 열기"
+          className="px-5.5 pt-4 min-h-touch justify-center self-start"
+        >
+          <Text className="text-accent text-label font-semibold">지도 안내 · 출처 및 라이선스 ›</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );

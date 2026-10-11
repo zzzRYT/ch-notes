@@ -108,6 +108,8 @@ statement: 인용 블록은 색 막대나 배경만이 아니라 참조 라벨�
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/ui/QuoteBlock.tsx
   - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/pages/scripture-map/ui/ScriptureMapPage.tsx (시대는 이름으로, 시대 필터는 selected 상태로)
+  - apps/ch-life/src/widgets/scripture-map/ui/ScriptureMap.tsx (묶음 표식은 색이 아니라 개수로)
 verified_by:
   - manual: 흑백 모드에서 인용 블록과 선택 상태를 구분할 수 있다
 confidence: 기록됨
@@ -115,7 +117,7 @@ source:
   - docs/plans/2026-05-17-ch-life-v1-spec.md 6.2
 ```
 
-세 가지 인용 표시 변형 모두 참조 라벨을 머리글로 갖는다. 설정 화면의 변형 선택은 테두리 색 + `✓` 문자 + `accessibilityState.selected` 세 가지로 중복 전달한다.
+세 가지 인용 표시 변형 모두 참조 라벨을 머리글로 갖는다. 설정 화면의 변형 선택은 테두리 색 + `✓` 문자 + `accessibilityState.selected` 세 가지로 중복 전달한다. 말씀 지도는 시대를 색으로 칠하지 않고 이름으로 쓰며([`RULE-MAP-005`](scripture-map.md)), 같은 자리에 여러 장소가 묶인 표식은 개수를 숫자로 보인다.
 
 ## RULE-UI-006 · 헤더는 앱이 직접 그린다
 

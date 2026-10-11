@@ -21,6 +21,7 @@
 | `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
 | `src/global.css`, `src/theme.colors.css`, `metro.config.js`, `docs/design-system/figma-plugin/**` | [디자인 시스템·Figma](#7-1-디자인-시스템figma) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `src/features/scripture/map/**`, `src/widgets/scripture-map/**`, `src/pages/scripture-map/**`, `assets/maps/**`, `src/pages/licenses/**` | [말씀 지도](#9-말씀-지도) |
 | `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
@@ -276,3 +277,27 @@
 폴더 인덱스로 간다 — [`policy/`](policy/index.md) · [`rules/`](rules/index.md) · [`contracts/`](contracts/index.md) · [`decisions/`](decisions/index.md).
 
 그리고 **이 문서에 항목을 하나 더한다.** 다음 사람이 같은 탐색을 반복하지 않도록.
+
+---
+
+## 9. 말씀 지도
+
+저장된 노트의 본문·인용을 검토된 사건 범위에 연결해 시대별 장소와 관련 노트를 보여 주는 읽기 전용 화면. 연결은 저장하지 않고 열 때마다 파생한다.
+
+**먼저 읽는다** — POL-NOTE-003 · RULE-MAP-001 ~ RULE-MAP-007 · POL-LICENSE-002 · [CONTRACT-NOTE-REPO](contracts/CONTRACT-NOTE-REPO.md)(`listRefSummaries`) · RULE-EDIT-017 · RULE-SEARCH-001(지도는 FTS가 아니라 `scripture`·`citedRefs`를 읽는다)
+
+**코드** `src/features/scripture/map/{model,api}/**`(연결·집계·뷰 모델·시드 데이터) · `src/widgets/scripture-map/{model,ui}/**`(투영·표식 겹침·SVG 지도) · `src/pages/scripture-map/{model,ui}/**`(`useScriptureMap`·화면) · `assets/maps/scripture-region.json`(Natural Earth 지형) · `src/app/scripture-map.tsx` · 진입점 `src/pages/notes/ui/{NotesPage,NoteListSidebar,TabletWorkspace}.tsx` · 고지 `src/pages/licenses/ui/LicensesPage.tsx`
+**테스트** `src/features/scripture/map/model/__tests__/{match-notes,build-view,map-data}.test.ts` · `src/widgets/scripture-map/model/__tests__/marker-layout.test.ts` · `src/pages/scripture-map/model/__tests__/useScriptureMap.test.tsx`
+
+**같은 변경에서 함께 고친다**
+1. 장소·사건·시대를 더하면 `places.json`·`scenes.json`·`periods.json`을 함께 고치고 근거(`source`·`basis`)를 남긴다. `map-data.test.ts`가 무결성과 출처의 `CC BY 4.0`+링크를 본다. 라이선스 화면은 `MAP_DATA`에서 그대로 그린다.
+2. 새 출처 종류를 쓰면 `LicensesPage`의 이용 조건 문단을 직접 추가한다(RULE-MAP-007).
+3. `summarize`(match-notes.ts)와 `buildRegions`(build-view.ts)는 같은 수를 내야 한다 — 한쪽만 바꾸면 요약과 목록이 어긋난다.
+4. 지도 범위(`assets/maps/scripture-region.json`의 `bbox`)를 바꾸면 지형을 다시 잘라야 한다. 장소가 범위 밖이면 표식이 보이지 않는다.
+
+**함정**
+- 시대는 **사건의 시대**다. 책의 구약/신약 분류로 장소를 정하지 않는다.
+- 같은 좌표의 두 시대 장소는 표식 하나다. 좌표를 흩뜨려 구분하지 않는다.
+- 표식 겹침은 같은 지역 키 안에서만 판정한다(RULE-MAP-002).
+- 지형은 현대 해안선이다. 고대 지형·경계가 아니다.
+- 지도 UI에는 자동 증거가 없다 — 표식 터치·접근성·테마는 실기기 수동 확인이다.

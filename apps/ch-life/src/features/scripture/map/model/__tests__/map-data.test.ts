@@ -17,6 +17,10 @@ describe("출시 연결표", () => {
     for (const p of MAP_DATA.places) expect(p.source.length).toBeGreaterThan(20);
   });
 
+  it("모든 장소 출처에 이용 조건(CC BY 4.0)과 링크가 있다 — 라이선스 화면이 이 문자열을 그대로 보인다(R12)", () => {
+    for (const p of MAP_DATA.places) expect(p.source).toMatch(/CC BY 4\.0.*https:\/\//);
+  });
+
   it("같은 지역의 시대별 장소와 같은 좌표의 시대별 성전을 구분한다", () => {
     const a = place("jericho-joshua");
     const b = place("jericho-ministry");

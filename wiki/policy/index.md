@@ -15,7 +15,7 @@
 | [POL-PRIVACY.md](POL-PRIVACY.md) | POL-PRIVACY-001 | 콘텐츠·식별정보는 기기 밖으로 나가지 않는다 (익명 GA4 통계만 예외, ADR-0029) | **네트워크 호출·SDK를 하나라도 추가할 때** |
 | [POL-ACCESSIBILITY.md](POL-ACCESSIBILITY.md) | POL-A11Y-001 | 글자 크기 4단계, 손가락으로 누를 수 있는 크기, 색만으로 뜻을 전하지 않음 | 새 화면·컴포넌트, `fontScale`, 터치 타깃 |
 | [POL-PORTABILITY.md](POL-PORTABILITY.md) | POL-PORT-001 | 노트는 표준 Markdown으로 나가고 다시 들어온다 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` |
-| [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 | `assets/bible.json` 교체, `src/pages/licenses/ui/LicensesPage.tsx`, 내보내기 포맷 |
+| [POL-LICENSE.md](POL-LICENSE.md) | POL-LICENSE-001<br>POL-LICENSE-002 | 성경 본문은 CC BY-SA 4.0 — 출처 표시와 라이선스 승계 · 말씀 지도 장소·지형 데이터의 출처와 수정 고지 | `assets/bible.json` 교체, `src/pages/licenses/ui/LicensesPage.tsx`, 내보내기 포맷 |
 | [POL-RELEASE.md](POL-RELEASE.md) | POL-RELEASE-001<br>POL-RELEASE-002<br>POL-RELEASE-003 | CI를 통과한 커밋만 자동 OTA로 나간다 · 설치한 그대로도 완전하다 · 업데이트가 이미 쓴 노트를 잃게 하지 않는다 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/app/_layout.tsx` |
 
 ## 이 계층에서 사고 나는 지점
