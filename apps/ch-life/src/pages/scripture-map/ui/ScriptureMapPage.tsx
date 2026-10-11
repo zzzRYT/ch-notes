@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { formatRef } from "@/entities/scripture";
@@ -12,6 +12,7 @@ import {
   type RegionView,
   type ViewNote,
 } from "@/features/scripture/map";
+import { TABLET_BREAKPOINT } from "@/shared/lib";
 import { AppHeader, Button, HeaderBack, useTheme } from "@/shared/ui";
 import {
   FULL_BOUNDS,
@@ -45,6 +46,8 @@ function formatDate(ts: number) {
 
 export function ScriptureMapPage() {
   const router = useRouter();
+  // 넓은 화면에서는 지도와 목록을 나란히 둔다. 기능·집계는 폰과 같다.
+  const wide = useWindowDimensions().width >= TABLET_BREAKPOINT;
   const { state, retry } = useScriptureMap(MAP_DATA);
   // 선택은 화면에 남겨 둔다. 노트를 열었다 돌아와도 필터·지역·장소가 유지된다(R6).
   const [period, setPeriod] = useState<PeriodFilter>(undefined);
@@ -138,55 +141,60 @@ export function ScriptureMapPage() {
             />
           ))}
         </ScrollView>
-        {regions.length > 0 ? (
-          <MapSection
-            regions={regions}
-            region={region}
-            place={place}
-            onSelectRegion={(key) => {
-              setRegionKey(key);
-              setPlaceId(null);
-            }}
-            onSelectPlace={setPlaceId}
-          />
-        ) : null}
-        {regions.length === 0 ? (
-          <Message title="이 시대에 연결된 기록이 없어요">
-            <Button label="전체 시대 보기" onPress={() => changePeriod(undefined)} />
-          </Message>
-        ) : place && region ? (
-          <PlaceDetail
-            region={region}
-            view={place}
-            onBack={() => setPlaceId(null)}
-            onOpenNote={(id) =>
-              router.push({ pathname: "/note/[id]", params: { id, from: "scripture-map" } })
-            }
-          />
-        ) : region ? (
-          <RegionDetail
-            region={region}
-            onBack={() => setRegionKey(null)}
-            onSelect={setPlaceId}
-          />
-        ) : (
-          <View>
-            {regions.map((r) => (
-              <Row
-                key={r.key}
-                title={r.name}
-                subtitle={regionSubtitle(r)}
-                onPress={() => setRegionKey(r.key)}
-              />
-            ))}
-            <Text className="px-5.5 pt-4 text-ink-3 text-caption">
-              {notes.length > totalLinked
-                ? `전체 기록 ${notes.length}편 중 ${totalLinked}편이 지도에 연결돼 있어요. `
-                : ""}
-              일부 본문부터 지도에 연결돼요.
-            </Text>
+        <View className={wide ? "flex-row items-start" : undefined}>
+          {regions.length > 0 ? (
+            <MapSection
+              wide={wide}
+              regions={regions}
+              region={region}
+              place={place}
+              onSelectRegion={(key) => {
+                setRegionKey(key);
+                setPlaceId(null);
+              }}
+              onSelectPlace={setPlaceId}
+            />
+          ) : null}
+          <View className="flex-1">
+          {regions.length === 0 ? (
+            <Message title="이 시대에 연결된 기록이 없어요">
+              <Button label="전체 시대 보기" onPress={() => changePeriod(undefined)} />
+            </Message>
+          ) : place && region ? (
+            <PlaceDetail
+              region={region}
+              view={place}
+              onBack={() => setPlaceId(null)}
+              onOpenNote={(id) =>
+                router.push({ pathname: "/note/[id]", params: { id, from: "scripture-map" } })
+              }
+            />
+          ) : region ? (
+            <RegionDetail
+              region={region}
+              onBack={() => setRegionKey(null)}
+              onSelect={setPlaceId}
+            />
+          ) : (
+            <View>
+              {regions.map((r) => (
+                <Row
+                  key={r.key}
+                  title={r.name}
+                  subtitle={regionSubtitle(r)}
+                  onPress={() => setRegionKey(r.key)}
+                />
+              ))}
+              <Text className="px-5.5 pt-4 text-ink-3 text-caption">
+                {notes.length > totalLinked
+                  ? `전체 기록 ${notes.length}편 중 ${totalLinked}편이 지도에 연결돼 있어요. `
+                  : ""}
+                일부 본문부터 지도에 연결돼요.
+              </Text>
           </View>
         )}
+          </View>
+        </View>
       </>
     );
   }
@@ -268,7 +276,7 @@ function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${label}으로 돌아가기`}
+      accessibilityLabel={`${label} 화면으로 돌아가기`}
       className="px-5.5 min-h-touch justify-center"
     >
       <Text className="text-accent text-label font-semibold">‹ {label}</Text>
@@ -344,12 +352,14 @@ function PlaceDetail({
 }
 
 function MapSection({
+  wide,
   regions,
   region,
   place,
   onSelectRegion,
   onSelectPlace,
 }: {
+  wide: boolean;
   regions: RegionView[];
   region: RegionView | null;
   place: PlaceView | null;
@@ -399,7 +409,8 @@ function MapSection({
   };
 
   return (
-    <View className="pb-4">
+    // 나란히 놓을 때는 지도 폭(480 + 좌우 여백)을 고정한다.
+    <View className="pb-4" style={wide ? { width: 524 } : undefined}>
       <ScriptureMap
         anchors={anchors}
         bounds={bounds}

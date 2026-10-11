@@ -98,7 +98,7 @@ source:
 id: RULE-MAP-005
 policy: POL-A11Y-001
 requirement: SHOULD
-statement: 지도 표식과 같은 정보를 지역 → 시대별 장소 → 노트 목록으로 제공하고, 표식 선택과 목록 선택은 같은 상태를 바꾼다. 시대는 색이 아니라 이름·선택 윤곽·표식 모양(묶음은 개수)으로 구분한다. 기록 수나 달성 압박(연속 기록·보상·미연결 지역 강조)을 넣지 않는다. 폰과 태블릿은 같은 화면·같은 동작이다.
+statement: 지도 표식과 같은 정보를 지역 → 시대별 장소 → 노트 목록으로 제공하고, 표식 선택과 목록 선택은 같은 상태를 바꾼다. 시대는 색이 아니라 이름·선택 윤곽·표식 모양(묶음은 개수)으로 구분한다. 기록 수나 달성 압박(연속 기록·보상·미연결 지역 강조)을 넣지 않는다. 폰과 태블릿은 같은 화면·같은 동작이다 — 900px 이상에서는 지도(최대 폭 480pt)와 목록을 나란히 놓을 뿐 기능·집계는 같다.
 implemented_by:
   - apps/ch-life/src/pages/scripture-map/ui/ScriptureMapPage.tsx
   - apps/ch-life/src/widgets/scripture-map/ui/ScriptureMap.tsx

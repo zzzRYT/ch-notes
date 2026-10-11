@@ -25,6 +25,8 @@ type Props = {
 
 /** 손가락 표적. 작은 표식도 이 반경 안을 누르면 선택된다. */
 const HIT_RADIUS = 22;
+/** 지도 최대 폭(pt). 폰 폭(≈390)에서는 영향이 없다. */
+const MAX_WIDTH = 480;
 
 function ringsToPath(rings: number[][], proj: Projection) {
   return rings
@@ -72,7 +74,8 @@ export function ScriptureMap({
       accessible
       accessibilityLabel={accessibilityLabel}
       className="mx-5.5 rounded-16 overflow-hidden border-hairline border-rule bg-paper"
-      style={proj ? { height: proj.height } : { height: 240 }}
+      // 넓은 화면(태블릿)에서 지도가 화면 폭만큼 커져 목록을 밀어내지 않게 폭을 제한한다.
+      style={{ maxWidth: MAX_WIDTH, height: proj ? proj.height : 240 }}
     >
       {proj ? (
         <Svg width={proj.width} height={proj.height}>
