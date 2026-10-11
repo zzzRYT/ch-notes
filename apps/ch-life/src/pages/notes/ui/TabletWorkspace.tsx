@@ -204,6 +204,7 @@ export function TabletWorkspace() {
             onCreate={createNote}
             onImport={handleImport}
             onSettings={() => router.push("/settings")}
+            onOpenMap={() => router.push("/scripture-map")}
             onCollapse={() => setLeftOpen(false)}
           />
         </View>

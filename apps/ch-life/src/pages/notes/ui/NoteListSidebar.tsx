@@ -18,6 +18,7 @@ type Props = {
   onCreate: () => void;
   onImport: () => void;
   onSettings: () => void;
+  onOpenMap: () => void;
   onCollapse: () => void;
 };
 
@@ -29,6 +30,7 @@ export function NoteListSidebar({
   onCreate,
   onImport,
   onSettings,
+  onOpenMap,
   onCollapse,
 }: Props) {
   // lucide 아이콘 색만 prop으로.
@@ -94,6 +96,14 @@ export function NoteListSidebar({
           </Pressable>
         </View>
       </View>
+      <Pressable
+        onPress={onOpenMap}
+        accessibilityRole="button"
+        accessibilityLabel="말씀 지도 열기"
+        className="px-4 pb-2 min-h-touch justify-center"
+      >
+        <Text className="text-accent text-label font-semibold">말씀 지도 ›</Text>
+      </Pressable>
       <View className="flex-row items-center gap-2 mx-3 px-3 rounded-8 min-h-9 bg-chip-bg">
         <Text className="text-[13px] text-ink-3">⌕</Text>
         <TextInput
