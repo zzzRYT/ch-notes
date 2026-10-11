@@ -24,7 +24,7 @@ import { detectRefAtCursor, replaceQuoteRef } from '@/features/scripture/insert'
 import { useTheme } from '@/shared/ui';
 import { editorHtml } from '../lib/generated/editor-html';
 import { DocSyncBridge, setDocListener, type Caret } from '../lib/doc-sync-bridge';
-import { blocksToDoc, docToBlocks } from '../lib/rich-doc';
+import { blocksToDoc, docToBlocks, type PMDoc } from '../lib/rich-doc';
 import {
   setVerseEditHandler,
   setVerseResolver,
@@ -56,7 +56,16 @@ type Props = {
   header?: React.ReactNode;
 };
 
-export type NoteEditorHandle = { focusFirstParagraph: () => void };
+export type NoteEditorHandle = {
+  focusFirstParagraph: () => void;
+  /**
+   * 에디터에 지금 들어 있는 본문. 웹뷰는 입력이 멈춘 뒤에야 RN으로 본문을 보내므로,
+   * 화면을 떠나기 직전의 입력은 여기서 직접 읽는다. 읽지 못하면 null — 호출자는 RN 상태로 대신한다.
+   */
+  readBody: () => Promise<BlockNode[] | null>;
+};
+
+const READ_BODY_TIMEOUT_MS = 1000;
 
 // WebView(TipTap) 본문 에디터 — ADR-0001을 뒤집는 스파이크. 에디터가 편집 중의
 // 정본이고, 문서 JSON을 BlockNode[]로 바꿔 onChangeBody로 내보낸다.
@@ -116,14 +125,34 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
     return () => setVerseResolver(null);
   }, []);
 
-  useImperativeHandle(ref, () => ({ focusFirstParagraph: () => editor.focus('start') }), [editor]);
-
   // 본문은 비동기로 로드되고, WebView는 준비되기 전의 setContent를 버린다.
   // 그래서 웹이 "준비됨"을 알릴 때 최신 본문을 넣고, 그 뒤의 바깥 변경만 밀어 넣는다.
   const readyRef = useRef(false);
   // 준비 전의 WebView는 빈 화면이나 반쯤 그린 문서다 — 스켈레톤을 보이다가 페이드로 바꾼다.
   const fade = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusFirstParagraph: () => editor.focus('start'),
+      readBody: async () => {
+        if (!readyRef.current) return null;
+        try {
+          // 웹뷰가 응답하지 않아도 화면을 못 떠나는 일이 없게 시간을 둔다.
+          const doc = await Promise.race([
+            editor.getJSON(),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), READ_BODY_TIMEOUT_MS)),
+          ]);
+          return doc ? docToBlocks(doc as PMDoc) : null;
+        } catch (e) {
+          console.warn('read editor body failed', e);
+          return null;
+        }
+      },
+    }),
+    [editor],
+  );
 
   // 캐럿을 화면에 둔다. 좌표는 모두 ScrollView 콘텐츠 기준.
   const scrollRef = useRef<ScrollView>(null);

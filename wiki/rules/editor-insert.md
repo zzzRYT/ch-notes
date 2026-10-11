@@ -180,7 +180,7 @@ confidence: 코드추론
 
 문단마다 `TextInput`이 별개이므로, 매 키 입력마다 상위 상태를 갱신하면 형제 블록이 전부 리렌더된다. 그래서 문단 안에서는 로컬 상태로 타이핑하고 **멈춘 뒤에만** 위로 올린다(코드 주석: `ParagraphInput`은 memo, 콜백은 `bodyRef`로 안정화).
 
-최악의 경우 입력 후 저장까지 **약 1.3초**가 비어 있다. 이 사이에 앱이 강제 종료되면 마지막 문단 입력이 사라질 수 있다. 다만 포커스를 잃을 때(`onBlur`)와 backspace 병합 시에는 디바운스를 취소하고 즉시 반영하므로, 화면을 벗어나는 정상 경로에서는 손실이 없다.
+최악의 경우 입력 후 저장까지 **약 1.3초**가 비어 있다. 이 사이에 앱이 강제 종료되면 마지막 문단 입력이 사라질 수 있다. 다만 포커스를 잃을 때(`onBlur`)와 backspace 병합 시에는 디바운스를 취소하고 즉시 반영하므로, 화면을 벗어나는 정상 경로에서는 손실이 없다. ⚠️ 이는 네이티브 `ParagraphInput` 기준이며, WebView 에디터에서는 화면을 떠날 때 자동저장 타이머가 취소돼 손실이 있었다 — [`RULE-EDIT-017`](#rule-edit-017--화면을-떠나기-전에-마지막-입력까지-저장하고-실패하면-남는다)이 막는다.
 
 v1 spec 3.5의 "500ms 후 전체 덮어쓰기"와 달리, 실제로는 **해당 노트 row만** UPDATE 한다.
 
@@ -380,3 +380,32 @@ source:
 ⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
 
 번호 목록·들여쓰기·체크리스트는 만들지 않았다.
+
+## RULE-EDIT-017 · 화면을 떠나기 전에 마지막 입력까지 저장하고, 실패하면 남는다
+
+```yaml
+id: RULE-EDIT-017
+policy: POL-NOTE-001
+requirement: MUST
+statement: 노트 에디터 화면은 헤더 뒤로 버튼·기기 뒤로·뒤로 제스처 어느 쪽으로 떠나든, 에디터에 들어 있는 마지막 입력까지 저장이 끝난 뒤에 이동한다. 저장이 실패하면 이동하지 않고 에디터에 남아 오류 배너를 보인다. 방금 삭제한 노트는 떠날 때 다시 저장하지 않는다. 태블릿 사이드바에서 말씀 지도로 갈 때도 같은 저장을 기다리고, 실패하면 지도로 가지 않는다. 말씀 지도에서 연 에디터는 헤더 뒤로 문구가 "말씀 지도"다.
+implemented_by:
+  - apps/ch-life/src/pages/note-editor/model/useSaveBeforeLeave.ts (beforeRemove 가로채기)
+  - apps/ch-life/src/pages/note-editor/ui/NoteEditorPage.tsx (삭제 뒤 skip, from=scripture-map 라벨)
+  - apps/ch-life/src/widgets/note-editor/model/save-live.ts (에디터 본문을 읽어 flush)
+  - apps/ch-life/src/widgets/note-editor/ui/RichNoteEditor.tsx (readBody — 웹뷰 무응답은 1초 뒤 포기)
+  - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (flush(live) — 화면 상태 대신 live 본문 저장)
+  - apps/ch-life/src/pages/notes/ui/TabletWorkspace.tsx (openMap)
+verified_by:
+  - test: apps/ch-life/src/pages/note-editor/model/__tests__/useSaveBeforeLeave.test.tsx
+  - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-flush.test.tsx
+  - manual: 입력 직후 헤더 버튼·기기 뒤로·제스처로 나갔다 돌아와 마지막 글자가 남아 있는지(폰), 태블릿에서 입력 직후 사이드바 말씀 지도 진입 (미확인)
+confidence: 코드추론
+source:
+  - docs/plans/2026-10-09-1523-feat-scripture-map-v1-plan.md (Lifecycle and Integration)
+```
+
+자동저장은 화면을 떠날 때 대기 타이머를 **취소**하므로([`RULE-EDIT-008`](#rule-edit-008--자동저장은-두-단계-디바운스)), 이 규칙이 없으면 입력 후 최대 약 1초의 마지막 입력이 사라진다. WebView 에디터는 입력이 멈춘 뒤 500ms에야 RN으로 본문을 보내기 때문에 `useAutoSave`의 `flush()`만으로는 부족하다 — 에디터가 가진 본문을 직접 읽어(`readBody`) 그 본문으로 저장한다. 읽지 못하면(웹뷰 미준비·1초 무응답) RN 상태로 저장한다.
+
+이 규칙은 말씀 지도에서 오는 경로에 한정되지 않는다. 노트 목록으로 돌아가는 기본 경로도 같은 화면을 거치므로 함께 보장된다.
+
+⚠️ 삭제 직전의 저장(폰 `deleteNote`, 태블릿 `handleDelete`)은 아직 `flush()`만 부르므로 에디터에만 있는 마지막 입력은 포함하지 않는다. 삭제를 되돌리면 그 입력이 빠진 노트가 복원될 수 있다.
