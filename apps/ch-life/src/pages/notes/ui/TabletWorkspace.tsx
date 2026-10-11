@@ -27,6 +27,8 @@ import { showFeedback } from "@/shared/lib";
 import { useTheme } from "@/shared/ui";
 import {
   NoteEditor,
+  saveLive,
+  type NoteEditorHandle,
   SermonMetaHeader,
   useNoteDraft,
   type NoteDraftPatch,
@@ -58,6 +60,7 @@ export function TabletWorkspace() {
   const [rightOpen, setRightOpen] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const deletingRef = useRef(false);
+  const editorRef = useRef<NoteEditorHandle>(null);
   const noteRevision = useNoteDeleteStore((state) => state.noteRevision);
 
   // 저장이 끝나면 사이드바 캐시도 같은 값으로 맞춘다 — 다시 읽지 않는다.
@@ -144,6 +147,18 @@ export function TabletWorkspace() {
     [repo, selectedId, flushAutoSave, notes],
   );
 
+  // 지도로 가면 이 작업공간의 자동저장 타이머가 멈추므로, 마지막 입력까지 저장한 뒤에 간다.
+  // 실패하면 이동하지 않고 지금 편집을 유지한다.
+  const openMap = useCallback(async () => {
+    try {
+      await saveLive(draft, editorRef);
+      router.push("/scripture-map");
+    } catch (e) {
+      console.warn("save before map failed", e);
+      setSaveErr("저장하지 못해 지도로 이동하지 않았어요");
+    }
+  }, [draft, router, setSaveErr]);
+
   const createNote = useCallback(async () => {
     const id = await createBlankNote(repo);
     const fresh = await repo.listRecent({ limit: 200 });
@@ -204,7 +219,7 @@ export function TabletWorkspace() {
             onCreate={createNote}
             onImport={handleImport}
             onSettings={() => router.push("/settings")}
-            onOpenMap={() => router.push("/scripture-map")}
+            onOpenMap={() => void openMap()}
             onCollapse={() => setLeftOpen(false)}
           />
         </View>
@@ -289,6 +304,7 @@ export function TabletWorkspace() {
         )}
         {selectedId ? (
           <NoteEditor
+            ref={editorRef}
             body={body}
             onChangeBody={draft.setBody}
             header={

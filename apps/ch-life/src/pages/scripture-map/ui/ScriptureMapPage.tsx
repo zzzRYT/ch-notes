@@ -159,7 +159,9 @@ export function ScriptureMapPage() {
             region={region}
             view={place}
             onBack={() => setPlaceId(null)}
-            onOpenNote={(id) => router.push(`/note/${id}`)}
+            onOpenNote={(id) =>
+              router.push({ pathname: "/note/[id]", params: { id, from: "scripture-map" } })
+            }
           />
         ) : region ? (
           <RegionDetail
