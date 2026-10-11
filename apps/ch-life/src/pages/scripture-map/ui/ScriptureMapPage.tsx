@@ -13,6 +13,13 @@ import {
   type ViewNote,
 } from "@/features/scripture/map";
 import { AppHeader, Button, HeaderBack, useTheme } from "@/shared/ui";
+import {
+  FULL_BOUNDS,
+  ScriptureMap,
+  zoomBounds,
+  type Anchor,
+  type Marker,
+} from "@/widgets/scripture-map";
 import { useScriptureMap } from "../model/useScriptureMap";
 
 const PRECISION_LABEL = {
@@ -131,6 +138,18 @@ export function ScriptureMapPage() {
             />
           ))}
         </ScrollView>
+        {regions.length > 0 ? (
+          <MapSection
+            regions={regions}
+            region={region}
+            place={place}
+            onSelectRegion={(key) => {
+              setRegionKey(key);
+              setPlaceId(null);
+            }}
+            onSelectPlace={setPlaceId}
+          />
+        ) : null}
         {regions.length === 0 ? (
           <Message title="이 시대에 연결된 기록이 없어요">
             <Button label="전체 시대 보기" onPress={() => changePeriod(undefined)} />
@@ -310,6 +329,78 @@ function PlaceDetail({
           <Row key={note.id} title={title} subtitle={sub} onPress={() => onOpenNote(note.id)} />
         );
       })}
+    </View>
+  );
+}
+
+function MapSection({
+  regions,
+  region,
+  place,
+  onSelectRegion,
+  onSelectPlace,
+}: {
+  regions: RegionView[];
+  region: RegionView | null;
+  place: PlaceView | null;
+  onSelectRegion: (key: string) => void;
+  onSelectPlace: (id: string | null) => void;
+}) {
+  // 지도의 표식과 아래 목록은 같은 선택 상태를 쓴다. 표식은 목록의 다른 입구일 뿐이다.
+  const shown = useMemo(() => (region ? [region] : regions), [region, regions]);
+  const anchors = useMemo<Anchor[]>(
+    () =>
+      shown.flatMap((r) =>
+        r.places.map((v) => ({
+          id: v.place.id,
+          // 전체 지도: 지역 단위로 묶는다. 확대: 장소끼리 겹침만 본다.
+          groupKey: region ? "zoom" : r.key,
+          lat: v.place.lat,
+          lon: v.place.lon,
+        })),
+      ),
+    [shown, region],
+  );
+  const bounds = useMemo(
+    () => (region ? zoomBounds(anchors, FULL_BOUNDS) : FULL_BOUNDS),
+    [anchors, region],
+  );
+  const placeOf = useMemo(
+    () => new Map(shown.flatMap((r) => r.places.map((v) => [v.place.id, { r, v }] as const))),
+    [shown],
+  );
+
+  const label = (m: Marker) => {
+    const first = placeOf.get(m.ids[0]!)!;
+    if (region) {
+      return m.ids.length > 1 ? `${m.ids.length}시대` : periodName(first.v);
+    }
+    const periods = new Set(
+      first.r.places.filter((v) => m.ids.includes(v.place.id)).map((v) => v.place.periodId),
+    ).size;
+    return `${first.r.name} ${first.r.noteCount}편${periods > 1 ? ` · ${periods}시대` : ""}`;
+  };
+
+  const onSelect = (m: Marker) => {
+    const first = placeOf.get(m.ids[0]!)!;
+    if (!region) onSelectRegion(first.r.key);
+    // 같은 자리의 여러 시대는 표식이 하나이므로 아래 시대별 목록에서 고른다.
+    else onSelectPlace(m.ids.length === 1 ? m.ids[0]! : null);
+  };
+
+  return (
+    <View className="pb-4">
+      <ScriptureMap
+        anchors={anchors}
+        bounds={bounds}
+        label={label}
+        selectedIds={place ? [place.place.id] : []}
+        onSelect={onSelect}
+        accessibilityLabel="말씀 지도. 같은 기록을 아래 목록에서도 고를 수 있어요."
+      />
+      <Text className="px-5.5 pt-2 text-ink-3 text-caption">
+        지도의 위치는 본문 배경을 이해하기 위한 참고 정보예요.
+      </Text>
     </View>
   );
 }
