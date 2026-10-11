@@ -1,0 +1,52 @@
+[
+  {
+    "id": "jos-6-1-20",
+    "book": "Jos",
+    "chapter": 6,
+    "start": 1,
+    "end": 20,
+    "periodId": "joshua",
+    "placeIds": ["jericho-joshua"],
+    "basis": "수 6:1-20은 여리고 성의 함락 사건이며, OpenBible이 수 6:1·2·17·20을 Jericho 1(텔 에스술탄)에 연결한다."
+  },
+  {
+    "id": "luk-19-1-10",
+    "book": "Luk",
+    "chapter": 19,
+    "start": 1,
+    "end": 10,
+    "periodId": "ministry",
+    "placeIds": ["jericho-ministry"],
+    "basis": "눅 19:1 '예수께서 여리고에 들어가 지나가시더라' — OpenBible이 눅 19:1을 Jericho 2(텔 엘알라이크)에 연결한다. 삭개오 장면의 정확한 위치는 근거가 없다."
+  },
+  {
+    "id": "2ch-3-1-17",
+    "book": "2Ch",
+    "chapter": 3,
+    "start": 1,
+    "end": 17,
+    "periodId": "kingdom",
+    "placeIds": ["jerusalem-temple-kingdom"],
+    "basis": "대하 3:1 '솔로몬이 예루살렘 모리아 산에 여호와의 전 건축하기를 시작하니' — OpenBible이 대하 3:1을 Mount Moriah에 연결한다."
+  },
+  {
+    "id": "luk-19-45-48",
+    "book": "Luk",
+    "chapter": 19,
+    "start": 45,
+    "end": 48,
+    "periodId": "ministry",
+    "placeIds": ["jerusalem-temple-ministry"],
+    "basis": "눅 19:45 '성전에 들어가사' — 본문 배경은 예루살렘 성전이며, 당시 성전은 솔로몬 성전과 같은 성전산에 있었다(Wikipedia 'Second Temple')."
+  },
+  {
+    "id": "mrk-2-1-12",
+    "book": "Mrk",
+    "chapter": 2,
+    "start": 1,
+    "end": 12,
+    "periodId": "ministry",
+    "placeIds": ["capernaum-ministry"],
+    "basis": "막 2:1 '수일 후에 예수께서 다시 가버나움에 들어가시니' — OpenBible이 막 2:1을 Capernaum에 연결한다."
+  }
+]
