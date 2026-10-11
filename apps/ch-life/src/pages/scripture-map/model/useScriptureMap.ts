@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { useNoteRepo } from "@/entities/note";
+import { useNoteRepo, type NoteRefSummary } from "@/entities/note";
 import { useNoteDeleteStore } from "@/features/note/delete";
 import { matchNotes, type MapData, type PlaceLink } from "@/features/scripture/map";
 
@@ -8,7 +8,8 @@ export type ScriptureMapState =
   | { status: "loading" }
   /** 조회 실패. 빈 지도와 구분해 다시 시도를 제공한다. */
   | { status: "error" }
-  | { status: "ready"; links: PlaceLink[] };
+  /** `notes`는 저장된 전체 기록(연결 여부와 무관) — 목록 행과 "연결 안 된 기록" 수에 쓴다. */
+  | { status: "ready"; links: PlaceLink[]; notes: NoteRefSummary[] };
 
 /**
  * 저장된 전체 노트를 지도 연결표와 대조한다(R11). 화면에 들어올 때마다, 그리고
@@ -25,7 +26,7 @@ export function useScriptureMap(data: MapData) {
     try {
       const notes = await repo.listRefSummaries();
       if (mine === latest.current) {
-        setState({ status: "ready", links: matchNotes(notes, data) });
+        setState({ status: "ready", links: matchNotes(notes, data), notes });
       }
     } catch (e) {
       console.warn("scripture map load failed", e);

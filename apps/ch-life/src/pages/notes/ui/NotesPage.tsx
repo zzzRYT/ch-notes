@@ -161,6 +161,14 @@ function PhoneNotesList() {
                 노트
               </Text>
               <Text className="mt-1 text-ink-3 text-label">{subtitleText}</Text>
+              <Pressable
+                onPress={() => router.push("/scripture-map")}
+                accessibilityRole="button"
+                accessibilityLabel="말씀 지도 열기"
+                className="mt-1 min-h-touch justify-center self-start"
+              >
+                <Text className="text-accent text-label font-semibold">말씀 지도 ›</Text>
+              </Pressable>
             </View>
             <View className="mx-5.5 mb-[18px] px-3 rounded-10 min-h-10 justify-center bg-chip-bg">
               <TextInput
