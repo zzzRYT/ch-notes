@@ -1,0 +1,102 @@
+name: EAS Submit (native -> store review)
+
+# 네이티브 릴리스 전체 체인: EAS Build -> 스토어 제출(심사 제출까지)을 한 번에.
+# aside CLI(브라우저 자동화)는 은퇴 - 공식 API 경로(EAS Submit)만 쓴다.
+#
+# 필요한 Secrets (Settings -> Secrets and variables -> Actions):
+#   EXPO_TOKEN                - EAS CLI 인증 (eas-build.yml과 같은 값)
+#   PLAY_SERVICE_ACCOUNT_JSON - Play 서비스 계정 키 JSON 원문 통째로
+#   ASC_API_KEY_P8            - App Store Connect API 키(.p8) 원문 통째로
+# ASC 키 ID·Issuer·App ID·Team ID는 eas.json에 이미 들어 있다.
+#
+# Android 트랙은 실행 시 선택한다(기본 production - PR #73에서 eas.json 기본값도 production으로 변경).
+# alpha를 고르면 콘솔에서 수동 승격한다. releaseStatus=completed + changesNotSentForReview=false.
+# iOS는 ASC API 키로 업로드 + 심사 제출까지 시도한다.
+# Apple이 새 설문을 내거나 최초 제출이 막히면 콘솔에서 마무리한다.
+"on":
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Target platform"
+        type: choice
+        default: all
+        options: [all, ios, android]
+      android_track:
+        description: "Play track (production: 심사 직행 / alpha: 수동 승격)"
+        type: choice
+        default: production
+        options: [alpha, production]
+
+defaults:
+  run:
+    working-directory: apps/ch-life
+
+jobs:
+  build-and-submit:
+    name: Build & submit (${{ inputs.platform }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/ch-life/pnpm-lock.yaml
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore submit credentials from secrets
+        # eas.json의 submit 자격증명 경로(./credentials/*)에 Secret 원문을 복원한다.
+        # 로컬 credentials/ 파일은 gitignore라 CI의 출처가 될 수 없다.
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          mkdir -p credentials
+          test -n "$PLAY_SERVICE_ACCOUNT_JSON" || { echo "::error::PLAY_SERVICE_ACCOUNT_JSON secret이 없습니다"; exit 1; }
+          test -n "$ASC_API_KEY_P8" || { echo "::error::ASC_API_KEY_P8 secret이 없습니다"; exit 1; }
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > credentials/play-service-account.json
+          printf '%s' "$ASC_API_KEY_P8" > credentials/AuthKey_58F737893F.p8
+          chmod 600 credentials/*
+
+      - name: EAS build (wait for completion)
+        # --no-wait가 아니라 --wait: 제출이 같은 job에서 이어지므로 빌드 완료를 기다린다.
+        env:
+          HOT_UPDATER_BASE_URL: ${{ vars.HOT_UPDATER_BASE_URL }}
+          HOT_UPDATER_PRIVATE_KEY: ${{ secrets.HOT_UPDATER_PRIVATE_KEY }}
+        run: |
+          eas build --profile production --platform "${{ inputs.platform }}" \
+            --non-interactive --wait --json > "$RUNNER_TEMP/build.json"
+          jq -e 'if type == "array" then . else [.] end | all(.status == "finished")' \
+            "$RUNNER_TEMP/build.json" > /dev/null \
+            || { echo "::error::빌드가 finished 상태가 아닙니다"; exit 1; }
+          jq -r 'if type == "array" then .[] else . end | "\(.platform):\(.id)"' \
+            "$RUNNER_TEMP/build.json" | tee "$RUNNER_TEMP/builds.txt"
+
+      - name: Submit to stores (up to review)
+        env:
+          ANDROID_TRACK: ${{ inputs.android_track }}
+        run: |
+          while IFS=: read -r plat bid; do
+            if [ "$plat" = "android" ]; then
+              eas submit --platform android --profile production --id "$bid" \
+                --track "$ANDROID_TRACK" --non-interactive
+            else
+              eas submit --platform ios --profile production --id "$bid" \
+                --non-interactive
+            fi
+          done < "$RUNNER_TEMP/builds.txt"
