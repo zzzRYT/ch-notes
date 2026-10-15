@@ -200,7 +200,7 @@
 
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
-**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
+**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/{SettingsPage,ThemeSettingsPage}.tsx` · `src/widgets/note-editor/lib/editor-theme.ts` · `src/pages/notes/ui/**`
 **테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**) · `node scripts/check-classnames.mjs`(소스의 className이 전부 번들에 컴파일됐는지 — uniwind는 모르는 클래스를 조용히 버린다)
 
 **같은 변경에서 함께 고친다**
