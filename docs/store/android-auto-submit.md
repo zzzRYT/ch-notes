@@ -1,7 +1,7 @@
-# Android 자동제출 설정 (EAS Submit + Google Play)
+# Android 제출 설정 (EAS Submit + Google Play)
 
-`eas.json`의 `submit.production.android`에 자동제출이 설정되어 있습니다.
-이 문서는 그 설정을 실제로 동작시키기 위한 **Google 서비스 계정 키** 발급/연동 절차입니다.
+`eas.json`의 `submit.production.android`는 Google Play의 `alpha` 트랙을 대상으로 합니다.
+이 문서는 EAS CLI 제출에 필요한 **Google 서비스 계정 키** 설정과 제출 절차를 설명합니다.
 
 ## 설정 요약 (`eas.json`)
 
@@ -10,7 +10,7 @@
   "production": {
     "android": {
       "serviceAccountKeyPath": "./credentials/play-service-account.json",
-      "track": "internal",
+      "track": "alpha",
       "releaseStatus": "completed",
       "changesNotSentForReview": false
     }
@@ -19,7 +19,7 @@
 ```
 
 - **serviceAccountKeyPath**: 서비스 계정 키 위치 (`apps/ch-life/credentials/play-service-account.json`). 이 경로는 **gitignore 처리됨** — 절대 커밋 금지.
-- **track**: 업로드될 트랙. 처음엔 `internal`(내부 테스트) 권장. 공개 출시 시 `production`으로 변경.
+- **track**: 현재 설정은 `alpha`(비공개 테스트)이며 공개 출시 전 production으로 승격합니다.
 - **releaseStatus**: `completed`(즉시 트랙 반영) / `draft`(콘솔에서 수동 게시) / `inProgress`(단계적 출시).
 
 ---
@@ -31,7 +31,7 @@ Google Play는 **앱의 첫 AAB는 반드시 콘솔에서 수동 업로드**해�
 
 1. `eas build --platform android --profile production` 로 AAB 생성
 2. Play Console → 앱 생성 → **내부 테스트** 트랙에 AAB 수동 업로드 (앱 등록 확정)
-3. 그 이후부터 `eas submit` 자동제출 사용 가능
+3. 그 이후부터 EAS CLI의 `eas submit`으로 해당 build ID를 제출할 수 있습니다.
 
 ---
 
@@ -56,22 +56,22 @@ Google Play는 **앱의 첫 AAB는 반드시 콘솔에서 수동 업로드**해�
    (`...@<project>.iam.gserviceaccount.com`) 입력
 3. 권한(앱별 또는 계정 수준):
    - **앱 출시 관리(Release apps to testing tracks)**
-   - **프로덕션 출시(Release to production)** — 프로덕션 자동제출 시
+   - **프로덕션 출시(Release to production)** — `production` 트랙에 제출할 때
    - **앱 정보 보기/수정**
 4. 초대 완료. (반영까지 수 분 소요될 수 있음)
 
-## 3. 자동제출 실행
+## 3. EAS CLI로 특정 빌드 제출
 
 ```bash
-# 최신 production 빌드를 internal 트랙으로 제출
-eas submit --platform android --profile production --latest
+# EAS Build에서 완료된 해당 Android build ID를 지정해 alpha 트랙으로 제출
+eas submit --platform android --profile production --id <ANDROID_BUILD_ID> --non-interactive --wait
 ```
 
-- 처음 실행 시 EAS가 키를 읽어 안전하게 업로드/보관합니다.
-- 성공하면 Play Console 내부 테스트 트랙에 반영 → 테스트 후 콘솔에서 **프로덕션으로 승급**.
+- 제출 실행 환경에 `EXPO_TOKEN`과 서비스 계정 키가 준비되어 있어야 합니다. 키는 Git에 넣거나 출력하지 않습니다.
+- 성공하면 Play Console alpha 트랙에 반영됩니다. 공개 출시 전 콘솔에서 **production으로 승급**해야 합니다.
 
 ### 공개 출시로 바꾸려면
-`eas.json`의 `track`을 `"production"`으로 변경하거나, 콘솔에서 internal → production 승급.
+`eas.json`의 `track`을 `"production"`으로 변경하거나, 콘솔에서 alpha → production 승급.
 신중하게 하려면 `releaseStatus`를 `"draft"`로 두고 콘솔에서 최종 게시 버튼을 직접 누르세요.
 
 ---
@@ -84,9 +84,9 @@ eas submit --platform android --profile production --latest
 
 ---
 
-## (참고) iOS 자동제출
+## (참고) iOS 제출
 
-iOS는 `submit.production.ios`에 App Store Connect API Key를 설정하면 동일하게 자동화됩니다.
+iOS는 `submit.production.ios`의 App Store Connect API Key를 사용해 같은 EAS Submit 절차로 업로드합니다.
 
 ```json
 "ios": {

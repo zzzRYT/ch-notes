@@ -1,6 +1,6 @@
-# iOS 자동제출 설정 (EAS Submit + App Store Connect)
+# iOS 제출 설정 (EAS Submit + App Store Connect)
 
-`eas.json`의 `submit.production.ios`에 App Store Connect API 키 기반 자동제출이 설정되어 있습니다.
+`eas.json`의 `submit.production.ios`에 App Store Connect API 키 기반 EAS Submit이 설정되어 있습니다.
 
 ## 설정 요약 (`eas.json`)
 
@@ -36,18 +36,21 @@ Apple은 Google Play와 달리 EAS가 앱 레코드를 자동 생성하지 못�
 
 ---
 
-## 제출 실행
+## EAS CLI로 빌드 업로드
 
 이미 완성된 production 빌드가 있다면 새로 빌드하지 않고 바로 제출할 수 있습니다.
 
+배포를 맡은 agent는 EAS Build 완료 후 같은 릴리스 커밋의 성공한 iOS build ID를 확인하고,
+그 ID를 지정해 제출합니다. `--latest`로 다른 빌드를 선택하지 않습니다.
+
 ```bash
-# 최신 production 빌드를 App Store Connect(TestFlight)로 업로드
-eas submit --platform ios --latest
+eas submit --platform ios --id <IOS_BUILD_ID> --profile production --non-interactive --wait
 ```
 
 - 업로드 후 App Store Connect의 **TestFlight** 탭에서 빌드 처리 상태(보통 수 분~수십 분) 확인
 - TestFlight 처리가 끝나면 **앱 심사 정보(App Review Information)** 입력 후 App Store Connect 콘솔에서 **"심사를 위해 제출(Submit for Review)"** 버튼을 직접 눌러야 합니다. `eas submit`은 업로드까지만 수행하며 심사 제출은 자동화하지 않습니다.
-- 새 버전을 낼 때는 `eas build --platform ios --profile production` → `eas submit --platform ios --latest` 순서 반복.
+- 제출 실행 환경에는 `EXPO_TOKEN`과 `eas.json`의 App Store Connect API 키 파일이 있어야 합니다. 파일은 Git에 넣지 않고, 출력하거나 채팅에 붙이지 않습니다.
+- 새 버전을 낼 때는 production EAS Build 완료 → build ID 확인 → 위 `eas submit` 실행 순서로 진행합니다.
 
 ---
 

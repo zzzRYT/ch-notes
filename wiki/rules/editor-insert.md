@@ -317,7 +317,7 @@ confidence: 기록됨
 
 2026-09-26 Spirit Notes 역기획(E3)에서 도입했다. 오타 난 참조나 범위를 고치려면 전에는 인용을 backspace로 지우고([`RULE-EDIT-004`](#rule-edit-004--인용-블록-앞-backspace는-인용을-지우고-문단을-합친다)) 다시 쳐야 했다. 어르신에게는 이 두 단계가 곧 "못 고친다"이므로 고치는 길을 하나 둔다.
 
-- **WebView 에디터(현재 앱).** 카드 전체가 누르는 곳이다. 웹은 누른 노드의 위치와 현재 JSON만 RN에 보내고, 판정·조회·`makeQuoteBlock`은 RN이 한다([`RULE-EDIT-001`](#rule-edit-001--확정-트리거는-space-또는-개행)의 삽입과 같은 분담). 웹은 그 자리가 아직 같은 인용일 때만 바꾼다 — 시트가 열린 사이 문서가 바뀌었으면 버린다. 표시 변형(카드/인용바/접힘)은 WebView에 아직 없다.
+- **WebView 에디터(현재 앱).** 카드 전체가 누르는 곳이다. 웹은 누른 노드의 위치와 현재 JSON만 RN에 보내고, 판정·조회·`makeQuoteBlock`은 RN이 한다([`RULE-EDIT-001`](#rule-edit-001--확정-트리거는-space-또는-개행)의 삽입과 같은 분담). 웹은 그 자리가 아직 같은 인용일 때만 바꾼다 — 시트가 열린 사이 문서가 바뀌었으면 버린다. 표시 변형(카드/인용바/접힘)은 설정의 테마를 따라 적용한다. 접힘 모양의 별도 버튼은 본문 표시만 토글하며 참조 편집을 열거나 구절 JSON을 바꾸지 않는다([`RULE-SET-004`](settings-theme.md#rule-set-004--인용-표시와-강조색은-변형-기본값-위에-덮어쓴다)).
 - **누르는 곳(네이티브 에디터).** 카드·인용바 변형은 블록 전체, `collapse` 변형은 **펼친 본문**이다. `collapse`의 머리줄은 원래 접기/펴기였으므로 그 동작을 빼앗지 않는다. 접힌 상태에서 고치려면 먼저 편다.
 - **입력.** 휠 피커가 아니라 본문에서 치는 것과 같은 참조 문법의 텍스트 칸이다(`요 3:16-18`). 새 문법을 가르치지 않는다.
 - **같은 구절 판정.** 표시 이름(`formatRef`) 기준이다 — `요3:16`을 `요한복음 3:16`으로 바꾸는 것은 변경이 아니다.
@@ -380,3 +380,26 @@ source:
 ⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
 
 번호 목록·들여쓰기·체크리스트는 만들지 않았다.
+
+## RULE-EDIT-017 · doc-ready가 안 오면 에러 UI를 보여준다
+
+```yaml
+id: RULE-EDIT-017
+policy: POL-NOTE-001
+requirement: MUST
+statement: WebView 에디터가 기한(DOC_READY_TIMEOUT_MS) 안에 doc-ready를 알리지 않으면 스켈레톤 대신 에러 UI와 "다시 시도" 버튼을 보여준다. 다시 시도는 WebView를 다시 마운트해 페이지를 리로드한다.
+implemented_by:
+  - apps/ch-life/src/widgets/note-editor/lib/doc-ready-timeout.ts
+  - apps/ch-life/src/widgets/note-editor/ui/RichNoteEditor.tsx
+verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/doc-ready-timeout.test.ts
+  - manual: 타임아웃 상수를 임시로 낮춘 개발 빌드에서 에러 UI·재시도 확인 (실기기 확인 필요)
+confidence: 기록됨
+source:
+  - https://github.com/zzzRYT/ch-notes/issues/119
+```
+
+스켈레톤이 영원히 남는 것보다 실패를 알리는 것이 낫다 — 사용자는 기다릴지
+다시 시도할지 정할 수 있다. 재시도해도 본문 데이터는 바뀌지 않는다
+(`body_json`·`citedRefs`는 손대지 않음). 타임아웃은 네트워크와 무관한 로컬
+타이머다 (#119).

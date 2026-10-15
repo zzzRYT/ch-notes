@@ -137,7 +137,7 @@
 3. 본문 검색을 실제로 켠다면: 트리거 + `src/entities/note/api/sqlite-note-repo.ts`(트리거만으로는 `body_json`을 못 푼다) + 기존 노트 재색인 + placeholder 문구 + RULE-SEARCH-001·[ADR-0007](decisions/ADR-0007-fts-scope.md) + [`drift.md`](drift.md) A8/D2/E3까지 전부.
 
 **함정**
-- placeholder는 "본문"을 검색한다고 안내하지만 안 된다(D2).
+- placeholder는 `검색 — 제목, 인용`(폰·태블릿 동일)이다. 본문 검색을 켜면 문구도 바꾼다(D2).
 - ⚠️ **태블릿은 다르게 동작한다**(B8) — 부분 문자열 매칭, 미리 불러온 200건만, 그리고 **제목 없는 노트는 본문 앞 40자가 검색된다**.
 - 접두 `*`는 마지막 토큰에만 붙는다 — `주일 설교`에서 `주일`은 정확히 일치해야 한다.
 - 같은 절이라도 삽입 경로에 따라 저장된 문자열이 달라 검색 결과가 갈린다(B4).
@@ -200,7 +200,7 @@
 
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
-**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
+**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/{SettingsPage,ThemeSettingsPage}.tsx` · `src/widgets/note-editor/lib/editor-theme.ts` · `src/pages/notes/ui/**`
 **테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**) · `node scripts/check-classnames.mjs`(소스의 className이 전부 번들에 컴파일됐는지 — uniwind는 모르는 클래스를 조용히 버린다)
 
 **같은 변경에서 함께 고친다**

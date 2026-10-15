@@ -1,5 +1,6 @@
 export {
   ThemeProvider,
+  resolveTheme,
   useTheme,
   scaled,
   type Theme,

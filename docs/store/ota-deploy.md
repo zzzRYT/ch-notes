@@ -31,8 +31,8 @@ Hot Updater는 `expo-updates`와 함께 쓸 수 없다. 이 저장소는 기존
 | 앱 전환 | 패키지·config plugin·root wrapper·서명 설정·CI | 없음 |
 | Cloudflare | `hot-updater init`가 R2·D1·Worker 생성과 migration 수행 | Cloudflare에서 최소 권한 token 2개 생성 후 로컬 prompt에 입력 |
 | 키 | 로컬 RSA key 생성, public key를 prebuild 때 자동 주입 | private key를 비밀 저장소에 등록하고 원본을 안전하게 백업 |
-| 네이티브 출시 | GitHub Action/EAS가 iOS·Android 빌드 큐잉 | `zzzryt` EAS 인증, 스토어 약관·심사·출시 승인 |
-| OTA | CI 성공 뒤 preview 자동 발행, production 수동 발행 | production 실행 승인과 iOS·Android 실기기 확인 |
+| 네이티브 출시 | GitHub Actions가 EAS Build를 큐잉하고, build 완료 후 agent가 EAS CLI로 해당 build ID를 제출 | EAS 인증·자격증명 준비, 스토어 심사·공개 승인 |
+| OTA | agent가 사용자 요청에 따라 GitHub Actions 발행 workflow 실행, 같은 커밋으로 CI 후 발행 | production 발행 요청과 실기기 확인 |
 | 롤백 | CLI가 문제 bundle을 비활성화 | 어떤 bundle을 되돌릴지 승인하고 실기기 복구 확인 |
 
 Cloudflare/EAS/GitHub 비밀값을 이 문서, 이슈, 채팅, shell history에 붙이지
@@ -165,29 +165,18 @@ eas build --profile production --platform all
 현재 공개 스토어 버전은 1.0 계열이고, 2026-09-02에 만든 1.0.1 빌드는 Hot
 Updater가 들어가기 전 산출물이다. 그것을 OTA 기준선으로 오인하지 않는다.
 
-## 5. production OTA 발행
+## 5. agent를 통한 production OTA 발행
 
-스토어에서 Hot Updater 기준선 설치가 끝난 뒤, 깨끗한 배포 커밋에서 실행한다.
-`--force-update`는 쓰지 않는다.
+사용자가 OTA 배포를 요청하면 agent가 먼저 변경이 OTA 대상인지 확인한다. 네이티브 의존성·plugin·권한·앱 버전·Hot Updater 설정을 바꾸는 변경은 새 스토어 빌드로 돌린다. OTA 가능 변경이어도 DB 스키마 파괴 변경, 새 블록 타입, 번들 순서 의존성이 있으면 발행하지 않는다(RULE-OTA-007~009).
 
-```bash
-git switch main
-git pull --ff-only
-cd apps/ch-life
-pnpm deploy:ota -- --message "feat: <사용자에게 보이는 변경 요약>"
-```
+발행 절차:
 
-`deploy:ota`는 clean main 여부, Cloudflare·R2 자격증명 형식, private signing
-key를 먼저 검사하고 `app.config.ts`의 현재 버전을 target app version으로 자동
-사용한다. 다른 브랜치나 dirty worktree에서는 기본적으로 발행하지 않는다.
+1. production OTA면 `release/<앱 버전>`의 CI 통과 커밋에서 진행한다. 변경과 `OTA_RELEASE +1`을 PR로 병합하고, 작업 트리가 깨끗한지 확인한다.
+2. agent가 **Hot Updater (OTA)** GitHub Actions workflow를 `production`으로 실행한다. workflow가 같은 커밋의 CI, 브랜치 가드, 자격증명 형식 검사를 다시 수행한 뒤 `app.config.ts` 버전을 대상으로 서명 번들을 발행한다.
+3. workflow 성공과 배포 커밋 SHA를 확인하고, `v<버전>+<OTA_RELEASE>` 태그를 붙인다. `release/<버전>` 변경을 임시 역머지 PR로 `main`에 반영한다.
+4. 사용자에게 iOS·Android 각각 앱 완전 종료 후 재실행 확인과 배포 기록을 남긴다.
 
-플랫폼을 생략하면 iOS 성공 후 Android를 순차 발행한다. 한 플랫폼만 다시 보낼
-때는 `pnpm deploy:ota -- --platform ios` 또는 `--platform android`를 붙인다.
-기본 rollout은 100%다.
-첫 실증은 사용자가 한 명이므로 100%로 진행하되 bundle ID 두 개를 기록한다.
-
-GitHub Actions에서는 **Hot Updater (OTA)** workflow의 `production` 채널을
-수동 선택한다. main CI 성공 뒤 자동 실행되는 것은 `preview`뿐이다.
+agent는 직접 `pnpm deploy:ota`나 `hot-updater deploy`를 실행하지 않는다. 로컬 스크립트는 production을 직접 올리고 발행 전 CI를 보장하지 않는다. 모든 OTA 발행은 GitHub Actions workflow를 통과시킨다. `--force-update`는 사용하지 않는다.
 
 ## 6. 실기기 적용 확인
 

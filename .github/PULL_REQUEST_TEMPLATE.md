@@ -9,6 +9,17 @@ Closes #
      base가 dev 이면 dev→main 병합 때, release/** 이면 main으로 역머지될 때 닫힌다.
      닿는 이슈가 없으면 이 줄을 지운다. (`wiki/git.md` 2·3절) -->
 
+## 배포 방식
+
+<!-- deploy:ota / deploy:native / deploy:none / deploy:pending 중 정확히 하나를 PR과 관련 이슈에 붙인다.
+     OTA: 대상 앱 버전·채널 및 기존 네이티브 코드와의 호환성.
+     native: 새 빌드가 필요한 변경. none: 앱 배포가 필요 없는 이유.
+     미확인 상태는 pending으로 두고 병합 전에 확정한다. 기준: wiki/git.md의 배포 방식 절. -->
+
+라벨 · 판단 근거:
+
+- [ ] 실제 diff와 대상 설치본을 확인해 배포 라벨을 확정하고 관련 이슈도 갱신했다
+
 ## 검증
 
 `apps/ch-life`에서 실행한 결과를 적는다.

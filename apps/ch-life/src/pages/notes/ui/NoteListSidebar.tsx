@@ -100,7 +100,7 @@ export function NoteListSidebar({
           className="flex-1 py-1.5 text-ink text-label"
           value={query}
           onChangeText={setQuery}
-          placeholder="검색 — 제목, 인용"
+          placeholder="제목·인용 참조 검색"
           placeholderTextColorClassName="text-ink-3"
           autoCorrect={false}
           autoCapitalize="none"

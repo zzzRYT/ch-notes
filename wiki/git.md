@@ -109,6 +109,7 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 | `main`의 최신 상태 위에서 검사가 돌았다 | GitHub 브랜치 보호 — strict |
 | 리뷰 승인 | **요구하지 않는다** — 1인 저장소라 본인 PR을 본인이 승인할 수 없다 |
 | 위키가 코드와 맞다 | 사람 — PR 템플릿 체크란 |
+| 배포 방식 라벨이 확정됐다 (`deploy:pending`이 아니다) | 사람 — PR 템플릿 체크란 |
 
 관리자도 우회하지 않는다(`enforce_admins`). 급할 때 뚫을 구멍을 남기면 급할 때 반드시 뚫게 되고, 그때가 정확히 검사가 가장 필요한 때다.
 
@@ -124,7 +125,7 @@ BREAKING CHANGE: 1.0.x가 만든 DB는 이 버전에서 열리지 않는다. 마
 
 PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커밋이 하나뿐인 PR은 그 커밋 제목을 그대로 쓴다.
 
-설명은 [`PULL_REQUEST_TEMPLATE`](../.github/PULL_REQUEST_TEMPLATE.md)를 채운다. 세 칸뿐이다 — **무엇을·왜**, **검증**, **위키**. 검증 항목은 돌리지 않았으면 체크하지 않는다. 체크만 하고 안 돌리면 이 템플릿은 없는 것과 같다.
+설명은 [`PULL_REQUEST_TEMPLATE`](../.github/PULL_REQUEST_TEMPLATE.md)를 채운다. **무엇을·왜**, **배포 방식**, **검증**, **위키**를 적고, 필요하면 리뷰어가 볼 곳을 덧붙인다. 검증 항목은 돌리지 않았으면 체크하지 않는다. 체크만 하고 안 돌리면 이 템플릿은 없는 것과 같다.
 
 **본문 첫 칸에 `Closes #12`를 적는다.** 템플릿이 그 줄을 미리 깔아 두는 것은 **이슈를 손으로 닫지 않기 위해서다** — 병합과 동시에 닫히지 않는 이슈는 곧 열린 채로 잊힌다([3절](#3-이슈)). 이 PR로 끝나지 않는 이슈면 `Refs #12`로 바꿔 쓰고, 닿는 이슈가 없으면 줄을 지운다. **`Refs`가 기본값이 아니다** — 이슈를 끝내는 PR인데 `Refs`로 적으면 아무 일도 일어나지 않는다.
 
@@ -155,18 +156,36 @@ PR 제목은 커밋과 같은 형식으로 쓴다(`✨ feat(notes): …`). 커�
 
 그 외 문의는 템플릿 선택 화면의 링크로 메일·지원 문서를 안내한다.
 
-### 라벨 — `type:` 과 `area:` 두 축
+### 라벨 — `type:` · `area:` · `deploy:` 세 축
 
 | 축 | 값 |
 |---|---|
 | `type:` | `bug` · `feat` · `docs` · `chore` — **커밋 타입과 같은 단어** |
 | `area:` | `editor` · `bible` · `notes` · `db` · `share` · `settings` · `theme` · `workspace` · `search` · `ota` · `ci` · `wiki` — **커밋 scope와 같은 단어** |
+| `deploy:` | `ota` · `native` · `none` · `pending` — 이슈와 PR의 [배포 방식](#배포-방식) |
 
 `type:`은 템플릿이 자동으로 붙인다. `area:`는 손으로 붙인다. 없는 영역이면 라벨을 새로 만들되, **커밋 scope 목록과 같은 단어를 쓴다** — 두 목록이 갈라지면 둘 다 못 믿게 된다.
 
 **진행 상태는 라벨로 관리하지 않는다.** 열려 있으면 안 된 것이고 닫혀 있으면 된 것이다. 그 사이를 손으로 옮기는 라벨은 1인 저장소에서 곧 거짓말이 된다.
 
 `eas-build`는 사람이 분류하는 라벨이 아니다 — PR에 붙이면 EAS가 빌드를 만드는 동작 트리거다. 건드리지 않는다.
+
+### 배포 방식
+
+**모든 이슈와 PR에는 `deploy:` 라벨을 정확히 하나 붙인다.** 이슈는 필요한 작업 전체, PR은 실제 diff를 기준으로 분류한다. 라벨은 앱 배포 방식만 나타내며, 배포 실행이나 승인을 뜻하지 않는다.
+
+| 라벨 | 기준 |
+|---|---|
+| `deploy:ota` | JS·번들 에셋만 바뀌고, 대상 설치본의 네이티브 코드·설정과 호환된다. [OTA 데이터 호환 규칙](rules/release.md#그래서-번들에-담을-수-없는-것)도 충족한다. |
+| `deploy:native` | 새 네이티브 빌드가 필요하다. 네이티브 의존성·Expo SDK·config plugin·권한·네이티브 설정·앱 `version` 변경, OTA로 허용하지 않는 데이터 변경 등이 해당한다. |
+| `deploy:none` | 앱 배포가 필요 없다. 문서·테스트·CI·웹사이트만 바뀌는 경우 등이 해당한다. 웹사이트 배포 등 별도 작업은 본문에 적는다. |
+| `deploy:pending` | 구현 방법이나 대상 설치본을 확인하지 않아 아직 판단할 수 없다. |
+
+- 이슈 템플릿은 `deploy:pending`을 기본으로 붙인다. 작업 방법이 정해지면 담당자가 확정 라벨로 교체한다. CLI로 이슈·PR을 열 때도 라벨을 직접 지정한다.
+- PR 본문의 **배포 방식**에 라벨과 판단 근거를 적는다. OTA는 대상 앱 버전·채널과 기존 네이티브 코드와의 호환성을, native는 새 빌드가 필요한 변경을 적는다. OTA 대상 버전이 정해지지 않았으면 `deploy:pending`을 유지한다.
+- PR 병합 전에는 실제 diff를 다시 확인해 `deploy:pending`을 제거하고, 관련 이슈도 갱신한다. 이슈에 여러 PR이 연결되어 있으면 작업 전체를 다시 판정한다. native가 하나라도 필요하면 이슈는 `deploy:native`, 그 외에는 OTA 필요 여부에 따라 `deploy:ota` 또는 `deploy:none`이다. 미확인 작업이 남으면 `deploy:pending`을 유지하되, 이미 native 필요성이 확인됐으면 `deploy:native`로 둔다.
+- JS 변경과 네이티브 변경이 함께 있으면 `deploy:native`다. 파일 확장자나 변경 디렉터리만으로 OTA 가능 여부를 판단하지 않는다. 예를 들어 `firebase.json`의 자동 화면 기록 설정은 JSON이어도 네이티브 빌드에 반영되므로 `deploy:native`다([React Native Firebase 설정](https://rnfirebase.io/analytics/usage#disable-screenview-tracking)).
+- `deploy:ota`도 모든 설치본에 전달된다는 뜻은 아니다. `updateStrategy: appVersion`과 채널을 확인하고, 발행 직전 [5절의 OTA 발행](#ota-발행) 절차로 재검증한다. 배포 방식 라벨은 `eas-build` 트리거와 별개다.
 
 ### 닫기
 
@@ -294,7 +313,7 @@ git push -u origin chore/release-1.0.2
 gh pr create --base release/1.0.2      # CI 통과 후 병합
 ```
 
-이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)하고 스토어에 제출한다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
+이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)한다. 빌드가 끝나면 배포 agent가 같은 릴리스 커밋·플랫폼의 성공한 build ID를 확인하고 EAS CLI `eas submit --id <build-id>`로 업로드한다. `--latest`는 다른 빌드를 선택할 수 있어 쓰지 않는다. iOS는 App Store Connect 심사 제출을 사람이 하고, Android는 현재 `alpha` 트랙에 올라가므로 공개 출시 전 production 승격이 필요하다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
 
 **이번 릴리스 대상 플랫폼이 모두 동일한 최종 커밋으로 스토어에 공개된 뒤**, 그 커밋에 태그를 붙인다. 한 플랫폼의 심사 수정으로 릴리스 가지가 바뀌면 다른 대상 플랫폼도 최종 커밋으로 맞춘 뒤 태그한다. 현재 작업 가지가 아니라 원격 릴리스 가지를 명시해, 버전 bump PR의 head나 심사 반려 전 커밋을 잘못 태그하지 않는다.
 
@@ -312,10 +331,10 @@ git push origin v1.0.2
 
 | 채널 | 언제 | 어디서 | 방식 |
 |---|---|---|---|
-| `preview` | 사람이 판단할 때 | 아무 가지(보통 `dev`) | 수동 실행 |
-| `production` | 사람이 판단할 때 | **`release/<버전>`에서만** | 수동 실행 |
+| `preview` | 사용자가 agent에 요청할 때 | 아무 가지(보통 `dev`) | agent가 수동 실행 |
+| `production` | 사용자가 agent에 요청할 때 | **`release/<버전>`에서만** | agent가 수동 실행 |
 
-**자동 발행은 없다.** `main`·`dev` 병합은 아무것도 발행하지 않는다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). 발행 워크플로는 번들을 만들기 전에 **같은 커밋으로 CI를 다시 돌린다.** 그래서 직접 푸시된 `dev` 커밋을 쏘더라도 CI를 통과한 커밋만 나간다.
+`main`·`dev` 병합은 발행하지 않는다([`ADR-0028`](decisions/ADR-0028-dev-branch.md)). production OTA는 사용자가 배포를 요청하면 agent가 발행 워크플로를 실행한다. 워크플로는 번들을 만들기 전에 **같은 커밋으로 CI를 다시 돌린다.** 그래서 직접 푸시된 `dev` 커밋을 쏘더라도 CI를 통과한 커밋만 나간다.
 
 `production`을 `main`에서 쏘려 하면 **워크플로도 로컬 `pnpm deploy:ota`도 거부한다** — 스토어에 올린 것과 다른 코드가 기존 설치본으로 나가는 것을 막는다.
 
@@ -331,7 +350,7 @@ production 발행이 성공하면 그때 추가된 `OTA_RELEASE`와 핫픽스도
 - 배포 워크플로의 **자격증명 형식 검사** — 값이 있는지가 아니라 모양이 맞는지 본다. 틀리면 번들을 만들기 전에 멈춘다.
 - `production` 채널이면 `release/**` 가지인지.
 
-### 지금 닫혀 있는 것 (2026-09-05)
+### 현재 OTA 지원 범위 (2026-10-09)
 
-- **OTA는 한 번도 성공한 적이 없다.** R2 access key id에 53자짜리 값이 들어 있다(32자리 hex여야 한다). 시크릿을 고치기 전까지는 어느 채널로 발행해도 실패한다([`drift.md`](drift.md) B19).
+- **1.0.3+1과 1.0.4+1의 production OTA 발행이 성공했다.** 이전 R2 자격증명 오류는 해소 상태를 확인했다([`drift.md`](drift.md) B19). 발행 성공과 실제 기기 적용 검증은 구분한다.
 - **스토어의 1.0.1은 `expo-updates` 바이너리다.** hot-updater는 네이티브 모듈이라 OTA로 배달할 수 없다 — **1.0.1 사용자는 어떤 OTA도 받지 못한다.** 그들에게 무언가를 보내려면 1.0.2 스토어 빌드를 내는 수밖에 없다([`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)).

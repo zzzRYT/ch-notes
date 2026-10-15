@@ -131,8 +131,8 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 
 **2026-09-06에 원인을 걷어냈다** — 루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`과 `packages/editor-core` 스캐폴드를 `main`에서 제거했다 — 스캐폴드를 `main`에 둘 것인가라는 질문(옛 E15)의 답이다. 앱을 아무도 소비하지 않는 패키지 하나 때문에 세 워크플로가 우회 플래그를 달고 있을 이유가 없다. 플래그도 함께 지웠다. Phase 2를 시작할 때 브랜치에서 다시 세우고, 앱이 실제로 그 패키지를 쓰기 전까지 `main`에 올리지 않는다(`docs/editor-core/extraction-plan.md`).
 
-### B19. OTA는 한 번도 성공한 적이 없다
-`hot-updater` 전환 뒤 `main`에 들어간 머지마다 OTA 워크플로가 돌았고 **전부 같은 지점에서 실패했다**(`33952417840`, `33954929255`).
+### B19. R2 자격증명 형식 오류로 OTA 실패 — 해소됨
+`hot-updater` 전환 직후 OTA 워크플로가 **같은 지점에서 실패했다**(`33952417840`, `33954929255`).
 
 ```
 ◆  ✅ Bundle Signing Complete
@@ -141,9 +141,11 @@ FSD 전환에서 인용 블록 생성은 `apps/ch-life/src/entities/note/model/c
 ■  Failed to upload bundle to storage
 ```
 
-번들 생성·Hermes 컴파일·서명까지는 전부 통과하고 **R2 업로드에서만** 죽는다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있다 — 다른 자격증명(API 토큰 등)을 이 슬롯에 넣었을 가능성이 크다.
+당시 번들 생성·Hermes 컴파일·서명까지는 통과하고 **R2 업로드에서만** 실패했다. R2 액세스 키 ID는 32자 hex인데 `HOT_UPDATER_CLOUDFLARE_R2_ACCESS_KEY_ID` 시크릿에 53자짜리 값이 들어 있었다.
 
-워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다. 다만 **시크릿 값 자체는 아직 고쳐지지 않았다.** 시크릿을 고치기 전까지 OTA 경로는 서류상으로만 존재한다 — [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)의 "두 경로" 중 OTA 경로는 **실제로는 닫혀 있다.**
+워크플로의 `test -n` 가드가 값의 **존재**만 보고 형식은 보지 않아 이 실수를 잡지 못했다. **가드는 형식 검사로 바꿨다**([`ADR-0021`](decisions/ADR-0021-release-strategy.md)) — 이제 같은 실수는 번들을 만들기 전에 걸린다.
+
+**2026-10-09에 해소 상태를 확인했다.** `release/1.0.3`의 [production 발행](https://github.com/zzzRYT/ch-notes/actions/runs/37890296322)과 `release/1.0.4`의 [production 발행](https://github.com/zzzRYT/ch-notes/actions/runs/37890274387)이 모두 CI·자격증명 검사·서명·R2 업로드·D1 등록을 통과했다. 각 앱 버전에 iOS/Android 번들이 등록됐고 태그는 `v1.0.3+1`, `v1.0.4+1`이다. 실제 기기에서의 다운로드·적용과 화면 검수는 별도 확인이 필요하다.
 
 ### B20. 알 수 없는 블록 타입은 조용히 사라지거나 앱을 깨뜨린다
 `BlockNode`는 닫힌 유니온이지만, 그 값을 읽는 네 경로 중 **모르는 `type`을 다룰 준비가 된 곳이 하나도 없다.**
@@ -197,6 +199,8 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 웹(react-native-web)에서는 CSS 문법이 그대로 동작해 제네릭 `serif`/`monospace` 차이는 난다 — **네이티브와 웹의 동작이 갈린다**(E7과 연결). → [`RULE-SET-005`](rules/settings-theme.md)
 
+**2026-10-09 부분 해소.** WebView 노트 본문에는 `editorThemeCss`가 글꼴 스택을 CSS로 전달하므로 서체 선택이 반영된다. 테마 미리보기는 플랫폼 기본 서체로 견본을 그린다. 네이티브 UI의 폰트 스택 제약과 폰트 파일 미번들링은 그대로 남아 있다.
+
 ### B25. `theme.isDark`는 계산만 되고 소비처가 없다
 `src/shared/ui/ThemeProvider.tsx:211`에서 `isDark: variation === "dark"`로 계산되어 `Theme` 타입에 실리지만, 앱 전체에서 이 필드를 읽는 코드가 **0건**이다(정의부 3줄 — `:37`, `:185`, `:211` — 이 전부). 다크 화면은 `isDark` 분기가 아니라 `DARK` 팔레트 값 자체로 렌더링된다. [`RULE-SET-003`](rules/settings-theme.md)은 `isDark`의 정의를 서술하지만 그것이 미사용이라는 사실은 적지 않는다. → [`ADR-0010`](decisions/ADR-0010-variation-theming.md)
 
@@ -244,6 +248,13 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 **2026-09-27 갱신.** ⑴은 사용자 결정으로 옮겼다 — WebView의 인용 카드를 누르면 `verse-bridge`가 RN에 알리고, RN이 같은 `QuoteEditModal`·`replaceQuoteRef`로 새 인용을 만들어 그 자리 노드를 바꾼다([`RULE-EDIT-014`](rules/editor-insert.md)). 남은 것은 ⑵다.
 
+### B33. ~~WebView 노트 본문에 테마 설정 세 축이 연결되지 않았다~~ **해소(2026-10-09)**
+`ThemeProvider`는 `fontScale`·`fontStack`·`blockStyle`을 계산했지만 `RichNoteEditor`는 색만 CSS로 전달했다. 본문은 17px로 고정되고 인용도 항상 왼쪽 선 모양이었다. `RULE-SET-004`의 인용 모양 설명과 `RULE-SET-005`의 본문 배율 설명은 현재 편집기에는 맞지 않았다.
+
+`editorThemeCss`로 첫 HTML과 이후 CSS 갱신에 다섯 테마 축을 모두 전달한다. 인용 접기는 DOM 표시만 바꾸며, `verse-appearance.test.ts`가 구절 JSON 유지·참조 편집 이벤트 분리·다른 모양 선택 시 본문 복귀를 확인한다. 설정은 별도 테마 변경 페이지에서 견본과 함께 선택한다. 태블릿에도 폰과 같은 한 열 견본 화면을 쓴다(전체 예시 노트 미리보기는 제거).
+
+---
+
 ## C. 테스트(오라클)의 신뢰도 문제
 
 테스트가 통과한다는 것이 규칙이 지켜진다는 뜻이 아닌 지점이다.
@@ -281,8 +292,8 @@ RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디�
 ### D1. ~~개인정보처리방침이 없는 기능을 약속한다~~ (해소, 1.0.1)
 `docs/legal/privacy-policy.md` 8장이 약속한 "앱 내에서 노트를 직접 수정·**삭제**"는 **1.0.1에서 실제로 구현됐다** — 목록 스와이프·에디터·태블릿 세 경로 + 되돌리기(`01a0125`, `640a62c`, `196de89`). [`RULE-NOTE-007`](rules/note-persistence.md)이 정반대로 뒤집혔다. 공개 문서 쪽은 손댈 것이 없다.
 
-### D2. 검색창이 되지 않는 검색을 안내한다
-placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하지 않는다**([`RULE-SEARCH-001`](rules/search.md)).
+### D2. ~~검색창이 되지 않는 검색을 안내한다~~ (2026-10-09 해소, #94·#96·#108)
+~~placeholder: `검색 — 제목, 본문, 인용`. 본문 검색은 동작하지 않는다~~([`RULE-SEARCH-001`](rules/search.md)). **해소** — 폰 `NotesPage` placeholder를 `검색 — 제목, 인용`으로 고쳐 태블릿 사이드바와 맞췄다. 본문 검색 자체는 여전히 없다. 태블릿 성경 패널 안내도 절 번호가 필수인 `lookupVerses`에 맞춰 `책 장:절 (예: 창 1:1-5)`로 고쳤다.
 
 ### D3. 플랫폼 표기가 문서마다 다르다
 `README.md`와 `CLAUDE.md`는 "웹 + 모바일"이라 하고, `DESIGN.md`·v1 spec은 "웹은 V1/V2 범위 밖"이라 한다. `package.json`에 `web` 스크립트가 있고 `app.config.ts`에 웹 favicon 설정이 있다.
@@ -353,4 +364,4 @@ placeholder: `검색 — 제목, 본문, 인용`. **본문 검색은 동작하�
 4. **회귀 fixture** — 실제로 내보낸 `.md` 파일을 테스트 자산으로 고정한다. 관측 계층이 없는 이 앱에서 유일하게 "현실"을 담은 재현 자산이다.
 5. ~~**B절 중복 정리** — 상수·함수 중복(B2·B3)~~ — 2026-09-20 FSD 전환에서 해소.
 
-가장 먼저 고칠 것은 위키가 아니라 코드 쪽이다. **B10(`1 John 1:1` → 요한복음 삽입)은 틀린 데이터를 조용히 넣는다.** D1·D2·D5는 이미 사용자에게 노출된 문구다.
+가장 먼저 고칠 것은 위키가 아니라 코드 쪽이다. **B10(`1 John 1:1` → 요한복음 삽입)은 틀린 데이터를 조용히 넣는다.** D1·D2는 해소됐고, D5는 아직 사용자에게 노출된 문구다.

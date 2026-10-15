@@ -78,7 +78,22 @@ const VerseQuote = Node.create({
       });
       const head = document.createElement("div");
       head.className = "verse-quote__ref";
-      head.textContent = String(node.attrs.label);
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "verse-quote__toggle";
+      toggle.textContent = "▾";
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", `${node.attrs.label} 접기`);
+      toggle.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const collapsed = dom.dataset.collapsed !== "true";
+        dom.dataset.collapsed = String(collapsed);
+        toggle.textContent = collapsed ? "▸" : "▾";
+        toggle.setAttribute("aria-expanded", String(!collapsed));
+        toggle.setAttribute("aria-label", `${node.attrs.label} ${collapsed ? "펼치기" : "접기"}`);
+      });
+      head.appendChild(toggle);
+      head.appendChild(document.createTextNode(String(node.attrs.label)));
       dom.appendChild(head);
       const block = JSON.parse(String(node.attrs.block)) as {
         verses?: { verse: number; text: string }[];
