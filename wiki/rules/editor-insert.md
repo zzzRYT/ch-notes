@@ -380,3 +380,26 @@ source:
 ⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
 
 번호 목록·들여쓰기·체크리스트는 만들지 않았다.
+
+## RULE-EDIT-017 · doc-ready가 안 오면 에러 UI를 보여준다
+
+```yaml
+id: RULE-EDIT-017
+policy: POL-NOTE-001
+requirement: MUST
+statement: WebView 에디터가 기한(DOC_READY_TIMEOUT_MS) 안에 doc-ready를 알리지 않으면 스켈레톤 대신 에러 UI와 "다시 시도" 버튼을 보여준다. 다시 시도는 WebView를 다시 마운트해 페이지를 리로드한다.
+implemented_by:
+  - apps/ch-life/src/widgets/note-editor/lib/doc-ready-timeout.ts
+  - apps/ch-life/src/widgets/note-editor/ui/RichNoteEditor.tsx
+verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/doc-ready-timeout.test.ts
+  - manual: 타임아웃 상수를 임시로 낮춘 개발 빌드에서 에러 UI·재시도 확인 (실기기 확인 필요)
+confidence: 기록됨
+source:
+  - https://github.com/zzzRYT/ch-notes/issues/119
+```
+
+스켈레톤이 영원히 남는 것보다 실패를 알리는 것이 낫다 — 사용자는 기다릴지
+다시 시도할지 정할 수 있다. 재시도해도 본문 데이터는 바뀌지 않는다
+(`body_json`·`citedRefs`는 손대지 않음). 타임아웃은 네트워크와 무관한 로컬
+타이머다 (#119).
