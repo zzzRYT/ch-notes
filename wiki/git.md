@@ -294,7 +294,7 @@ git push -u origin chore/release-1.0.2
 gh pr create --base release/1.0.2      # CI 통과 후 병합
 ```
 
-이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)한다. 빌드가 끝나면 배포 agent가 같은 릴리스 커밋·플랫폼의 성공한 build ID를 확인하고 EAS CLI `eas submit --id <build-id>`로 업로드한다. `--latest`는 다른 빌드를 선택할 수 있어 쓰지 않는다. iOS는 App Store Connect 심사 제출을 사람이 하고, Android는 현재 `alpha` 트랙에 올라가므로 공개 출시 전 production 승격이 필요하다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
+이후 GitHub Actions에서 **EAS Build**를 수동 실행(`production`)한다. 빌드가 끝나면 배포 agent가 같은 릴리스 커밋·플랫폼의 성공한 build ID를 확인하고 EAS CLI `eas submit --id <build-id>`로 업로드한다. `--latest`는 다른 빌드를 선택할 수 있어 쓰지 않는다. iOS는 App Store Connect 심사 제출을 사람이 하고, Android는 `production` 트랙에 바로 올라가 Google 검토 뒤 공개된다. 심사 중 수정이 필요하면 수정도 릴리스 가지로 PR을 거쳐 넣고 다시 빌드한다.
 
 **이번 릴리스 대상 플랫폼이 모두 동일한 최종 커밋으로 스토어에 공개된 뒤**, 그 커밋에 태그를 붙인다. 한 플랫폼의 심사 수정으로 릴리스 가지가 바뀌면 다른 대상 플랫폼도 최종 커밋으로 맞춘 뒤 태그한다. 현재 작업 가지가 아니라 원격 릴리스 가지를 명시해, 버전 bump PR의 head나 심사 반려 전 커밋을 잘못 태그하지 않는다.
 
