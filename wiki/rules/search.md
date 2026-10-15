@@ -28,7 +28,7 @@ INSERT 트리거는 `body_text`에 `''`를 넣고, UPDATE 트리거는 `title`�
 
 **이 규칙은 FTS 경로(폰)에만 온전히 적용된다.** 태블릿 사이드바는 FTS를 쓰지 않고 메모리 목록을 `noteTitleOrFallback()`으로 필터하는데, 제목이 없는 노트는 이 함수가 **본문 앞 40자**(`notePreview`)로 대체하므로 **제목 없는 노트에 한해 태블릿에서는 본문 일부가 검색된다.** 폰과 태블릿의 검색 결과가 갈리는 지점이다 → [`drift.md` B8](../drift.md).
 
-그런데 검색창 placeholder는 `검색 — 제목, 본문, 인용`이라고 안내한다. 사용자에게 노출된 문구와 실제 동작이 어긋나 있다([`drift.md`](../drift.md) D절). 이 상태는 [`ADR-0007`](../decisions/ADR-0007-fts-scope.md)에 기록되어 있다.
+폰과 태블릿의 검색창은 `제목·인용 참조 검색`으로 안내한다. 전체 본문을 검색한다는 안내는 하지 않는다([`ADR-0007`](../decisions/ADR-0007-fts-scope.md)).
 
 ## RULE-SEARCH-002 · 접두 매칭만 지원한다
 

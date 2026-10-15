@@ -69,7 +69,7 @@ export function BibleLookupPanel({
           className="flex-1 py-2 text-ink text-label"
           value={query}
           onChangeText={setQuery}
-          placeholder="창1:1 · 시 23 · 마5:3-12"
+          placeholder="책 장:절 (예: 창 1:1-5)"
           placeholderTextColorClassName="text-ink-3"
           autoCorrect={false}
           autoCapitalize="none"
@@ -141,7 +141,7 @@ export function BibleLookupPanel({
             <Text className="text-label font-semibold text-ink-2">
               참조를 인식하지 못했어요
             </Text>
-            <Text className={EMPTY_HINT}>예: 창1:1 · 창세기 1:1-5 · 시 23</Text>
+            <Text className={EMPTY_HINT}>예: 창1:1 · 창세기 1:1-5 · 시 23:1</Text>
           </View>
         )}
         {showCited && (
