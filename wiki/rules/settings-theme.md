@@ -84,11 +84,21 @@ statement: blockStyle과 accentChoice가 "default"면 현재 변형의 기본값
 implemented_by:
   - apps/ch-life/src/shared/ui/ThemeProvider.tsx
   - apps/ch-life/src/shared/config/theme-options.ts (ACCENT_OPTIONS)
-  - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/pages/settings/ui/ThemeSettingsPage.tsx
+  - apps/ch-life/src/widgets/note-editor/lib/editor-theme.ts
+  - apps/ch-life/src/widgets/note-editor/lib/verse-bridge.ts
 verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/editor-theme.test.ts
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/verse-appearance.test.ts
   - manual: 변형을 바꾸면 인용 블록 모양이 함께 바뀌고, 명시 선택 시 유지된다
 confidence: 코드추론
 ```
+
+설정의 **테마 변경**(`/settings/theme`)에서 배경·글자 크기·글꼴·성경 인용 모양·강조색을 함께 고른다. 선택은 즉시 적용된다. 폰과 태블릿이 같은 한 열 화면을 쓴다 — 긴 설명과 상단 예시 노트 없이, 배경·인용 모양은 작은 견본이 붙은 한 줄 선택지로, 글자 크기·글꼴·강조색은 작은 글자와 색 견본으로 비교한다. 표시 이름만 바꾸고 설정 파일의 enum·hex는 유지한다. 설정 화면에는 내보내기 섹션이 없다 — 내보내기는 노트 화면의 ↑ 버튼뿐이다.
+
+견본은 `resolveTheme`로 팔레트와 기본 인용 모양을 계산한다. 별도 `ThemeProvider`를 마운트하지 않으므로 미선택 견본이 앱 전역 테마를 바꾸지 않는다. 견본 안의 색과 글자 크기에는 계산된 토큰을 `style`로 직접 전달한다.
+
+WebView 노트 편집기는 같은 테마의 색·글꼴 스택·본문 크기·인용 모양을 `editorThemeCss`로 받아 첫 HTML과 이후 CSS 갱신 모두에 반영한다. 접고 펼치기는 표시 상태만 바꾸고 저장된 구절은 바꾸지 않는다. 접기 버튼과 참조 편집은 별도의 동작이다. 기기에서 지원하는 글꼴로 표시하며, 네이티브 UI의 서체 제약은 [`drift.md` B24](../drift.md#b24-fontfamily-설정은-폰트-미로딩과-별개로-이미-무효다)에 남아 있다.
 
 변형별 인용 기본 모양은 minimal=카드, paper=인용바, focus=접힘, dark=인용바다. 사용자가 강조색을 직접 고르면 옅은 배경색(`accentSoft`)은 그 색의 8% 알파로 자동 파생한다.
 
@@ -101,6 +111,7 @@ requirement: MUST
 statement: 글꼴 크기는 1.0 / 1.2 / 1.4 / 1.6 네 값만 허용하며, 화면의 글자 크기는 기준값 × 배율을 반올림해 계산한다.
 implemented_by:
   - apps/ch-life/src/shared/ui/ThemeProvider.tsx (scaled)
+  - apps/ch-life/src/widgets/note-editor/lib/editor-theme.ts
   - apps/ch-life/src/features/settings/change/model/settings-store.ts (FONT_SCALE_OPTIONS)
   - apps/ch-life/src/features/settings/change/model/settings-validator.ts
 verified_by:
@@ -108,7 +119,7 @@ verified_by:
 confidence: 코드추론
 ```
 
-OS 시스템 글자 크기를 따라가지 않고 앱 자체 배율만 쓴다(`DESIGN.md` Open Question 2는 열려 있는 채로 자체 슬라이더 방식이 채택되었다). 배율은 본문·인용·목록·메타 헤더에 적용되지만, 일부 고정 크기 요소(성경 리더 내부 등)에는 적용되지 않는다.
+OS 시스템 글자 크기를 따라가지 않고 앱 자체 배율만 쓴다(`DESIGN.md` Open Question 2는 열려 있는 채로 자체 슬라이더 방식이 채택되었다). 읽는 텍스트는 `text-*` 토큰의 배율을 받고 아이콘 글리프는 고정 크기다. WebView 노트 본문도 `scaled(17, fontScale)`을 기준으로 제목과 인용까지 함께 확대한다.
 
 ## RULE-SET-006 · 설정 변경은 즉시 저장된다
 
@@ -120,7 +131,10 @@ statement: 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 
 implemented_by:
   - apps/ch-life/src/features/settings/change/model/useSettingsPersistence.ts
   - apps/ch-life/src/app/_layout.tsx
+  - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
+  - apps/ch-life/src/pages/settings/ui/ThemeSettingsPage.tsx
 verified_by:
+  - test: apps/ch-life/src/pages/settings/ui/__tests__/SettingsPage.test.tsx
   - manual: 설정 변경 후 앱 재시작 시 유지
 confidence: 코드추론
 ```
