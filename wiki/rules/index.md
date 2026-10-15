@@ -13,7 +13,7 @@
 | 파일 | ID | 무엇을 정하나 | 대응 코드 | 자동 증거 |
 |---|---|---|---|---|
 | [scripture-ref.md](scripture-ref.md) | RULE-REF-001 ~ RULE-REF-005 | 참조 파싱 → 책 이름 해석 → 본문 조회 → 표시 포맷 | `src/entities/scripture/**` | 5/5 |
-| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-016 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 12/16 |
+| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-017 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 12/16 |
 | [note-persistence.md](note-persistence.md) | RULE-NOTE-001 ~ RULE-NOTE-008 | 로컬 SQLite 저장, id 생성, read-then-merge, 마이그레이션 | `src/entities/note/{model,api}/**` | 6/8 |
 | [search.md](search.md) | RULE-SEARCH-001 ~ RULE-SEARCH-007 | FTS 접두 검색, 대상은 제목·인용뿐 | `src/entities/note/api/sqlite-note-repo.ts` | 5/7 |
 | [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색은 공유하고 위치 복원·삽입은 진입점마다 다름 | `src/widgets/scripture-browser/**` | 4/7 |
@@ -29,7 +29,7 @@
 - **scripture-ref** — 본문 조회는 all-or-nothing이다. 범위의 끝 절이 없으면 앞이 다 있어도 통째로 `null`. 그리고 **숫자로 시작하는 영어 책 17권은 파서에 도달하지 못한다**([`../drift.md`](../drift.md) B11).
 - **editor-insert** — 자동완성 트리거 정규식이 `parseRef`보다 좁다. `1 John 1:1 `을 치면 **요한복음**이 삽입된다(B10).
 - **note-persistence** — `update`는 read-then-merge다. 새 컬럼을 더하면서 `null`=비움 / `undefined`=유지 규칙을 따르지 않으면, 다른 화면의 부분 저장이 방금 입력한 값을 조용히 지운다. 그리고 `restore`는 그 규칙 **바깥**이다 — id·`created_at`을 보존한 채 통째로 INSERT하므로 컬럼을 빠뜨리면 되돌린 노트만 그 필드를 잃는다.
-- **search** — `body_text`는 언제나 빈 문자열로 색인된다. 그런데 검색창은 "본문"을 검색한다고 안내한다(D2). 태블릿은 또 다르게 동작한다(B8).
+- **search** — `body_text`는 언제나 빈 문자열로 색인된다. 검색창 placeholder는 "제목, 인용"으로 이와 일치한다(D2 해소). 태블릿은 또 다르게 동작한다(B8).
 - **bible-reader** — 브라우저 ＋로 넣은 인용은 정식 한국어명, 자동완성으로 넣은 인용은 사용자가 친 그대로 저장된다. 같은 절인데 검색 결과가 갈린다(RULE-SEARCH-005).
 - **share-markdown** — `(KRV)` 표식은 데이터를 잘못 이름 붙였지만 **파서의 판별자**라 바꾸면 기존 파일을 못 읽는다. 그리고 덮어쓰기 가져오기가 없는 필드를 지운다(B16).
 - **settings-theme** — 새 설정 필드는 **반드시 개별 폴백**으로 추가한다. 필수 필드로 다루면 구버전 `settings.json` 전체가 버려진다.

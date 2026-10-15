@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, Pressable, ScrollView, View } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 import { KeyboardEvents, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -24,6 +24,7 @@ import { detectRefAtCursor, replaceQuoteRef } from '@/features/scripture/insert'
 import { useTheme } from '@/shared/ui';
 import { editorHtml } from '../lib/generated/editor-html';
 import { DocSyncBridge, setDocListener, type Caret } from '../lib/doc-sync-bridge';
+import { createDocReadyTimeout } from '../lib/doc-ready-timeout';
 import { blocksToDoc, docToBlocks } from '../lib/rich-doc';
 import {
   setVerseEditHandler,
@@ -31,6 +32,7 @@ import {
   VerseQuoteBridge,
   type VerseEdit,
 } from '../lib/verse-bridge';
+import { editorThemeCss } from '../lib/editor-theme';
 import { EditorSkeleton } from './EditorSkeleton';
 import { QuoteEditModal } from './QuoteEditModal';
 
@@ -49,6 +51,9 @@ const TOOLBAR_H = 44;
 const CARET_BOTTOM_ROOM = 0.4;
 // 웹 에디터가 뜨기 전 본문 자리 — 스켈레톤이 들어가고, 뜬 뒤 레이아웃이 튀지 않게 한다.
 const BODY_MIN_H = 240;
+// doc-ready가 이 시간 안에 안 오면 로드 실패로 본다(#119).
+// 웹뷰 번들 로드는 보통 1초 안쪽이라 여유 있게 잡았다.
+const DOC_READY_TIMEOUT_MS = 8000;
 
 type Props = {
   body: BlockNode[];
@@ -66,7 +71,8 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   { body, onChangeBody, header },
   ref,
 ) {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const insets = useSafeAreaInsets();
   // 에디터 안에 지금 들어 있는 본문. 에디터가 보낸 변경(메아리)과 바깥 변경을 가른다.
   const shownRef = useRef(JSON.stringify(body));
@@ -78,7 +84,7 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
     [],
   );
 
-  const css = `:root{--rt-ink:${colors.ink};--rt-ink2:${colors.ink2};--rt-ink3:${colors.ink3};--rt-bg:${colors.bg};--rt-accent:${colors.accent};--rt-accent-soft:${colors.accentSoft};--rt-rule:${colors.rule};}body{background:${colors.bg};}`;
+  const css = editorThemeCss(theme);
   // 테마 CSS를 HTML에 처음부터 넣는다 — 로드 뒤 주입하면 기본 색으로 한 번 그려졌다
   // 바뀌며 깜빡인다. 마운트 때 한 번만 만든다(바꾸면 WebView가 다시 로드된다).
   // 태그는 injectCSS와 같은 data-tag라서 이후 테마 변경은 이 <style>을 덮어쓴다.
@@ -124,6 +130,11 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   // 준비 전의 WebView는 빈 화면이나 반쯤 그린 문서다 — 스켈레톤을 보이다가 페이드로 바꾼다.
   const fade = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
+  // doc-ready가 기한 안에 안 오면 스켈레톤이 영원히 남는다(#119).
+  // 타임아웃 뒤에는 에러 UI를 보여주고, 다시 시도하면 WebView를 다시 마운트한다.
+  const [webviewKey, setWebviewKey] = useState(0);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const readyTimeoutRef = useRef<ReturnType<typeof createDocReadyTimeout> | null>(null);
 
   // 캐럿을 화면에 둔다. 좌표는 모두 ScrollView 콘텐츠 기준.
   const scrollRef = useRef<ScrollView>(null);
@@ -156,9 +167,16 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
   );
 
   useEffect(() => {
+    const readyTimeout = createDocReadyTimeout(DOC_READY_TIMEOUT_MS, () => {
+      if (!readyRef.current) setLoadFailed(true);
+    });
+    readyTimeoutRef.current = readyTimeout;
+    readyTimeout.start();
     setDocListener({
       onReady: () => {
+        readyTimeout.ready();
         readyRef.current = true;
+        setLoadFailed(false);
         push(bodyRef.current);
         setReady(true);
       },
@@ -174,8 +192,19 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
         onChangeBody(blocks);
       },
     });
-    return () => setDocListener(null);
+    return () => {
+      readyTimeout.dispose();
+      setDocListener(null);
+    };
   }, [onChangeBody, push, fade, keepCaretVisible]);
+
+  const retryWebView = useCallback(() => {
+    readyRef.current = false;
+    setLoadFailed(false);
+    // key를 바꿔 WebView를 다시 마운트 — 페이지가 리로드되고 doc-ready가 다시 온다.
+    setWebviewKey((k) => k + 1);
+    readyTimeoutRef.current?.start();
+  }, []);
 
   // 준비됐어도 문서 높이가 오기 전엔 웹뷰 높이가 0이다 — 둘 다 된 뒤 스켈레톤과 바꾼다.
   const [webH, setWebH] = useState(0);
@@ -261,14 +290,41 @@ export const RichNoteEditor = forwardRef<NoteEditorHandle, Props>(function RichN
         </View>
         <View style={{ minHeight: BODY_MIN_H }}>
           <Animated.View
+            key={webviewKey}
             style={{ opacity: fade }}
             onLayout={(e) => setWebH(e.nativeEvent.layout.height)}
           >
             <RichText editor={editor} />
           </Animated.View>
-          {!shown && (
+          {!shown && !loadFailed && (
             <View className="absolute inset-x-0 top-0">
               <EditorSkeleton />
+            </View>
+          )}
+          {loadFailed && (
+            <View
+              className="absolute inset-x-0 top-0 items-center justify-center px-8"
+              style={{ minHeight: BODY_MIN_H, backgroundColor: colors.bg }}
+              accessible
+              accessibilityLabel="에디터를 불러오지 못했습니다"
+            >
+              <Text
+                className="text-body"
+                style={{ color: colors.ink2, textAlign: 'center' }}
+              >
+                에디터를 불러오지 못했습니다.
+              </Text>
+              <Pressable
+                onPress={retryWebView}
+                accessibilityRole="button"
+                accessibilityLabel="다시 시도"
+                className="mt-4 px-5 py-2.5 rounded-full"
+                style={{ backgroundColor: colors.accent }}
+              >
+                <Text className="text-label" style={{ color: colors.accentText }}>
+                  다시 시도
+                </Text>
+              </Pressable>
             </View>
           )}
         </View>

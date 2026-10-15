@@ -9,14 +9,14 @@
 | 사용자 정책 `POL` | 12 |
 | 도메인 규칙 `RULE` | 75 |
 | 계약 `CONTRACT` | 7 |
-| 결정 `ADR` | 28 |
-| **합계** | **122** |
+| 결정 `ADR` | 29 |
+| **합계** | **123** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **45/75 (60%)** |
-| 나머지 30건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 69 |
+| 자동 증거(test/ci)가 붙은 RULE | **47/75 (63%)** |
+| 나머지 28건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
+| 근거가 기록으로 남아 있는 항목 | 70 |
 | 코드에서 추론한 항목 | 48 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
@@ -32,7 +32,7 @@
 | [`POL-NOTE-002`](policy/POL-NOTE.md) | — | — | 기록됨 | 노트 상단에 설교 제목·날짜·설교자·장소·생명양식(대표 본문)을 항상 보이는 형태로 기록할 수 있어야 한다. |
 | [`POL-NOTE-003`](policy/POL-NOTE.md) | — | — | 코드추론 | 노트는 날짜별로 묶여 최신순으로 보이고, 제목과 인용한 구절로 찾을 수 있어야 한다. |
 | [`POL-PORT-001`](policy/POL-PORTABILITY.md) | — | — | 기록됨 | 노트 한 개는 언제든 표준 Markdown 파일로 내보낼 수 있어야 하고, 그 파일은 다른 마크다운 앱에서 열려야 하며, 다시 가져와도 내용이 보존되어야 한다. |
-| [`POL-PRIVACY-001`](policy/POL-PRIVACY.md) | MUST NOT | waiver | 기록됨 | 앱은 사용자 콘텐츠·식별 정보·사용 기록을 외부로 전송하지 않는다. 계정도 서버도 애널리틱스도 없다. |
+| [`POL-PRIVACY-001`](policy/POL-PRIVACY.md) | MUST NOT | waiver | 기록됨 | 앱은 사용자 콘텐츠(노트·인용·설정)와 식별 정보를 외부로 전송하지 않는다. 계정도 서버도 없다. 예외는 Firebase Analytics의 익명 자동 수집 통계뿐이다(ADR-0029). |
 | [`POL-RELEASE-001`](policy/POL-RELEASE.md) | MUST | 자동 | 기록됨 | OTA 업데이트는 CI(타입체크·린트·테스트)가 통과한 커밋에서만 발행되고, 사용자에게 닿는 production 채널은 release 가지에서만 낸다. 네이티브 변경은 OTA로 전달할 수 없으므로 새 빌드를 낸다. |
 | [`POL-RELEASE-002`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크에 한 번도 닿지 않아도 스토어에서 설치한 앱은 모든 기능이 동작하고, 업데이트 확인의 실패나 지연이 사용을 막지 않는다. |
 | [`POL-RELEASE-003`](policy/POL-RELEASE.md) | MUST | 수동 (waiver) | 코드추론 | 업데이트는 진행 중인 작성을 끊지 않고, 그 업데이트를 되돌리더라도 사이에 저장된 노트를 열 수 없거나 내보낼 수 없게 만들지 않는다. |
@@ -47,7 +47,7 @@
 |---|---|---|---|---|
 | [`RULE-REF-001`](rules/scripture-ref.md) | MUST | 자동 | 코드추론 | 참조는 "책 장:절" 또는 "책 장:절-끝절" 형태만 인식한다. 책과 장 사이 공백은 있어도 없어도 되고, 장·절은 각각 1~3자리 숫자다. |
 | [`RULE-REF-002`](rules/scripture-ref.md) | MUST | 자동 | 기록됨 | 66권 각각에 대해 한국어 정식명·한국어 축약·영어 정식명·영어 축약을 모두 같은 책 코드로 해석한다. |
-| [`RULE-REF-003`](rules/scripture-ref.md) | MUST | 자동 | 코드추론 | 본문은 번들된 bible.json에서만 조회한다. 범위 중 한 절이라도 없거나 끝 절이 시작 절보다 작으면 부분 결과를 주지 않고 전체를 null로 반환한다. |
+| [`RULE-REF-003`](rules/scripture-ref.md) | MUST | 자동 | 코드추론 | 앱의 기본 본문 조회는 번들된 bible.json을 사용한다. 조회기는 데이터 주입으로 구성할 수 있으며, 범위 중 한 절이라도 없거나 끝 절이 시작 절보다 작으면 부분 결과를 주지 않고 전체를 null로 반환한다. |
 | [`RULE-REF-004`](rules/scripture-ref.md) | MUST | 자동 | 코드추론 | 화면에 보이는 참조 라벨은 축약·영어 입력이라도 정식 한국어 책 이름으로 확장한다. 파싱할 수 없는 문자열은 공백만 정리해 그대로 보여준다. |
 | [`RULE-REF-005`](rules/scripture-ref.md) | MUST NOT | 자동 | 기록됨 | 본문 조회에 실패한 참조는 힌트 칩을 띄우지 않고, 인용 블록도 만들지 않으며, 오류 메시지도 표시하지 않는다. |
 
@@ -62,7 +62,7 @@
 | [`RULE-EDIT-005`](rules/editor-insert.md) | SHOULD | 수동 | 기록됨 | 커서 바로 앞이 본문 조회에 성공하는 참조일 때만 화면 하단에 떠 있는 힌트 칩(참조 + space 안내)을 보여준다. |
 | [`RULE-EDIT-006`](rules/editor-insert.md) | SHOULD NOT | 수동 | 코드추론 | 인용 블록의 본문은 사용자가 수정할 수 없다. 표시 형태(카드/인용바/접힘)만 설정에 따라 달라진다. 참조를 다른 구절로 바꾸는 것은 본문 수정이 아니다 — RULE-EDIT-014의 시트가 인용 블록을 통째로 다시 만든다. |
 | [`RULE-EDIT-007`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 저장되는 인용 블록의 status는 언제나 "loaded"다. "loading"과 "error"는 타입에는 있으나 어떤 코드 경로에서도 생성되지 않는다. 인용 블록은 makeQuoteBlock으로만 만들고, 예외는 마크다운 파서 하나다. |
-| [`RULE-EDIT-008`](rules/editor-insert.md) | SHOULD | 자동 | 코드추론 | 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. |
+| [`RULE-EDIT-008`](rules/editor-insert.md) | SHOULD | 자동 | 코드추론 | 문단 텍스트는 입력이 멈춘 뒤 800ms에 블록 배열로 반영되고, 노트 전체는 그로부터 500ms 뒤 DB에 저장된다. 성공은 알리지 않고 실패만 상단 배너로 알린다. 에디터 상단에는 완료·키보드 닫기 버튼을 두지 않는다. |
 | [`RULE-EDIT-009`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 노트의 citedRefs는 사용자가 관리하는 값이 아니라, 저장 시점에 body의 quote 블록에서 등장 순서대로 중복 없이 추출한 결과다. |
 | [`RULE-EDIT-010`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 굵게·기울임·밑줄은 별도 스팬 모델이 아니라 블록 텍스트 안의 경량 마크다운(**굵게**, _기울임_, ++밑줄++)으로 저장한다. |
 | [`RULE-EDIT-011`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 → 생명양식 순으로 Return 키로 이동하고, 마지막 필드에서 Return을 누르면 본문 첫 문단으로 포커스가 넘어간다. |
@@ -82,7 +82,7 @@
 | [`RULE-NOTE-004`](rules/note-persistence.md) | MUST | 자동 | 코드추론 | 노트 목록과 검색 결과는 created_at 내림차순으로 정렬하고 한 번에 최대 200건을 읽는다. 노트를 수정해도 순서는 바뀌지 않는다. |
 | [`RULE-NOTE-005`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 스키마 변경은 버전 번호나 마이그레이션 이력 테이블 없이, 매 실행마다 PRAGMA table_info로 누락 컬럼만 찾아 ALTER 한다. 몇 번을 실행해도 결과가 같아야 한다. |
 | [`RULE-NOTE-006`](rules/note-persistence.md) | MAY | 수동 | 기록됨 | 새 노트 버튼을 누르면 빈 문단 하나를 가진 노트가 즉시 DB에 생성된다. 사용자가 아무것도 쓰지 않고 나가도 그 빈 노트는 남는다. |
-| [`RULE-NOTE-007`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다. |
+| [`RULE-NOTE-007`](rules/note-persistence.md) | MUST | 자동 | 기록됨 | 노트는 목록 스와이프·에디터·태블릿 세 경로에서 삭제할 수 있다. 에디터 삭제는 확인 후 실행하고 기존 목록 화면으로 돌아간다. delete는 지우기 전에 노트 전체를 스냅샷으로 반환하고, 그 스냅샷으로 되돌리는 undo 경로가 제공된다. "실행 취소" 배너는 10초 유지된다. 되돌리기는 id와 created_at까지 원본 그대로 복원한다. |
 | [`RULE-NOTE-008`](rules/note-persistence.md) | MUST | 자동 | 코드추론 | 노트 목록은 createdAt의 날짜로 묶고 최신 날짜 그룹이 위에 온다. 같은 그룹 안에서도 createdAt 내림차순이며 updatedAt은 무시한다. |
 
 ### 검색 — [`rules/search.md`](rules/search.md)
@@ -129,9 +129,9 @@
 | [`RULE-SET-001`](rules/settings-theme.md) | MUST | 자동 | 코드추론 | 설정은 문서 디렉터리의 settings.json에 저장한다. 읽기·파싱에 실패하면 예외를 올리지 않고 기본값으로 시작한다. |
 | [`RULE-SET-002`](rules/settings-theme.md) | MUST | 자동 | 기록됨 | fontScale과 themePreference가 허용값이 아니면 설정 파일 전체를 버리고 기본값으로 시작한다. 그 밖의 필드는 값이 틀려도 파일을 버리지 않고 개별 폴백한다. |
 | [`RULE-SET-003`](rules/settings-theme.md) | MUST | 자동 | 기록됨 | 화면 색은 variation(minimal/paper/focus/dark) 하나로 결정된다. isDark는 variation === "dark"이며 themePreference나 OS 다크모드와 무관하다. |
-| [`RULE-SET-004`](rules/settings-theme.md) | SHOULD | 수동 | 코드추론 | blockStyle과 accentChoice가 "default"면 현재 변형의 기본값을 쓰고, 사용자가 고른 값이 있으면 그것이 이긴다. |
+| [`RULE-SET-004`](rules/settings-theme.md) | SHOULD | 자동 | 코드추론 | blockStyle과 accentChoice가 "default"면 현재 변형의 기본값을 쓰고, 사용자가 고른 값이 있으면 그것이 이긴다. |
 | [`RULE-SET-005`](rules/settings-theme.md) | MUST | 자동 | 코드추론 | 글꼴 크기는 1.0 / 1.2 / 1.4 / 1.6 네 값만 허용하며, 화면의 글자 크기는 기준값 × 배율을 반올림해 계산한다. |
-| [`RULE-SET-006`](rules/settings-theme.md) | SHOULD | 수동 | 코드추론 | 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다. 이 배선은 useSettingsPersistence 훅 하나에 모여 있고 루트 레이아웃은 그것을 부르기만 한다. |
+| [`RULE-SET-006`](rules/settings-theme.md) | SHOULD | 자동 | 코드추론 | 설정 객체가 바뀔 때마다 파일에 저장하되, 앱 시작 시 파일을 다 읽기 전에는 저장하지 않는다. 이 배선은 useSettingsPersistence 훅 하나에 모여 있고 루트 레이아웃은 그것을 부르기만 한다. |
 
 ### 레이아웃·접근성 — [`rules/layout-a11y.md`](rules/layout-a11y.md)
 
@@ -152,7 +152,7 @@
 |---|---|---|---|---|
 | [`RULE-OTA-001`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 스토어 빌드에 들어간 임베디드 번들은 OTA가 한 번도 도착하지 않아도 모든 기능이 동작해야 한다. 기능·자산·데이터를 OTA 번들에만 두지 않는다. |
 | [`RULE-OTA-002`](rules/release.md) | MUST | 수동 (waiver) | 코드추론 | 네트워크가 없거나 OTA 서버가 응답하지 않아도 앱은 즉시 렌더되고, 확인 실패는 경고 로그 한 줄로 끝난다. 로딩 화면이나 오류 화면을 띄우지 않는다. |
-| [`RULE-OTA-010`](rules/release.md) | MUST | 자동 | 기록됨 | 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다. |
+| [`RULE-OTA-010`](rules/release.md) | MUST | 자동 | 기록됨 | 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. Pages 배포와 6시간 주기 동기화가 공개 스토어 목록에서 값을 만든다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다. |
 | [`RULE-OTA-003`](rules/release.md) | MUST | 수동 (waiver) | 기록됨 | reloadOnForceUpdate가 false이므로 서버가 강제 업데이트나 롤백을 지시해도 실행 중인 화면을 갈아치우지 않고 다음 콜드 런치까지 기다린다. |
 | [`RULE-OTA-004`](rules/release.md) | 현상 서술 | — | 코드추론 | 업데이트 확인은 (platform, appVersion, channel, minBundleId, bundleId)로 한 번 질의해 목표 번들 하나를 받는다. 오래 오프라인이던 기기는 그 사이 발행된 번들을 순서대로 밟지 않고 최신 하나로 바로 건너뛴다. |
 | [`RULE-OTA-005`](rules/release.md) | 현상 서술 | — | 코드추론 | 기기는 임베디드 번들, 마지막으로 정상 기동한 stable 번들, 검증 중인 staging 번들만 가진다. 자동 롤백의 착지점은 stable 하나이고 그것이 없으면 임베디드다. 두 칸 전 번들로는 돌아갈 수 없다. |
@@ -205,6 +205,7 @@
 | [`ADR-0026`](decisions/ADR-0026-visible-inline-delimiters.md) | 기록됨 | 본문 입력칸은 강조 구분자(**, _, ++)를 지우거나 숨기지 않고 그대로 보여주며, 여는 구분자는 그 강조를 입고 닫는 구분자는 입지 않는다. 화면 문자열과 저장 문자열이 글자 단위로 같게 유지된다. |
 | [`ADR-0027`](decisions/ADR-0027-webview-rich-editor.md) | 기록됨 | 노트 본문 에디터를 @10play/tentap-editor(WebView + TipTap/ProseMirror)로 바꾸고, 저장 모델(BlockNode[] + 텍스트 속 경량 마크다운)은 그대로 둔다. 채택되면 ADR-0001과 ADR-0015를 뒤집는다. |
 | [`ADR-0028`](decisions/ADR-0028-dev-branch.md) | 기록됨 | 작업 가지는 dev에서 나서 dev로 돌아가고, main에는 실제로 출시할 내용만 dev→main 머지로 들인다. dev는 직접 푸시를 허용한다. main·dev 병합은 아무것도 발행하지 않으며, preview OTA도 수동 실행으로만 낸다. |
+| [`ADR-0029`](decisions/ADR-0029-firebase-analytics.md) | 기록됨 | 네이티브 빌드에 Firebase Analytics(GA4)를 넣어 익명 사용 통계를 수집한다. 노트·성경 인용 등 사용자 콘텐츠는 보내지 않고, 광고 식별자(IDFA)는 쓰지 않는다. 계정·서버·동기화가 없다는 나머지 ADR-0012는 그대로다. |
 
 ## 정본이 아닌 것
 

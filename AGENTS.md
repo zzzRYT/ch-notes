@@ -17,6 +17,7 @@
 - 동작을 바꾸면 관련 `RULE`/`CONTRACT`를 같은 변경에서 갱신한다. 작업별 진입점은 [`wiki/by-task.md`](wiki/by-task.md)다.
 - `DESIGN.md`와 `docs/plans/**`는 역사 기록이다. 사용자가 명시적으로 요청하지 않으면 현재 요구사항으로 취급하거나 수정하지 않는다.
 - `main`은 보호 브랜치다. 직접 commit/push하지 말고 작업 브랜치와 PR을 사용한다. 상세 규칙은 [`wiki/git.md`](wiki/git.md)다.
+- 이슈와 PR에는 배포 방식 라벨(`deploy:ota`·`deploy:native`·`deploy:none`·`deploy:pending`)을 정확히 하나 붙인다. PR 병합 전에는 실제 변경과 대상 설치본을 확인해 확정하고, 관련 이슈의 분류도 갱신한다. 기준은 [`wiki/git.md`의 배포 방식](wiki/git.md#배포-방식)을 따른다.
 - 비밀값·토큰·서명 키·기기 정보는 커밋하거나 출력하지 않는다.
 
 ## 검증
