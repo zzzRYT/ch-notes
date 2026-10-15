@@ -306,7 +306,7 @@ git push origin v1.0.2
 
 태그 뒤에는 **배포를 완료 처리하기 전에** [4절의 임시 가지 방식](#역머지는-임시-가지로-한다)으로 릴리스 가지를 `main`에 역머지한다. `main` 직접 커밋·푸시는 브랜치 보호가 막으므로 반드시 PR을 거친다. **릴리스 완료 조건은 스토어 공개와 태그뿐 아니라 이 역머지 PR의 병합까지다.** 그래야 `app.config.ts`의 버전 bump와 심사 중 들어간 수정이 `main`에 남는다.
 
-이어서 `website/app-version.json`의 해당 플랫폼 값을 새 버전으로 올리는 별도 PR을 **`main`에** 낸다. 이것이 기존 설치본에서 "스토어에서 업데이트하세요" 다이어로그를 켜는 스위치다([`RULE-OTA-010`](rules/release.md), [`ADR-0022`](decisions/ADR-0022-store-update-notice.md)). ⚠️ **버전 bump와 같은 PR에 넣지 않는다** — 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다. iOS와 Android는 심사 시점이 다르므로 **먼저 올라간 쪽만 먼저** 고친다.
+스토어 버전 안내 JSON은 GitHub Pages 배포 때 각 공개 스토어에서 자동으로 읽고, 6시간마다 다시 동기화한다([`RULE-OTA-010`](rules/release.md), [`ADR-0022`](decisions/ADR-0022-store-update-notice.md)). 공개 스토어에 올라오기 전에는 값이 바뀌지 않는다. Google Play 조회 형식이 바뀌거나 네트워크가 실패하면 기존 JSON을 유지한다.
 
 ### OTA 발행
 
@@ -331,7 +331,7 @@ production 발행이 성공하면 그때 추가된 `OTA_RELEASE`와 핫픽스도
 - 배포 워크플로의 **자격증명 형식 검사** — 값이 있는지가 아니라 모양이 맞는지 본다. 틀리면 번들을 만들기 전에 멈춘다.
 - `production` 채널이면 `release/**` 가지인지.
 
-### 지금 닫혀 있는 것 (2026-09-05)
+### 현재 OTA 지원 범위 (2026-10-09)
 
-- **OTA는 한 번도 성공한 적이 없다.** R2 access key id에 53자짜리 값이 들어 있다(32자리 hex여야 한다). 시크릿을 고치기 전까지는 어느 채널로 발행해도 실패한다([`drift.md`](drift.md) B19).
+- **1.0.3+1과 1.0.4+1의 production OTA 발행이 성공했다.** 이전 R2 자격증명 오류는 해소 상태를 확인했다([`drift.md`](drift.md) B19). 발행 성공과 실제 기기 적용 검증은 구분한다.
 - **스토어의 1.0.1은 `expo-updates` 바이너리다.** hot-updater는 네이티브 모듈이라 OTA로 배달할 수 없다 — **1.0.1 사용자는 어떤 OTA도 받지 못한다.** 그들에게 무언가를 보내려면 1.0.2 스토어 빌드를 내는 수밖에 없다([`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md)).

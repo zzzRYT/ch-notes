@@ -12,4 +12,5 @@ export {
   validateScripture,
   type ScriptureValidation,
 } from "./model/scripture-field";
+export { validateScriptureWithLookup } from "./model/scripture-field-core";
 export { replaceQuoteRef } from "./model/replace-quote";

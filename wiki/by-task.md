@@ -55,7 +55,7 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · RULE-REF-001 · RULE-REF-002 · RULE-REF-003 · RULE-REF-004 · RULE-REF-005 · [CONTRACT-BIBLE-JSON](contracts/CONTRACT-BIBLE-JSON.md)
 
-**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
+**코드** `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts` · `src/entities/scripture/api/{bible-lookup,verse-lookup,books-meta,bible-data}.ts` · 소비자: `src/features/scripture/insert/model/autocomplete.ts`, `src/widgets/scripture-browser/lib/browser-search.ts`
 **테스트** `src/entities/scripture/model/__tests__/*.test.ts` · `src/entities/scripture/api/__tests__/*.test.ts` (5/5 자동 증거)
 
 **같은 변경에서 함께 고친다**
@@ -182,7 +182,7 @@
 **같은 변경에서 함께 고친다**
 1. 책 이름은 `src/entities/scripture/api/books-meta.ts`(삽입용)와 `src/entities/scripture/model/book-map.ts`(표시용) 두 표에서 온다 — 어긋나면 **넣은 참조와 보이는 참조가 달라진다**(B13).
 2. 삽입 로직은 `useNoteDraft().insertRef` 하나다. 세 진입점(홈 리더·에디터 시트·태블릿 패널)은 콜백을 넘길 뿐이다.
-3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 세 곳이 의존한다 — 만드는 `src/widgets/scripture-browser/model/useBiblePosition.ts`, 쪼개는 `src/widgets/scripture-browser/lib/browser-search.ts`, 그 결과를 쓰는 `src/widgets/scripture-browser/lib/level-from-ref.ts`. 그리고 [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 표. `src/features/settings/change/model/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
+3. `lastBibleRef`의 `"{BookCode} {chapter}"` 포맷에 의존한다 — 만드는 `src/widgets/scripture-browser/model/useBiblePosition.ts`, 쪼개는 `src/widgets/scripture-browser/lib/browser-search.ts`, 에디터 모달·태블릿 패널에서 쓰는 `src/widgets/scripture-browser/lib/level-from-ref.ts`. 홈 전체화면은 매번 책 목록부터 시작한다(RULE-BIBLE-003). [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)에도 기록돼 있다. `src/features/settings/change/model/settings-validator.ts`는 **포맷을 검사하지 않는다** — 문자열이기만 하면 통과시키므로, 포맷을 깨도 저장·복원 단계에서는 아무 경고가 없다.
 4. 900px는 `src/shared/lib/useResponsiveLayout.ts`의 `TABLET_BREAKPOINT` 한 곳이다.
 
 **함정**
@@ -196,14 +196,16 @@
 
 ## 7. UI·테마·레이아웃·접근성
 
+설정 화면의 조작 UI는 `src/shared/ui/{Button,IconButton,SettingRow}.tsx`를 쓴다. 사용 예시와 실기기 검수 항목은 `src/shared/ui/README.md`에 있다.
+
 **먼저 읽는다** — POL-A11Y-001 · RULE-SET-003 · RULE-UI-001 · RULE-SET-002 · RULE-UI-002 · [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [ADR-0004](decisions/ADR-0004-settings-file.md)
 
-**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
+**코드** `src/shared/ui/{ThemeProvider,AppHeader,HeaderControls,SwipeToDelete,ActionBannerHost}.tsx` · `src/features/settings/change/model/{settings-store,settings-validator,settings-persist,useSettingsPersistence}.ts` · `src/shared/config/theme-options.ts` · `src/shared/lib/{feedback,useResponsiveLayout}.ts` · `src/pages/settings/ui/SettingsPage.tsx` · `src/pages/notes/ui/**`
 **테스트** `src/features/settings/change/model/__tests__/{settings-validator,settings-store}.test.ts` · `src/shared/lib/__tests__/feedback.test.ts` (4/6, RULE-UI는 **0/6**) · `node scripts/check-classnames.mjs`(소스의 className이 전부 번들에 컴파일됐는지 — uniwind는 모르는 클래스를 조용히 버린다)
 
 **같은 변경에서 함께 고친다**
-1. ⚠️ **`fontScale`에 값을 더한다면 세 곳 전부** — `src/features/settings/change/model/settings-store.ts`의 `Settings` 유니온 → 같은 폴더 `settings-validator.ts`의 `ALLOWED_FONT` → `src/pages/settings/ui/SettingsPage.tsx`의 `FONT_OPTIONS`(사용자가 실제로 고르는 목록). `settings-store.ts`의 기본값 `1.2`는 그대로 둔다 — 형제 필드들과 같은 3단 구조다(B15). validator를 빠뜨리면 사용자가 그 값을 고른 순간 **다음 실행에서 `settings.json` 전체가 버려지고 기본값으로 리셋된다.**
-2. `variation`·`blockStyle`·`fontFamily`·`accentChoice`도 같은 3중 구조다 — 다만 이 넷의 **타입은 `src/shared/ui/ThemeProvider.tsx`가 정본**이고 `Settings`가 가져다 쓴다. `accentChoice`의 hex 6개는 세 파일에 리터럴로 박혀 있다(B15).
+1. ⚠️ **설정 허용값은 축마다 배열 하나에만 더한다** — `fontScale`·`themePreference`는 `src/features/settings/change/model/settings-store.ts`의 `FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`, `variation`·`blockStyle`·`fontFamily`·`accentChoice`는 `src/shared/config/theme-options.ts`의 `*_OPTIONS`. 유니온 타입·`settings-validator.ts`의 `ALLOWED_*`·설정 화면 선택지가 모두 여기서 파생된다(B15 해소). 옵션 배열은 React가 없는 `src/shared/config`에 둔다 — 검증기가 런타임에 import한다. `settings-store.ts`의 기본값 `1.2`는 그대로 둔다.
+2. `accentChoice`의 hex는 저장되는 사용자 데이터다. 팔레트 `accent`와 값이 같아도 따라 바꾸지 않는다 — 바꾸면 구 hex를 저장한 사용자가 다음 실행에 `default`로 리셋된다(B26).
 3. 테마는 `ThemeProvider settings={…}` prop으로 받는다. 설정 필드가 테마에 영향을 주면 `ThemeSettings` 타입에도 넣는다.
 4. [CONTRACT-SETTINGS-FILE](contracts/CONTRACT-SETTINGS-FILE.md)의 스키마 표와 `rules/settings-theme.md`도 같은 커밋에서.
 
@@ -221,11 +223,11 @@
 **먼저 읽는다** — [ADR-0025](decisions/ADR-0025-tailwind-uniwind-tokens.md)(className으로 쓰는 법·클래스 표) · [ADR-0023](decisions/ADR-0023-figma-design-system-structure.md) · [ADR-0010](decisions/ADR-0010-variation-theming.md) · [rules/layout-a11y.md](rules/layout-a11y.md)(RULE-UI-004·005) · [drift.md](drift.md) B27~B31 · E19 · E21 · E22
 
 **코드** `docs/design-system/figma-plugin/*` (플러그인) · `apps/ch-life/src/shared/ui/ThemeProvider.tsx` (팔레트 원본 + uniwind 브리지) · `apps/ch-life/src/global.css`(수치 토큰) · `apps/ch-life/src/theme.colors.css`(생성됨) · `apps/ch-life/metro.config.js`
-**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지 · `node scripts/check-classnames.mjs` — 소스의 className이 전부 번들에 있는지(오타는 다른 어떤 검사에도 안 걸린다)
+**테스트** `src/shared/ui/__tests__/ThemeProvider.test.tsx` — variation→테마 이름, accent 덮어쓰기, ×fontScale이 uniwind로 넘어가는지, 타입 스케일 세 곳이 같은지 · `node scripts/check-classnames.mjs` — 소스의 className이 전부 번들에 있는지(오타는 다른 어떤 검사에도 안 걸린다)
 
 **같은 변경에서 함께 고친다**
 1. **색 토큰을 더하면** `ThemeProvider.tsx` 팔레트 4개 + `extract-colors.py`의 `FIELDS` → `python3 docs/design-system/figma-plugin/extract-colors.py`. `tokens.colors.*`와 `theme.colors.css`가 같이 나온다. CSS를 손으로 고치지 않는다.
-2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`(B31).
+2. **타입 스케일을 바꾸면 세 곳** — `primitives.js`의 text/size 여섯 줄 · `src/global.css`의 `--text-*` · `ThemeProvider.tsx` `TEXT_SCALE`. 하나라도 빠뜨리면 `ThemeProvider.test.tsx`가 실패한다(B31).
 3. `global.css`는 `src/` 루트를 떠나면 안 된다 — Tailwind가 그 폴더 아래만 스캔한다.
 
 **토큰의 정본은 Figma다**([E19](drift.md)). 코드에서 뽑아 부트스트랩했지만 이후로는 Figma가 앞선다 — `CLAUDE.md`의 "구현 코드가 최종 판정 기준"에 대한 **명시적 예외**이고, 절차는 아직 확정되지 않았다([E21](drift.md)).
@@ -244,14 +246,14 @@
 
 **번들을 발행하기 전에는 [rules/release.md](rules/release.md)를 먼저 본다.** 오프라인이 기본인 앱에 OTA를 얹었기 때문에, 다른 앱에서는 안전한 변경이 여기서는 되돌릴 수 없는 변경이 된다.
 
-**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `src/app/_layout.tsx` · `scripts/deploy-ota.mjs` · `src/features/app-update/notice/model/{compare-version,latest-store-version,store-link}.ts` · `src/features/app-update/notice/ui/StoreUpdateDialog.tsx` · `src/shared/config/version.ts` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
+**코드** `app.config.ts` · `eas.json` · `.npmrc` · `hot-updater.config.ts` · `src/app/_layout.tsx` · `scripts/{deploy-ota,sync-store-versions}.mjs` · `src/features/app-update/notice/model/{compare-version,latest-store-version,store-link}.ts` · `src/features/app-update/notice/ui/StoreUpdateDialog.tsx` · `src/shared/config/version.ts` · `website/app-version.json` · `.github/workflows/{ci,eas-update,eas-build,pages}.yml`
 **스킬** `.claude/skills/eas-release/SKILL.md`(릴리스), `.claude/skills/start-feature/SKILL.md`(새 작업)
 **테스트** `src/features/app-update/notice/model/__tests__/{compare-version,latest-store-version}.test.ts` — 이 영역의 **유일한** 자동 증거다. CI는 `typecheck`/`lint`/`test:ci`만 돌고 `eas.json`이나 `app.config.ts`는 열어 보지 않는다.
 
 **같은 변경에서 함께 고친다**
 1. `eas.json`은 [CONTRACT-RELEASE](contracts/CONTRACT-RELEASE.md)의 `implemented_by`에 올라 있다 — 동작을 바꾸면 같은 커밋에서 계약도.
 2. **고정 식별자 표는 손으로 옮겨 적은 사본이다.** EAS project UUID는 `app.config.ts`에 두 번, 계약 표에 세 번째로 있다. `bundleIdentifier`·`scheme`·채널 이름도 같다.
-3. **버전이 사는 자리가 셋이다** — `app.config.ts`의 `version`(스토어), `src/shared/config/version.ts`의 `OTA_RELEASE`(번들 순번, 스토어 버전이 오르면 0으로), `website/app-version.json`(앱이 읽는 최신 스토어 버전). 앞의 둘은 릴리스 PR에서, 셋째는 **심사 통과 뒤 `main`으로 따로** 올린다([`RULE-OTA-010`](rules/release.md)). 어긋나면 조용히 틀린다.
+3. **버전이 사는 자리가 셋이다** — `app.config.ts`의 `version`(스토어), `src/shared/config/version.ts`의 `OTA_RELEASE`(번들 순번, 스토어 버전이 오르면 0으로), `website/app-version.json`(앱이 읽는 최신 스토어 버전). 앞의 둘은 릴리스 PR에서 관리하고, 셋째는 Pages 배포 때 공개 스토어에서 자동으로 읽는다([`RULE-OTA-010`](rules/release.md)).
 4. `version`을 올리는 것과 새 빌드를 내는 것은 한 세트다.
 5. `eas.json`에 프로필을 더하면 두 워크플로의 `options` 드롭다운도.
 
@@ -264,7 +266,7 @@
 - ⚠️ **번들은 한 칸만 되돌아가고 스키마는 되돌아가지 않는다.** 컬럼 삭제·개명, 새 `BlockNode` 타입은 OTA로 내보내면 안 된다([RULE-OTA-008](rules/release.md), [RULE-OTA-009](rules/release.md)).
 - ⚠️ **오프라인 기기는 중간 번들을 전부 건너뛴다.** 번들이 순서대로 적용된다는 전제로 마이그레이션이나 데이터 이관을 설계하면 그 기기에서 깨진다([RULE-OTA-004](rules/release.md)).
 - 서버에서 번들을 내려도(`bundle disable`) 오프라인 기기에는 닿지 않고, 닿아도 적용은 다음 콜드 런치다. **롤백 소요 시간에 하한이 없다**([ADR-0016](decisions/ADR-0016-cold-launch-apply.md)).
-- ⚠️ **`app-version.json`을 버전 bump와 같은 PR에 넣으면 안 된다.** 심사 중인 버전을 스토어에 있는 것처럼 안내하게 된다. `pages.yml`은 `main` 푸시의 `website/**` 변경에만 돈다.
+- `app-version.json`은 Pages 배포 때 공개 스토어에서 갱신되므로, 심사 중인 버전을 미리 안내하지 않는다. Pages는 6시간마다 동기화한다.
 - 워크트리는 `.worktrees` 아래에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
 
 ---

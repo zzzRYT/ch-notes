@@ -62,8 +62,9 @@ source:
 id: RULE-REF-003
 policy: POL-SCRIPTURE-001
 requirement: MUST
-statement: 본문은 번들된 bible.json에서만 조회한다. 범위 중 한 절이라도 없거나 끝 절이 시작 절보다 작으면 부분 결과를 주지 않고 전체를 null로 반환한다.
+statement: 앱의 기본 본문 조회는 번들된 bible.json을 사용한다. 조회기는 데이터 주입으로 구성할 수 있으며, 범위 중 한 절이라도 없거나 끝 절이 시작 절보다 작으면 부분 결과를 주지 않고 전체를 null로 반환한다.
 implemented_by:
+  - apps/ch-life/src/entities/scripture/api/bible-lookup.ts
   - apps/ch-life/src/entities/scripture/api/verse-lookup.ts
 verified_by:
   - test: apps/ch-life/src/entities/scripture/api/__tests__/verse-lookup.test.ts

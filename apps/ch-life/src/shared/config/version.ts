@@ -9,4 +9,4 @@
  * `CFBundleShortVersionString`은 숫자와 점만 허용하고, hot-updater가 겨냥하는
  * `--target-app-version`도 그 값에서 나오기 때문이다(`wiki/git.md` 5절).
  */
-export const OTA_RELEASE = 0;
+export const OTA_RELEASE = 1;

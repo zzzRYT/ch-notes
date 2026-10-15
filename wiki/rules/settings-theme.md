@@ -35,6 +35,8 @@ requirement: MUST
 statement: fontScale과 themePreference가 허용값이 아니면 설정 파일 전체를 버리고 기본값으로 시작한다. 그 밖의 필드는 값이 틀려도 파일을 버리지 않고 개별 폴백한다.
 implemented_by:
   - apps/ch-life/src/features/settings/change/model/settings-validator.ts
+  - apps/ch-life/src/features/settings/change/model/settings-store.ts (FONT_SCALE_OPTIONS, THEME_PREFERENCES)
+  - apps/ch-life/src/shared/config/theme-options.ts
 verified_by:
   - test: apps/ch-life/src/features/settings/change/model/__tests__/settings-validator.test.ts
 confidence: 기록됨
@@ -47,6 +49,8 @@ source:
 `variation`이 없을 때만 예외적으로 `themePreference === "dark"`이면 `dark` 변형으로 승격한다 — 변형 개념이 생기기 전 설정 파일을 위한 마이그레이션이다.
 
 새 설정 필드를 추가할 때는 **반드시 관대한 쪽**을 따른다. 필수 필드를 늘리면 기존 사용자의 설정이 초기화된다.
+
+검증기의 허용 목록은 손으로 적지 않고 옵션 배열(`FONT_SCALE_OPTIONS`·`THEME_PREFERENCES`·`shared/config`의 `*_OPTIONS`)에서 파생한다. 설정 화면도 같은 배열을 그리므로 **화면에서 고를 수 있는 값이 검증에서 떨어지는 일**이 구조적으로 막힌다.
 
 ## RULE-SET-003 · 팔레트는 variation이 결정한다
 
@@ -79,6 +83,7 @@ requirement: SHOULD
 statement: blockStyle과 accentChoice가 "default"면 현재 변형의 기본값을 쓰고, 사용자가 고른 값이 있으면 그것이 이긴다.
 implemented_by:
   - apps/ch-life/src/shared/ui/ThemeProvider.tsx
+  - apps/ch-life/src/shared/config/theme-options.ts (ACCENT_OPTIONS)
   - apps/ch-life/src/pages/settings/ui/SettingsPage.tsx
 verified_by:
   - manual: 변형을 바꾸면 인용 블록 모양이 함께 바뀌고, 명시 선택 시 유지된다
@@ -96,6 +101,7 @@ requirement: MUST
 statement: 글꼴 크기는 1.0 / 1.2 / 1.4 / 1.6 네 값만 허용하며, 화면의 글자 크기는 기준값 × 배율을 반올림해 계산한다.
 implemented_by:
   - apps/ch-life/src/shared/ui/ThemeProvider.tsx (scaled)
+  - apps/ch-life/src/features/settings/change/model/settings-store.ts (FONT_SCALE_OPTIONS)
   - apps/ch-life/src/features/settings/change/model/settings-validator.ts
 verified_by:
   - test: apps/ch-life/src/features/settings/change/model/__tests__/settings-validator.test.ts#허용되지 않는 fontScale 거부

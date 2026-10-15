@@ -66,7 +66,7 @@ source:
 ## 귀결
 
 - **새 색 토큰은 `ThemeProvider.tsx` 팔레트 4개에 넣고 `extract-colors.py`를 돌린다.** 그러면 Figma 플러그인 토큰과 CSS가 함께 갱신된다. `FIELDS` 목록에도 한 줄 더한다.
-- **타입 스케일은 두 곳이다** — `src/global.css`의 `--text-*`(초기값)와 `ThemeProvider.tsx`의 `TEXT_SCALE`(×fontScale 갱신용). 단계를 더하거나 값을 바꾸면 둘 다, 그리고 `primitives.js`의 `text/size/*`도. → [`B31`](../drift.md)
+- **타입 스케일은 세 곳에 손으로 적는다** — `src/global.css`의 `--text-*`(초기값), `ThemeProvider.tsx`의 `TEXT_SCALE`(×fontScale 갱신용), `primitives.js`의 `text/size/*`(Figma). 단계를 더하거나 값을 바꾸면 셋 다. 어긋나면 `ThemeProvider.test.tsx`가 실패한다. → [`B31`](../drift.md)
 - **화면은 전부 className이다**(2026-09-20 전면 적용, 27개 파일). `useTheme()`는 세 경우에만 남는다 — ⑴ lucide 아이콘·`ActivityIndicator`처럼 색을 `color` prop으로만 받는 것, ⑵ `Animated.View`·`KeyboardAwareScrollView` 같은 서드파티/애니메이션 컴포넌트(className이 닿지 않는다), ⑶ `blockStyle`·`density` 같은 비색상 축. 그림자(`shadow*`/`elevation`)와 `insets`로 계산하는 값도 `style`에 남긴다.
 - **크기는 역할로 맞췄다.** 코드에 있던 12/14/16/18/22px는 여섯 단계 어디에도 없어서 `primitives.js`의 설명대로 역할에 붙였다 — 칩·메타·검색창 14→`label`(13), 본문 입력·설정 라벨 16→`body`(15), 노트 제목·편집기·성경 본문 16~18→`body-large`(17), 그룹 날짜 22→`title`(20), 힌트·요일·배지 10~12→`caption`(11). 애매하면 작은 쪽. 그래서 기본 fontScale 1.2에서 이 텍스트들은 **처음으로 배율을 받는다**(B27·B29 해소, E22 제안).
 - 텍스트로 그린 아이콘 글리프는 `text-[Npx]`로 **고정**한다. `primitives.js`가 `icon/glyph/*`를 텍스트와 분리한 것과 같은 선이다. 이 경계는 사용자 확정 전이다(E22).

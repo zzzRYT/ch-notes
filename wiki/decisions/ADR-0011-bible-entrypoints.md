@@ -31,7 +31,7 @@ source:
 - **읽기만 했는데 빈 노트가 생기는 부작용이 사라졌다**(선행 흐름의 알려진 엣지 케이스).
 - `pendingInsertRef`(새 노트로 인용을 넘기는 전역 큐)를 쓰는 화면이 없어졌다. 스토어에 메커니즘만 남아 있다.
 - `InsertMode`의 `"newNote"` 값도 어디서도 쓰이지 않는 사문이 되었다.
-- 읽기 위치는 세 진입점이 계속 공유한다([`RULE-BIBLE-003`](../rules/bible-reader.md)).
+- 홈 전체화면은 매번 책 목록에서 시작한다. 홈에서 선택한 위치도 `lastBibleRef`에 저장되며 에디터 모달·태블릿 패널이 이어 읽는다([`RULE-BIBLE-003`](../rules/bible-reader.md)).
 
 ## 남은 흔적
 

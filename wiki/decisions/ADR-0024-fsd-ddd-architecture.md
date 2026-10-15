@@ -80,7 +80,7 @@ Settings Page는 화면과 임시 폼 상태만 소유한다. 설정 변경과 �
 
 | 결정문의 빈 자리 | 잡은 방식 | 이유 |
 |---|---|---|
-| 설정 상태의 소유자 | `features/settings/change`가 스토어·검증·영속화를 전부 든다. `Variation` 등 테마 축의 타입은 `shared/ui/ThemeProvider.tsx`가 정본이고 `Settings`가 가져다 쓴다 | `ThemeProvider`(shared)는 위 레이어를 import하지 못하므로 `settings` prop을 받는다. Composition Root가 스토어에서 꺼내 넘긴다 |
+| 설정 상태의 소유자 | `features/settings/change`가 스토어·검증·영속화를 전부 든다. `Variation` 등 테마 축의 타입은 `shared/ui/ThemeProvider.tsx`가 정본이고 `Settings`가 가져다 쓴다. 2026-10-07부터 허용값 배열과 타입은 React 없는 `shared/config/theme-options.ts`로 옮겼다([`drift.md`](../drift.md) B15) | `ThemeProvider`(shared)는 위 레이어를 import하지 못하므로 `settings` prop을 받는다. Composition Root가 스토어에서 꺼내 넘긴다 |
 | `lastBibleRef`의 "Scripture 책임" | 저장은 `settings.json`에 그대로(계약 동결). **포맷을 아는 훅**(`useBiblePosition`)만 `widgets/scripture-browser`가 든다 | 파일을 쪼개면 `CONTRACT-SETTINGS-FILE`이 깨지고, feature끼리는 서로 import할 수 없다. widget → feature 방향은 허용된다 |
 | `lastOpenedNoteId`의 "Note 책임" | 옮기지 않았다. 읽는 코드가 없는 파일 호환용 필드다 | 옮길 동작이 없다([`drift.md`](../drift.md) B6) |
 | 피드백 배너 | `shared/lib/feedback.ts`. 액션은 `"undo-delete"` 같은 태그가 아니라 `{ label, onPress }` 콜백 | shared가 노트 삭제를 알면 안 된다. 삭제 기능이 저장소를 닫아 넣은 콜백을 배너에 준다 |

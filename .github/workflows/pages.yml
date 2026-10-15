@@ -9,6 +9,8 @@ on:
     paths:
       - "website/**"
       - ".github/workflows/pages.yml"
+  schedule:
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -34,6 +36,11 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Sync live store versions
+        id: store_versions
+        continue-on-error: true
+        run: node apps/ch-life/scripts/sync-store-versions.mjs
+
       - name: Upload website artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -42,3 +49,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Fail the run when a store lookup used its fallback
+        if: always() && steps.store_versions.outcome == 'failure'
+        run: |
+          echo "::error::GitHub Pages deployed, but at least one store version lookup failed; see the sync step for the retained platform value."
+          exit 1

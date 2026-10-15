@@ -2,55 +2,16 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { ChevronLeft, NotebookPen } from "lucide-react-native";
 import { useTheme } from "./ThemeProvider";
+import { IconButton, type ActionTint } from "./IconButton";
 
-/** Shape of a lucide-react-native icon component. */
-type IconComponent = React.ComponentType<{
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-}>;
-
-type Tint = "ink" | "accent" | "error";
-
-// lucide 아이콘은 color prop으로만 색을 받으므로 여기만 useTheme을 유지한다.
-function useTint(tint: Tint): string {
-  const { colors } = useTheme();
-  if (tint === "accent") return colors.accent;
-  if (tint === "error") return colors.errText;
-  return colors.ink2;
-}
-
-const TINT_CLASS: Record<Tint, string> = {
+const TINT_CLASS: Record<ActionTint, string> = {
   ink: "text-ink-2",
   accent: "text-accent",
   error: "text-err-text",
 };
 
 /** Icon-only header action (search, settings, share, …). */
-export function HeaderIconButton({
-  icon: Icon,
-  label,
-  onPress,
-  tint = "ink",
-}: {
-  icon: IconComponent;
-  label: string;
-  onPress: () => void;
-  tint?: Tint;
-}) {
-  const color = useTint(tint);
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      hitSlop={8}
-      className="size-10 items-center justify-center"
-    >
-      <Icon size={21} color={color} strokeWidth={1.8} />
-    </Pressable>
-  );
-}
+export { IconButton as HeaderIconButton } from "./IconButton";
 
 /** Back affordance: chevron + optional label (e.g. "노트"). */
 export function HeaderBack({
@@ -61,6 +22,9 @@ export function HeaderBack({
   onPress: () => void;
 }) {
   const { colors } = useTheme();
+  if (!label) {
+    return <IconButton icon={ChevronLeft} label="뒤로" onPress={onPress} iconSize={24} strokeWidth={2} />;
+  }
   return (
     <Pressable
       onPress={onPress}
@@ -87,7 +51,7 @@ export function HeaderTextButton({
 }: {
   label: string;
   onPress: () => void;
-  tint?: Tint;
+  tint?: ActionTint;
 }) {
   return (
     <Pressable

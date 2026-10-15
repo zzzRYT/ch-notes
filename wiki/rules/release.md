@@ -66,13 +66,15 @@ source:
 id: RULE-OTA-010
 policy: POL-RELEASE-002
 requirement: MUST
-statement: 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다.
+statement: 스토어 최신 버전은 website/app-version.json에서 플랫폼별로 읽어 설치본과 자리별 숫자로 비교하고, 높을 때만 닫을 수 있는 다이어로그를 한 번 띄운다. Pages 배포와 6시간 주기 동기화가 공개 스토어 목록에서 값을 만든다. 확인은 첫 렌더 뒤 콜드 런치마다 한 번이며, 네트워크 실패·형식 오류·노트 편집 중에는 아무것도 띄우지 않는다.
 implemented_by:
   - apps/ch-life/src/features/app-update/notice/model/compare-version.ts
   - apps/ch-life/src/features/app-update/notice/model/latest-store-version.ts
   - apps/ch-life/src/features/app-update/notice/model/store-link.ts
   - apps/ch-life/src/features/app-update/notice/ui/StoreUpdateDialog.tsx
   - apps/ch-life/src/app/_layout.tsx
+  - apps/ch-life/scripts/sync-store-versions.mjs
+  - .github/workflows/pages.yml
   - website/app-version.json
 verified_by:
   - test: apps/ch-life/src/features/app-update/notice/model/__tests__/compare-version.test.ts#숫자로 비교한다 — 1.0.10이 1.0.9보다 크다
@@ -81,6 +83,7 @@ verified_by:
   - manual: 비행기 모드 콜드 런치 — 지연·오류 표시·다이어로그가 없다
   - manual: 서버가 설치본보다 낮거나 같은 버전을 돌려줄 때 다이어로그가 없다
   - manual: 닫은 뒤 다시 켜도 같은 버전은 뜨지 않고, 값을 올리면 다시 뜬다
+  - manual: node apps/ch-life/scripts/sync-store-versions.mjs — 공개 버전으로 website/app-version.json 갱신
 waiver: 순수 함수(비교·응답 파싱)에만 자동 증거를 붙일 수 있다. 네트워크·다이어로그·스토어 이동은 실기기와 실제 발행 없이는 재현되지 않는다(drift C3).
 confidence: 기록됨
 source:
@@ -102,7 +105,7 @@ OTA로 닿지 않는 변경이 실재하는데([`RULE-OTA-008`](#rule-ota-008--o
 | 노트를 쓰는 화면 위에 띄우기 | [`ADR-0016`](../decisions/ADR-0016-cold-launch-apply.md)의 정신 — 폰은 `/note/*` 경로로, 태블릿은 키보드로 가른다 |
 | 같은 버전 두 번 안내 | 닫으면 `settings.json`의 `dismissedUpdateVersion`에 남는다([`CONTRACT-SETTINGS-FILE`](../contracts/CONTRACT-SETTINGS-FILE.md)) |
 
-⚠️ **`website/app-version.json`은 스토어 심사가 끝난 뒤에 올린다.** 버전 bump와 같은 PR에 넣으면 아직 스토어에 없는 버전을 안내하게 된다. `pages.yml`은 `main` 푸시에만 돌므로 `main`으로 별도 PR을 낸다.
+`website/app-version.json`은 GitHub Pages 배포 때 공개 스토어 목록에서 생성하며, 6시간마다 다시 동기화한다. 스토어 페이지 응답을 읽지 못하거나 버전 형식이 바뀌면 동기화만 실패하고 이전 JSON을 유지한다.
 
 ⚠️ **이 안내는 이 기능이 들어간 다음 스토어 빌드부터 효력이 있다.** 1.0.1 설치본에는 이 코드가 없다.
 

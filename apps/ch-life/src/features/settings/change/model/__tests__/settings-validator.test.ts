@@ -1,3 +1,10 @@
+import {
+  ACCENT_OPTIONS,
+  BLOCK_STYLE_OPTIONS,
+  FONT_FAMILY_OPTIONS,
+  VARIATION_OPTIONS,
+} from "@/shared/config";
+import { FONT_SCALE_OPTIONS } from "../settings-store";
 import { parseSettings } from "../settings-validator";
 
 const valid = {
@@ -16,6 +23,19 @@ describe("parseSettings", () => {
   it("정상 settings 통과", () => {
     expect(parseSettings(valid)).not.toBeNull();
     expect(parseSettings({ ...valid, fontScale: 1.6 })?.fontScale).toBe(1.6);
+  });
+
+  // 설정 화면에서 고를 수 있는 값이 검증에서 떨어지면 다음 실행에 리셋된다(drift B15).
+  it.each([
+    ["fontScale", FONT_SCALE_OPTIONS],
+    ["variation", VARIATION_OPTIONS],
+    ["blockStyle", BLOCK_STYLE_OPTIONS],
+    ["fontFamily", FONT_FAMILY_OPTIONS],
+    ["accentChoice", ACCENT_OPTIONS],
+  ] as const)("%s: 설정 화면의 선택지는 모두 그대로 보존", (field, options) => {
+    for (const { value } of options) {
+      expect(parseSettings({ ...valid, [field]: value })?.[field]).toBe(value);
+    }
   });
 
   it("허용되지 않는 fontScale 거부", () => {

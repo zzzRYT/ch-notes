@@ -1,7 +1,8 @@
 import bible from "../../../../assets/bible.json";
+import type { BibleData } from "./bible-lookup";
 
 // 번들 데이터의 모양: 책 코드 → 장 번호(문자열) → 절 번호(문자열) → 본문.
-export type BibleData = Record<string, Record<string, Record<string, string>>>;
+export type { BibleData } from "./bible-lookup";
 
 export const BIBLE_DATA: BibleData = bible as BibleData;
 

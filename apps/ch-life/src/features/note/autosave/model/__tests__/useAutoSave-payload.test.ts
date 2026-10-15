@@ -1,4 +1,4 @@
-import { buildSavePayload } from "../useAutoSave";
+import { buildSavePayload } from "../save-payload";
 
 describe("buildSavePayload", () => {
   it("body에서 citedRefs를 추출하고 모든 메타 필드를 포함한다", () => {

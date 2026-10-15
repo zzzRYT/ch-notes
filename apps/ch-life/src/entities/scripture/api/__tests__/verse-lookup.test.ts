@@ -1,4 +1,27 @@
+import { createBibleLookup } from "../bible-lookup";
 import { lookupVerses } from "../verse-lookup";
+
+describe("createBibleLookup", () => {
+  const { lookupVerses: lookup } = createBibleLookup({
+    Gen: { "1": { "1": "처음", "2": "둘째" } },
+  });
+
+  it("주입한 데이터에서 한 절과 범위를 찾는다", () => {
+    expect(lookup("창 1:1")).toEqual([
+      { book: "Gen", chapter: 1, verse: 1, text: "처음" },
+    ]);
+    expect(lookup("창 1:1-2")).toEqual([
+      { book: "Gen", chapter: 1, verse: 1, text: "처음" },
+      { book: "Gen", chapter: 1, verse: 2, text: "둘째" },
+    ]);
+  });
+
+  it("없는 장, 불완전 범위, 역순 범위는 null", () => {
+    expect(lookup("창 2:1")).toBeNull();
+    expect(lookup("창 1:1-3")).toBeNull();
+    expect(lookup("창 1:2-1")).toBeNull();
+  });
+});
 
 describe("lookupVerses", () => {
   it("'골 3:20' 단절", () => {

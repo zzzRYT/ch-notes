@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import React from "react";
 import { act, create } from "react-test-renderer";
 import { ThemeProvider, type ThemeSettings } from "../ThemeProvider";
@@ -63,6 +65,29 @@ test("accentChoice를 고르면 accent만 바뀌고 accent-soft는 8% 알파로 
   expect(theme).toBe("paper");
   expect(vars["--color-accent"]).toBe("#1e6fd9");
   expect(vars["--color-accent-soft"]).toBe("rgba(30, 111, 217, 0.08)");
+});
+
+// 타입 스케일은 세 곳에 손으로 적는다(drift B31) — TEXT_SCALE(×fontScale 갱신용),
+// global.css --text-*(초기 렌더), primitives.js text/size/*(Figma). 생성기 대신 여기서 맞춘다.
+test("타입 스케일 base 값이 global.css·primitives.js와 같다", () => {
+  mount({ ...BASE, fontScale: 1 });
+  const vars = updateCSSVariables.mock.lastCall?.[1] as Record<string, number>;
+  const fromProvider = Object.fromEntries(
+    Object.entries(vars)
+      .filter(([k]) => k.startsWith("--text-"))
+      .map(([k, v]) => [k.slice("--text-".length), v]),
+  );
+  const read = (p: string) => fs.readFileSync(path.resolve(__dirname, p), "utf8");
+  const pairs = (src: string, re: RegExp) =>
+    Object.fromEntries([...src.matchAll(re)].map((m) => [m[1], Number(m[2])]));
+  const fromCss = pairs(read("../../../global.css"), /--text-([\w-]+):\s*(\d+)px/g);
+  const fromFigma = pairs(
+    read("../../../../../../docs/design-system/figma-plugin/primitives.js"),
+    /"text\/size\/([\w-]+)",\s*(\d+)/g,
+  );
+  expect(Object.keys(fromProvider)).toHaveLength(6);
+  expect(fromCss).toEqual(fromProvider);
+  expect(fromFigma).toEqual(fromProvider);
 });
 
 test("variation을 바꾸면 새 테마 이름으로 다시 넘긴다", () => {

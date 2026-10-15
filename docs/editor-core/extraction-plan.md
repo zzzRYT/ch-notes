@@ -8,7 +8,9 @@ standalone, headless package (`@ch-life/editor-core`). Goals, in order:
 3. **System-design study** (layered architecture, dependency inversion, headless
    editor pattern, API contract design).
 
-> Branch: `feat/editor-core-pkg` · worktree: `.worktrees/editor-core-pkg`
+> Tracking issue: #24. No branch carries this work right now — the Phase 1 code
+> exists only in git history (`798f095` from #16, removed by `cb85692` in #21).
+> Phase 1 is redone on an integration branch in #50.
 
 ## Stack decisions
 
@@ -18,31 +20,43 @@ standalone, headless package (`@ch-life/editor-core`). Goals, in order:
 | Core build | tsup (esbuild) | dual ESM/CJS + dts with minimal config; teaches `exports` |
 | Core tests | Vitest | pure-TS lib; faster + simpler than jest-expo (app keeps jest) |
 | Bible data | dependency-injected, never bundled | CC BY-SA license isolation + small package |
-| Persistence (`db/`) | NOT extracted now | it's a separate domain; future `@ch-life/note-store` |
+| Persistence (`src/entities/note/api/`) | NOT extracted now | it's a separate domain; future `@ch-life/note-store` |
 
 ## Core ↔ view boundary (from code map)
+
+Paths are relative to `apps/ch-life/` and follow the FSD layout (2026-09-20, #28).
 
 **Extract to `editor-core` (pure, RN/Expo deps = 0):**
 
 | Module | Source files | Key exports |
 | --- | --- | --- |
-| domain | `src/domain/types.ts` | `BlockNode`, `Note`, `Verse` |
-| parser | `src/parser/{ref-parser,book-map,format-ref,verse-lookup}.ts` | `parseRef`, `resolveBookCode`, `bookDisplayName`, `formatRef`, `lookupVerses`* |
-| editor logic | `src/editor/{useAutocomplete,inlineMarks,cited-refs,field-nav,scripture-field,calendar}.ts`, `useAutoSave.ts::buildSavePayload` | `detectRefAtCursor`, `detectTriggeredRef`, `splitAtRef`, `stripInlineMarks`, `extractCitedRefs`, `nextMetaField`, `firstParagraphIndex`, `validateScripture`*, date utils |
-| markdown | `src/markdown/{parse,serialize}.ts` | `markdownToNote`, `parseBody`, `noteToMarkdown`, `blockToMarkdown`, `noteFileName` |
+| domain | `src/entities/note/model/types.ts`, `src/entities/scripture/model/types.ts` | `BlockNode`, `Note`, `Verse` |
+| parser | `src/entities/scripture/model/{ref-parser,book-map,format-ref}.ts`, `src/entities/scripture/api/verse-lookup.ts` | `parseRef`, `resolveBookCode`, `bookDisplayName`, `formatRef`, `lookupVerses`* |
+| note pure logic | `src/entities/note/model/{cited-refs,citation}.ts`, `src/entities/note/lib/inline-marks.ts` | `extractCitedRefs`, `makeQuoteBlock`, `withCitationEdition`, `stripInlineMarks`, `toggleInlineMark` |
+| markdown | `src/entities/note/api/markdown-{parse,serialize}.ts` | `markdownToNote`, `noteToMarkdown`, `blockToMarkdown`, `noteFileName` |
+| editor logic | `src/features/scripture/insert/model/{autocomplete,scripture-field,split-paragraph}.ts`, `src/widgets/note-editor/lib/{field-nav,calendar}.ts`, `src/features/note/autosave/model/useAutoSave.ts::buildSavePayload` | `detectRefAtCursor`, `detectTriggeredRef`, `splitAtRef`, `splitParagraphWithQuote`, `validateScripture`*, `nextMetaField`, `firstParagraphIndex`, date utils, `buildSavePayload` |
 
-\* `lookupVerses` / `validateScripture` need the bible-data DI refactor.
+\* `lookupVerses` / `validateScripture` need the bible-data DI refactor (#48).
+`buildSavePayload` shares a file with the React hook and moves out first (#49).
 
-**Stay in the app (view/platform):** all `.tsx` (NoteEditor, ParagraphInput,
-QuoteBlock, SermonMetaHeader, modals), `db/expo-adapter.ts`, `db/index.ts`,
-`share/{export,import}-note.ts`, hooks (`useAutoSave`, `useNoteImport`),
+**Stay in the app (view/platform):** all `.tsx` (`src/widgets/note-editor/ui/` —
+NoteEditor, ParagraphInput, QuoteBlock, SermonMetaHeader, modals),
+`src/shared/lib/sqlite.ts`, `src/entities/note/api/sqlite-note-repo.ts`,
+`src/features/note/export/model/export-note.ts`,
+`src/features/note/import/model/import-note.ts`, hooks
+(`useAutoSave`, `src/features/note/import/model/use-note-import.ts`),
 `assets/bible.json`.
 
-**Deferred (pure but not "editor"):** `db/note-repo.ts`, `db/migrate.ts`.
+**Deferred (pure but not "editor"):** `src/entities/note/model/note-repo.ts`,
+`src/entities/note/api/migrate.ts`.
 
 ## Phase roadmap
 
-- [ ] **Phase 1 — workspace + scaffold.** Root pnpm workspace (`packages/*`),
+Each phase is tracked as a sub-issue of #24.
+
+- [ ] **Prep (in the app, `main`).** Fix this plan (#47), `createBibleLookup(data)`
+      DI (#48), split `buildSavePayload` out of the hook file (#49).
+- [ ] **Phase 1 — workspace + scaffold (#50).** Root pnpm workspace (`packages/*`),
       `@ch-life/editor-core` scaffold (tsup + vitest + exports map). App untouched.
       Verify: build + smoke test green; `git status` shows no changes under `apps/`.
       _Done once (build emitted ESM+CJS+dts, smoke test passed, app dir unchanged;
@@ -52,17 +66,20 @@ QuoteBlock, SermonMetaHeader, modals), `db/expo-adapter.ts`, `db/index.ts`,
 > **The scaffold is not in `main`.** Phase 1 landed on `main` and was removed again:
 > the root workspace made pnpm v10 hijack the app install, which cost every workflow
 > an `--ignore-workspace` flag, while nothing consumed `@ch-life/editor-core` yet —
-> a live cost for a package with one smoke test in it. The work survives in
-> `feat/editor-core-pkg` and in git history; redo Phase 1 on a branch when Phase 2
-> actually starts, and keep it there until the app is ready to consume the package.
+> a live cost for a package with one smoke test in it. The work survives only in
+> git history (`798f095`, removed by `cb85692`); redo Phase 1 on an integration
+> branch when Phase 2 actually starts (#50), and keep it there until the app is
+> ready to consume the package.
 - [ ] **Phase 2 — port pure logic (TDD).** Move modules above into `editor-core`,
       port their tests, do the `createBibleLookup(data)` DI refactor. ≥80% coverage.
-- [ ] **Phase 3 — versioning/publishing.** Add Changesets; cut a version; run the
+      Sub-issues: parser #51, bible lookup #52, note domain #53, markdown #54,
+      editor logic #55.
+- [ ] **Phase 3 — versioning/publishing (#57).** Add Changesets; cut a version; run the
       publish flow (internal/registry) once end-to-end.
 - [ ] **Phase 4 — app integration (the risky one).** Fold `apps/ch-life` into the
-      workspace, add Expo monorepo Metro config + hoisted linker, repoint app
+      workspace, add Expo monorepo Metro config + hoisted linker (#58), repoint app
       imports to `@ch-life/editor-core`, delete now-duplicated app source, verify
-      typecheck + jest + `expo start`.
+      typecheck + jest + `expo start` (#59).
 - [ ] **Phase 5 (stretch) — native module.** Move the input layer to a real Expo
       Module (Swift/Kotlin) via `create-expo-module`.
 
