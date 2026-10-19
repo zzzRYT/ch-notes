@@ -11,6 +11,7 @@ implemented_by:
   - .github/workflows/ci.yml
   - .github/workflows/eas-update.yml
   - .github/workflows/eas-build.yml
+  - .github/workflows/eas-submit.yml
   - .github/workflows/pages.yml
   - apps/ch-life/scripts/sync-store-versions.mjs
 verified_by:
@@ -37,14 +38,14 @@ source:
 | appVersionSource | `remote` (동적 `app.config.ts` + `autoIncrement` 조합에 필요) |
 | 채널 | development / preview / production — `eas.json`의 `env.HOT_UPDATER_CHANNEL`로 주입 |
 | iOS 스토어 제출 | EAS Submit — ASC App ID `6772700147`, Apple Team `43ZASDF2J7`, API 키 `credentials/AuthKey_58F737893F.p8` |
-| Android 스토어 제출 | EAS Submit — Play `alpha` 트랙, `releaseStatus: completed`, 서비스 계정 키 `credentials/play-service-account.json` |
+| Android 스토어 제출 | EAS Submit — Play 트랙은 실행 시 선택(`production` 기본, PR #73), `releaseStatus: completed`, 서비스 계정 키는 Secret `PLAY_SERVICE_ACCOUNT_JSON`에서 복원 |
 
 ## 두 경로
 
 ```text
 아무 가지(보통 dev) → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel preview [요청형]
 release/<버전> → agent 요청 → GitHub Actions → CI 재실행 → deploy --channel production   [요청형]
-네이티브 변경·version 변경 → GitHub Actions 수동 실행 → eas build --no-wait → 완료 build ID → eas submit --id <ID> [agent 2단계]
+네이티브 변경·version 변경 → GitHub Actions 수동 실행(eas-submit.yml) → eas build --wait → 자동 eas submit (심사 제출까지)
 main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 동기화 → GitHub Pages [자동]
 ```
 
@@ -54,7 +55,7 @@ main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 �
 
 **2026-10-09에 1.0.3+1과 1.0.4+1의 production OTA 발행을 확인했다.** 이전 R2 자격증명 오류는 해소 상태다([`../drift.md`](../drift.md) B19). 실제 기기 적용은 발행 결과와 별도로 확인한다.
 
-빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS CLI의 EAS Submit**이다. agent는 완료된 특정 build ID를 지정해 제출한다(`--latest` 금지). 제출 실행 환경에는 `EXPO_TOKEN`과 `apps/ch-life/credentials/`의 submit 자격증명이 필요하다(절차: `docs/store/ios-auto-submit.md` · `docs/store/android-auto-submit.md`). iOS 업로드 후 App Store Connect 심사 제출은 사람이 한다. Android는 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
+빌드 산출물이 스토어까지 가는 마지막 구간은 **EAS Submit**이다. `eas-submit.yml`이 빌드(`--wait`) 뒤 같은 job에서 제출까지 잇는다 — aside CLI(브라우저 자동화)는 은퇴했다. 제출 자격증명은 GitHub Secrets에서 복원한다(`EXPO_TOKEN`, `PLAY_SERVICE_ACCOUNT_JSON`, `ASC_API_KEY_P8`). 로컬 `apps/ch-life/credentials/` 파일은 gitignore라 CI의 출처가 될 수 없다(절차: `docs/store/android-auto-submit.md`). iOS는 ASC API 키로 심사 제출까지 시도한다. Android 트랙은 실행 시 선택한다(`production` 기본 — PR #73, `alpha`면 수동 승격).
 
 `main`·`dev` 병합은 OTA를 발행하지 않는다([`../decisions/ADR-0028`](../decisions/ADR-0028-dev-branch.md)). 사용자가 요청하면 agent가 기존 발행 워크플로를 실행한다. 발행 워크플로는 `ci.yml`을 `workflow_call`로 불러 **같은 커밋으로 CI를 먼저 돌리고**, 실패하면 발행하지 않는다. Native 빌드도 수동으로 시작하고, 완료 후 agent가 별도 EAS CLI 제출을 수행한다.
 
