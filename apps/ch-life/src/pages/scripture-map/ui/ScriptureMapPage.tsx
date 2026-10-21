@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -15,11 +15,11 @@ import {
 import { TABLET_BREAKPOINT } from "@/shared/lib";
 import { AppHeader, Button, HeaderBack, useTheme } from "@/shared/ui";
 import {
-  FULL_BOUNDS,
-  ScriptureMap,
-  zoomBounds,
-  type Anchor,
-  type Marker,
+  OverviewMap,
+  RegionMap,
+  type Glyph,
+  type OverviewRegion,
+  type RegionPlace,
 } from "@/widgets/scripture-map";
 import { useScriptureMap } from "../model/useScriptureMap";
 
@@ -29,7 +29,14 @@ const PRECISION_LABEL = {
   area: "일대의 대략적인 위치",
 } as const;
 
+// RN 타입에는 없지만 iOS 스크롤 뷰가 읽는 prop이다. 안 읽는 버전이어도 무해하다.
+const IOS_NO_TOUCH_DELAY = { delaysContentTouches: false } as object;
+
 const periodName = (v: PlaceView) => v.period?.name ?? "시대 미상";
+
+/** 시대 순서대로 ◆ ■ ●. 시대 미상은 ●. 시대는 색이 아니라 모양으로 구분한다. */
+const GLYPHS: Glyph[] = ["diamond", "square", "circle"];
+const glyphOf = (v: PlaceView): Glyph => GLYPHS[((v.period?.order ?? 3) - 1) % GLYPHS.length]!;
 
 function regionSubtitle(r: RegionView) {
   const periods = new Set(r.places.map((p) => p.place.periodId));
@@ -53,6 +60,11 @@ export function ScriptureMapPage() {
   const [period, setPeriod] = useState<PeriodFilter>(undefined);
   const [regionKey, setRegionKey] = useState<string | null>(null);
   const [placeId, setPlaceId] = useState<string | null>(null);
+  // 폰에서는 지도 아래에 상세가 붙는다. 지역을 고르면 상세가 보이도록 스크롤한다.
+  const scrollRef = useRef<ScrollView>(null);
+  // 지도에 손가락이 닿아 있는 동안 페이지 스크롤을 잠가, 지도를 끌 때 페이지가 같이 움직이지 않게 한다.
+  const [mapTouching, setMapTouching] = useState(false);
+  const layoutY = useRef({ block: 0, detail: 0 });
 
   const ready = state.status === "ready" ? state : null;
   const notes = useMemo<ViewNote[]>(() => ready?.notes ?? [], [ready]);
@@ -86,6 +98,15 @@ export function ScriptureMapPage() {
   ];
 
   const backToNotes = () => router.back();
+
+  const selectRegion = (key: string | null) => {
+    setRegionKey(key);
+    setPlaceId(null);
+    if (key && !wide) {
+      const { block, detail } = layoutY.current;
+      scrollRef.current?.scrollTo({ y: block + detail - 8, animated: true });
+    }
+  };
 
   let body: React.ReactNode;
   if (state.status === "loading") {
@@ -141,58 +162,53 @@ export function ScriptureMapPage() {
             />
           ))}
         </ScrollView>
-        <View className={wide ? "flex-row items-start" : undefined}>
+        <View
+          className={wide ? "flex-row items-start" : undefined}
+          onLayout={(e) => (layoutY.current.block = e.nativeEvent.layout.y)}
+        >
           {regions.length > 0 ? (
             <MapSection
               wide={wide}
               regions={regions}
-              region={region}
-              place={place}
-              onSelectRegion={(key) => {
-                setRegionKey(key);
-                setPlaceId(null);
-              }}
-              onSelectPlace={setPlaceId}
+              selectedKey={region?.key ?? null}
+              onSelectRegion={selectRegion}
+              onTouching={setMapTouching}
             />
           ) : null}
-          <View className="flex-1">
-          {regions.length === 0 ? (
-            <Message title="이 시대에 연결된 기록이 없어요">
-              <Button label="전체 시대 보기" onPress={() => changePeriod(undefined)} />
-            </Message>
-          ) : place && region ? (
-            <PlaceDetail
-              region={region}
-              view={place}
-              onBack={() => setPlaceId(null)}
-              onOpenNote={(id) =>
-                router.push({ pathname: "/note/[id]", params: { id, from: "scripture-map" } })
-              }
-            />
-          ) : region ? (
-            <RegionDetail
-              region={region}
-              onBack={() => setRegionKey(null)}
-              onSelect={setPlaceId}
-            />
-          ) : (
-            <View>
-              {regions.map((r) => (
-                <Row
-                  key={r.key}
-                  title={r.name}
-                  subtitle={regionSubtitle(r)}
-                  onPress={() => setRegionKey(r.key)}
-                />
-              ))}
-              <Text className="px-5.5 pt-4 text-ink-3 text-caption">
-                {notes.length > totalLinked
-                  ? `전체 기록 ${notes.length}편 중 ${totalLinked}편이 지도에 연결돼 있어요. `
-                  : ""}
-                일부 본문부터 지도에 연결돼요.
-              </Text>
-          </View>
-        )}
+          <View className="flex-1" onLayout={(e) => (layoutY.current.detail = e.nativeEvent.layout.y)}>
+            {regions.length === 0 ? (
+              <Message title="이 시대에 연결된 기록이 없어요">
+                <Button label="전체 시대 보기" onPress={() => changePeriod(undefined)} />
+              </Message>
+            ) : region ? (
+              <RegionDetail
+                region={region}
+                place={place}
+                onBack={() => selectRegion(null)}
+                onSelectPlace={setPlaceId}
+                onTouching={setMapTouching}
+                onOpenNote={(id) =>
+                  router.push({ pathname: "/note/[id]", params: { id, from: "scripture-map" } })
+                }
+              />
+            ) : (
+              <View>
+                {regions.map((r) => (
+                  <Row
+                    key={r.key}
+                    title={r.name}
+                    subtitle={regionSubtitle(r)}
+                    onPress={() => selectRegion(r.key)}
+                  />
+                ))}
+                <Text className="px-5.5 pt-4 text-ink-3 text-caption">
+                  {notes.length > totalLinked
+                    ? `전체 기록 ${notes.length}편 중 ${totalLinked}편이 지도에 연결돼 있어요. `
+                    : ""}
+                  일부 본문부터 지도에 연결돼요.
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </>
@@ -206,7 +222,14 @@ export function ScriptureMapPage() {
         title="말씀 지도"
         showRule
       />
-      <ScrollView className="flex-1" contentContainerClassName="pb-20">
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1"
+        contentContainerClassName="pb-20"
+        scrollEnabled={!mapTouching}
+        // iOS는 스크롤 뷰가 터치를 150ms 붙들어, 그동안 지도 제스처보다 페이지 스크롤이 먼저 시작된다.
+        {...IOS_NO_TOUCH_DELAY}
+      >
         {body}
         <Pressable
           onPress={() => router.push("/licenses")}
@@ -286,50 +309,76 @@ function BackLink({ label, onPress }: { label: string; onPress: () => void }) {
 
 function RegionDetail({
   region,
+  place,
   onBack,
-  onSelect,
+  onSelectPlace,
+  onOpenNote,
+  onTouching,
 }: {
   region: RegionView;
+  place: PlaceView | null;
   onBack: () => void;
-  onSelect: (placeId: string) => void;
+  onSelectPlace: (placeId: string | null) => void;
+  onOpenNote: (id: string) => void;
+  onTouching: (touching: boolean) => void;
 }) {
   const periods = new Set(region.places.map((p) => p.place.periodId)).size;
+  const mapPlaces = useMemo<RegionPlace[]>(
+    () =>
+      region.places.map((v) => ({
+        id: v.place.id,
+        // 지도 라벨은 짧게: 괄호 속 유적 이름은 아래 목록에서 읽는다.
+        name: v.place.name.replace(/\s*\(.*?\)/g, ""),
+        lat: v.place.lat,
+        lon: v.place.lon,
+        glyph: glyphOf(v),
+        periodName: v.period?.name ?? "",
+      })),
+    [region],
+  );
   return (
     <View>
-      <BackLink label="전체 지역" onPress={onBack} />
+      {place ? (
+        <BackLink label={region.name} onPress={() => onSelectPlace(null)} />
+      ) : (
+        <BackLink label="전체 지역" onPress={onBack} />
+      )}
       <View className="px-5.5 pb-3 gap-1">
         <Text className="font-bold text-ink text-title">{region.name}</Text>
         <Text className="text-ink-3 text-label">
           {periods}시대의 장소 · {region.noteCount}편의 기록
         </Text>
       </View>
-      {region.places.map((v) => (
-        <Row
-          key={v.place.id}
-          title={v.place.name}
-          subtitle={`${periodName(v)} · 노트 ${v.notes.length}편`}
-          onPress={() => onSelect(v.place.id)}
-        />
-      ))}
+      {/* 지역이 바뀌면 새로 만들어 처음 위치로 돌린다. 장소를 골라도 유지돼 선택 표식만 바뀐다. */}
+      <RegionMap
+        key={region.key}
+        places={mapPlaces}
+        focusId={place?.place.id ?? null}
+        onFocus={onSelectPlace}
+        onTouching={onTouching}
+      />
+      <View className="pt-2">
+        {place ? (
+          <PlaceDetail view={place} onOpenNote={onOpenNote} />
+        ) : (
+          region.places.map((v) => (
+            <Row
+              key={v.place.id}
+              title={v.place.name}
+              subtitle={`${periodName(v)} · 노트 ${v.notes.length}편`}
+              onPress={() => onSelectPlace(v.place.id)}
+            />
+          ))
+        )}
+      </View>
     </View>
   );
 }
 
-function PlaceDetail({
-  region,
-  view,
-  onBack,
-  onOpenNote,
-}: {
-  region: RegionView;
-  view: PlaceView;
-  onBack: () => void;
-  onOpenNote: (id: string) => void;
-}) {
+function PlaceDetail({ view, onOpenNote }: { view: PlaceView; onOpenNote: (id: string) => void }) {
   const { place } = view;
   return (
     <View>
-      <BackLink label={region.name} onPress={onBack} />
       <View className="px-5.5 pb-4 gap-1.5">
         <Text className="font-bold text-ink text-title">{place.name}</Text>
         <Text className="text-ink-2 text-label font-semibold">{periodName(view)}</Text>
@@ -354,73 +403,45 @@ function PlaceDetail({
 function MapSection({
   wide,
   regions,
-  region,
-  place,
+  selectedKey,
   onSelectRegion,
-  onSelectPlace,
+  onTouching,
 }: {
   wide: boolean;
   regions: RegionView[];
-  region: RegionView | null;
-  place: PlaceView | null;
-  onSelectRegion: (key: string) => void;
-  onSelectPlace: (id: string | null) => void;
+  selectedKey: string | null;
+  onSelectRegion: (key: string | null) => void;
+  onTouching: (touching: boolean) => void;
 }) {
   // 지도의 표식과 아래 목록은 같은 선택 상태를 쓴다. 표식은 목록의 다른 입구일 뿐이다.
-  const shown = useMemo(() => (region ? [region] : regions), [region, regions]);
-  const anchors = useMemo<Anchor[]>(
+  // 지역 표식은 그 지역 장소들의 평균 위치에 둔다.
+  const overview = useMemo<OverviewRegion[]>(
     () =>
-      shown.flatMap((r) =>
-        r.places.map((v) => ({
-          id: v.place.id,
-          // 전체 지도: 지역 단위로 묶는다. 확대: 장소끼리 겹침만 본다.
-          groupKey: region ? "zoom" : r.key,
-          lat: v.place.lat,
-          lon: v.place.lon,
-        })),
-      ),
-    [shown, region],
+      regions.map((r) => {
+        const mean = (f: (v: PlaceView) => number) => r.places.reduce((s, v) => s + f(v), 0) / r.places.length;
+        return {
+          key: r.key,
+          name: r.name,
+          lat: mean((v) => v.place.lat),
+          lon: mean((v) => v.place.lon),
+          noteCount: r.noteCount,
+          periodCount: new Set(r.places.map((v) => v.place.periodId)).size,
+        };
+      }),
+    [regions],
   );
-  const bounds = useMemo(
-    () => (region ? zoomBounds(anchors, FULL_BOUNDS) : FULL_BOUNDS),
-    [anchors, region],
-  );
-  const placeOf = useMemo(
-    () => new Map(shown.flatMap((r) => r.places.map((v) => [v.place.id, { r, v }] as const))),
-    [shown],
-  );
-
-  const label = (m: Marker) => {
-    const first = placeOf.get(m.ids[0]!)!;
-    if (region) {
-      return m.ids.length > 1 ? `${m.ids.length}시대` : periodName(first.v);
-    }
-    const periods = new Set(
-      first.r.places.filter((v) => m.ids.includes(v.place.id)).map((v) => v.place.periodId),
-    ).size;
-    return `${first.r.name} ${first.r.noteCount}편${periods > 1 ? ` · ${periods}시대` : ""}`;
-  };
-
-  const onSelect = (m: Marker) => {
-    const first = placeOf.get(m.ids[0]!)!;
-    if (!region) onSelectRegion(first.r.key);
-    // 같은 자리의 여러 시대는 표식이 하나이므로 아래 시대별 목록에서 고른다.
-    else onSelectPlace(m.ids.length === 1 ? m.ids[0]! : null);
-  };
-
   return (
     // 나란히 놓을 때는 지도 폭(480 + 좌우 여백)을 고정한다.
     <View className="pb-4" style={wide ? { width: 524 } : undefined}>
-      <ScriptureMap
-        anchors={anchors}
-        bounds={bounds}
-        label={label}
-        selectedIds={place ? [place.place.id] : []}
-        onSelect={onSelect}
-        accessibilityLabel="말씀 지도. 같은 기록을 아래 목록에서도 고를 수 있어요."
+      <OverviewMap
+        regions={overview}
+        selectedKey={selectedKey}
+        onSelect={onSelectRegion}
+        onTouching={onTouching}
+        height={wide ? 520 : 400}
       />
       <Text className="px-5.5 pt-2 text-ink-3 text-caption">
-        지도의 위치는 본문 배경을 이해하기 위한 참고 정보예요.
+        지도의 위치는 본문 배경을 이해하기 위한 참고 정보예요. 끌어서 옮기고 두 손가락으로 키울 수 있어요.
       </Text>
     </View>
   );

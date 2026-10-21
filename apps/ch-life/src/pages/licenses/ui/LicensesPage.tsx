@@ -100,9 +100,10 @@ export function LicensesPage() {
           </Pressable>
           <Text className="text-label font-semibold text-ink">지형</Text>
           <Text className="text-label leading-[1.5] text-ink">
-            <Text className="font-semibold">Natural Earth</Text>의 해안선·호수(공개 영역,
-            1:10m)를 지도 범위로 잘라 단순화했습니다. 현대의 지형이며 고대의 해안선이나
-            국경이 아닙니다.
+            <Text className="font-semibold">Natural Earth</Text>의 해안선·호수·강(공개
+            영역, 1:10m)을 지도 범위로 잘라 단순화했습니다. 현대의 지형이며 고대의
+            해안선이나 국경이 아닙니다. 지도에 곁들인 지명·산·지역 이름의 위치는 참고용
+            근사치입니다.
           </Text>
           <Pressable
             onPress={() => openUrl(TERRAIN_SOURCE_URL)}

@@ -286,18 +286,19 @@
 
 **먼저 읽는다** — POL-NOTE-003 · RULE-MAP-001 ~ RULE-MAP-007 · POL-LICENSE-002 · [CONTRACT-NOTE-REPO](contracts/CONTRACT-NOTE-REPO.md)(`listRefSummaries`) · RULE-EDIT-017 · RULE-SEARCH-001(지도는 FTS가 아니라 `scripture`·`citedRefs`를 읽는다)
 
-**코드** `src/features/scripture/map/{model,api}/**`(연결·집계·뷰 모델·시드 데이터) · `src/widgets/scripture-map/{model,ui}/**`(투영·표식 겹침·SVG 지도) · `src/pages/scripture-map/{model,ui}/**`(`useScriptureMap`·화면) · `assets/maps/scripture-region.json`(Natural Earth 지형) · `src/app/scripture-map.tsx` · 진입점 `src/pages/notes/ui/{NotesPage,NoteListSidebar,TabletWorkspace}.tsx` · 고지 `src/pages/licenses/ui/LicensesPage.tsx`
-**테스트** `src/features/scripture/map/model/__tests__/{match-notes,build-view,map-data}.test.ts` · `src/widgets/scripture-map/model/__tests__/marker-layout.test.ts` · `src/pages/scripture-map/model/__tests__/useScriptureMap.test.tsx`
+**코드** `src/features/scripture/map/{model,api}/**`(연결·집계·뷰 모델·시드 데이터) · `src/widgets/scripture-map/{model,ui}/**`(메르카토르 투영·이동·확대·라벨·SVG 지도) · `src/pages/scripture-map/{model,ui}/**`(`useScriptureMap`·화면) · `assets/maps/{scripture-region,context-labels}.json`(Natural Earth 지형·참고 지명) · `scripts/build-map-terrain.mjs`(지형 재생성) · `src/app/scripture-map.tsx` · 진입점 `src/pages/notes/ui/{NotesPage,NoteListSidebar,TabletWorkspace}.tsx` · 고지 `src/pages/licenses/ui/LicensesPage.tsx`
+**테스트** `src/features/scripture/map/model/__tests__/{match-notes,build-view,map-data}.test.ts` · `src/widgets/scripture-map/model/__tests__/map-model.test.ts` · `src/pages/scripture-map/model/__tests__/useScriptureMap.test.tsx`
 
 **같은 변경에서 함께 고친다**
 1. 장소·사건·시대를 더하면 `places.json`·`scenes.json`·`periods.json`을 함께 고치고 근거(`source`·`basis`)를 남긴다. `map-data.test.ts`가 무결성과 출처의 `CC BY 4.0`+링크를 본다. 라이선스 화면은 `MAP_DATA`에서 그대로 그린다.
 2. 새 출처 종류를 쓰면 `LicensesPage`의 이용 조건 문단을 직접 추가한다(RULE-MAP-007).
 3. `summarize`(match-notes.ts)와 `buildRegions`(build-view.ts)는 같은 수를 내야 한다 — 한쪽만 바꾸면 요약과 목록이 어긋난다.
-4. 지도 범위(`assets/maps/scripture-region.json`의 `bbox`)를 바꾸면 지형을 다시 잘라야 한다. 장소가 범위 밖이면 표식이 보이지 않는다.
+4. 지도 범위를 바꾸면 `scripts/build-map-terrain.mjs`(스크립트 머리말에 입력 위치)로 지형을 다시 자른다. 장소·참고 라벨이 범위 밖이면 보이지 않는다(`map-model.test.ts`가 라벨 범위를 본다). 전체 지도 보기 범위는 `OVERVIEW_BOUNDS`(projection.ts)다.
 
 **함정**
 - 시대는 **사건의 시대**다. 책의 구약/신약 분류로 장소를 정하지 않는다.
 - 같은 좌표의 두 시대 장소는 표식 하나다. 좌표를 흩뜨려 구분하지 않는다.
-- 표식 겹침은 같은 지역 키 안에서만 판정한다(RULE-MAP-002).
+- 전체 지도는 지역 표식 하나, 지역 지도는 정확히 같은 좌표만 합친다. 거리 기반 묶음은 없다(RULE-MAP-002).
+- Metro를 CI 모드(`CI=1`)로 띄우면 파일 감시가 꺼져 시뮬레이터가 낡은 번들을 계속 쓴다 — 지도 UI를 확인할 때는 일반 모드로 띄운다.
 - 지형은 현대 해안선이다. 고대 지형·경계가 아니다.
-- 지도 UI에는 자동 증거가 없다 — 표식 터치·접근성·테마는 실기기 수동 확인이다.
+- 지도 UI에는 자동 증거가 없다 — 제스처(끌기·핀치·더블탭)·표식 터치·접근성·테마는 수동 확인이다. 시뮬레이터 도구의 "더블탭"은 두 탭 간격이 맞지 않아 반응하지 않는다(350ms 안에 직접 눌러야 한다).
