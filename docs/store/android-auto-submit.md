@@ -1,6 +1,6 @@
 # Android 제출 설정 (EAS Submit + Google Play)
 
-`eas.json`의 `submit.production.android`는 Google Play의 `alpha` 트랙을 대상으로 합니다.
+`eas.json`의 `submit.production.android`는 Google Play의 `production` 트랙(공개 출시)을 대상으로 합니다.
 이 문서는 EAS CLI 제출에 필요한 **Google 서비스 계정 키** 설정과 제출 절차를 설명합니다.
 
 ## 설정 요약 (`eas.json`)
@@ -10,7 +10,7 @@
   "production": {
     "android": {
       "serviceAccountKeyPath": "./credentials/play-service-account.json",
-      "track": "alpha",
+      "track": "production",
       "releaseStatus": "completed",
       "changesNotSentForReview": false
     }
@@ -19,7 +19,7 @@
 ```
 
 - **serviceAccountKeyPath**: 서비스 계정 키 위치 (`apps/ch-life/credentials/play-service-account.json`). 이 경로는 **gitignore 처리됨** — 절대 커밋 금지.
-- **track**: 현재 설정은 `alpha`(비공개 테스트)이며 공개 출시 전 production으로 승격합니다.
+- **track**: `production` — 업로드 즉시 공개 트랙에 반영됩니다(Google 검토 후 공개). 테스트 트랙을 거치려면 `alpha`로 바꿉니다.
 - **releaseStatus**: `completed`(즉시 트랙 반영) / `draft`(콘솔에서 수동 게시) / `inProgress`(단계적 출시).
 
 ---
@@ -63,16 +63,15 @@ Google Play는 **앱의 첫 AAB는 반드시 콘솔에서 수동 업로드**해�
 ## 3. EAS CLI로 특정 빌드 제출
 
 ```bash
-# EAS Build에서 완료된 해당 Android build ID를 지정해 alpha 트랙으로 제출
+# EAS Build에서 완료된 해당 Android build ID를 지정해 production 트랙으로 제출
 eas submit --platform android --profile production --id <ANDROID_BUILD_ID> --non-interactive --wait
 ```
 
 - 제출 실행 환경에 `EXPO_TOKEN`과 서비스 계정 키가 준비되어 있어야 합니다. 키는 Git에 넣거나 출력하지 않습니다.
-- 성공하면 Play Console alpha 트랙에 반영됩니다. 공개 출시 전 콘솔에서 **production으로 승급**해야 합니다.
+- 성공하면 Play Console production 트랙에 반영되고 Google 검토를 통과하면 공개됩니다. 서비스 계정에 **프로덕션 출시** 권한이 있어야 합니다.
 
-### 공개 출시로 바꾸려면
-`eas.json`의 `track`을 `"production"`으로 변경하거나, 콘솔에서 alpha → production 승급.
-신중하게 하려면 `releaseStatus`를 `"draft"`로 두고 콘솔에서 최종 게시 버튼을 직접 누르세요.
+### 공개 직전에 한 번 더 확인하려면
+`track`은 `production`으로 둔 채 `releaseStatus`를 `"draft"`로 두고 콘솔에서 최종 게시 버튼을 직접 누르세요.
 
 ---
 

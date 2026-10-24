@@ -53,7 +53,7 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
   `apps/ch-life/credentials/` 파일 경로로 설정되어 있으므로 EAS CLI 실행 환경에 해당 파일과
   `EXPO_TOKEN`이 있어야 한다. 키 내용은 로그·대화에 출력하지 않는다.
 - 제출은 스토어 업로드 단계다. iOS는 App Store Connect에서 심사 제출을 사람이 진행한다.
-  Android는 현재 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
+  Android는 `production` 트랙에 올라가 Google 검토 뒤 바로 공개된다(alpha 승격 단계 없음).
 - `production` 프로필은 `autoIncrement: true`(빌드번호 자동 증가).
 - 스토어 공개와 태그 뒤, 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 릴리스가 끝난다.
 

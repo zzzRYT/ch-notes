@@ -20,7 +20,7 @@
     "production": {
       "android": {
         "serviceAccountKeyPath": "./credentials/play-service-account.json",
-        "track": "alpha",
+        "track": "production",
         "releaseStatus": "completed",
         "changesNotSentForReview": false
       },
