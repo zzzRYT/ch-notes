@@ -21,6 +21,7 @@
 | `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
 | `src/global.css`, `src/theme.colors.css`, `metro.config.js`, `docs/design-system/figma-plugin/**` | [디자인 시스템·Figma](#7-1-디자인-시스템figma) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `src/features/scripture/map/**` | [말씀 지도](#9-말씀-지도) |
 | `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
@@ -268,6 +269,24 @@
 - 서버에서 번들을 내려도(`bundle disable`) 오프라인 기기에는 닿지 않고, 닿아도 적용은 다음 콜드 런치다. **롤백 소요 시간에 하한이 없다**([ADR-0016](decisions/ADR-0016-cold-launch-apply.md)).
 - `app-version.json`은 Pages 배포 때 공개 스토어에서 갱신되므로, 심사 중인 버전을 미리 안내하지 않는다. Pages는 6시간마다 동기화한다.
 - 워크트리는 `.worktrees` 아래에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
+
+---
+
+## 9. 말씀 지도
+
+저장된 노트의 본문·인용을 검토된 사건 범위에 연결해 시대별 장소와 관련 노트를 보여 주는 기능. 연결은 저장하지 않고 열 때마다 파생한다. **지금은 데이터·연결 로직까지만 있고 화면·진입점은 없다.**
+
+**먼저 읽는다** — POL-NOTE-003 · RULE-MAP-001
+
+**코드** `src/features/scripture/map/model/**`(타입·연결·무결성 검증)
+
+**테스트** `src/features/scripture/map/model/__tests__/match-notes.test.ts`
+
+**같은 변경에서 함께 고친다**
+1. 연결 규칙(`match-notes.ts`)을 바꾸면 `RULE-MAP-001`과 `match-notes.test.ts`를 함께 고친다.
+
+**함정**
+- 시대는 **사건의 시대**다. 책의 구약/신약 분류로 장소를 정하지 않는다.
 
 ---
 

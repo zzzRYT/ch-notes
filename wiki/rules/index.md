@@ -19,6 +19,7 @@
 | [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색은 공유하고 위치 복원·삽입은 진입점마다 다름 | `src/widgets/scripture-browser/**` | 4/7 |
 | [share-markdown.md](share-markdown.md) | RULE-MD-001 ~ RULE-MD-008 | `.md` 왕복에서 무엇이 보존되고 무엇이 사라지는가 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | 6/8 |
 | [settings-theme.md](settings-theme.md) | RULE-SET-001 ~ RULE-SET-006 | 설정 파싱 엄격도, 색은 `variation` 하나로 결정 | `src/features/settings/change/**`, `src/shared/ui/**` | 4/6 |
+| [scripture-map.md](scripture-map.md) | RULE-MAP-001 | 노트의 본문·인용을 검토된 사건 범위에 연결 (데이터·로직만, 화면 없음) | `src/features/scripture/map/**` | 1/1 |
 | [layout-a11y.md](layout-a11y.md) | RULE-UI-001 ~ RULE-UI-008 | 900px 폰/태블릿 분기, 터치 크기·라벨·대비·입력 장치 | `src/pages/notes/**`, `src/shared/ui/**`, `modules/hardware-keyboard/**` | **1/8** |
 | [release.md](release.md) | RULE-OTA-001 ~ RULE-OTA-010 | 오프라인 기본인 앱에 OTA를 얹을 때의 제약 | `src/app/_layout.tsx`, `src/entities/note/api/migrate.ts`, `src/features/app-update/notice/**` | **2/10** |
 
