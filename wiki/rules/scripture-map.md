@@ -17,12 +17,16 @@ requirement: MUST
 statement: 노트의 설교 본문과 인용 참조는 파싱되고 번들 본문 조회에 성공한 것만 사건 범위와 대조한다. 같은 책·장에서 절 구간이 겹치는 사건에만 연결하고, 장 전체나 책 분류로 장소를 퍼뜨리지 않는다. 역방향 범위·없는 절·자유 문장·연결표에 없는 본문은 조용히 건너뛰며 표식을 만들지 않는다. 한 노트의 여러 참조가 같은 사건에 닿으면 (노트, 장소) 한 쌍으로 합친다.
 implemented_by:
   - apps/ch-life/src/features/scripture/map/model/match-notes.ts
+  - apps/ch-life/src/features/scripture/map/api/{periods,places,scenes}.json (검토본 5건)
   - apps/ch-life/src/features/scripture/map/model/validate-data.ts
 verified_by:
   - test: apps/ch-life/src/features/scripture/map/model/__tests__/match-notes.test.ts
+  - test: apps/ch-life/src/features/scripture/map/model/__tests__/map-data.test.ts
 confidence: 코드추론
 source:
-  - GitHub 이슈 #100 (타입·매칭), 부모 이슈 #98
+  - GitHub 이슈 #100 (타입·매칭), #101 (시드 데이터), 부모 이슈 #98
 ```
 
 시대는 **성경 사건의 시대**이지 작성일이나 책의 저작 시기가 아니다. 신약 책이 구약 사건을 회상해도 사건 범위가 시대를 정한다. 장소는 시대별로 독립 항목이라 같은 지역이라도 시대가 다르면 다른 `Place`다.
+
+데이터는 시대 3개(여호수아·왕국·예수님 사역), 시대별 장소 5개, 사건 5개뿐이며 근거(`source`·`basis`)가 있는 항목만 수록한다. 장소의 `source`는 OpenBible.info 지리 데이터(CC BY 4.0)의 식별과 링크를 남기고, 항목을 더할 때는 근거를 함께 남겨 `map-data.test.ts`(무결성·출처)를 통과시킨다. 눅 19:45-48 → 성전산 연결은 OpenBible이 그 구절 자체를 이 장소에 연결하지 않아 **본문 배경에서 추론한 것**이다(`source`가 그렇게 밝힌다).

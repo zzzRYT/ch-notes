@@ -278,15 +278,18 @@
 
 **먼저 읽는다** — POL-NOTE-003 · RULE-MAP-001
 
-**코드** `src/features/scripture/map/model/**`(타입·연결·무결성 검증)
+**코드** `src/features/scripture/map/{model,api}/**`(타입·연결·무결성 검증·시드 데이터)
 
-**테스트** `src/features/scripture/map/model/__tests__/match-notes.test.ts`
+**테스트** `src/features/scripture/map/model/__tests__/{match-notes,map-data}.test.ts`
 
 **같은 변경에서 함께 고친다**
 1. 연결 규칙(`match-notes.ts`)을 바꾸면 `RULE-MAP-001`과 `match-notes.test.ts`를 함께 고친다.
+2. 장소·사건·시대를 더하면 `places.json`·`scenes.json`·`periods.json`을 함께 고치고 근거(`source`·`basis`)를 남긴다. `map-data.test.ts`가 무결성과 출처를 본다.
 
 **함정**
 - 시대는 **사건의 시대**다. 책의 구약/신약 분류로 장소를 정하지 않는다.
+- 같은 좌표의 두 시대 장소(`jerusalem-temple-kingdom`·`jerusalem-temple-ministry`)는 좌표를 흩뜨리지 않는다. 시대가 달라도 좌표를 옮기지 않는다.
+- `source`에 OpenBible 외 출처를 인용하면 그 이용 조건을 앱에서 고지해야 한다. 고지 화면이 아직 없으므로 지금은 OpenBible(CC BY 4.0) 근거만 쓴다.
 
 ---
 
