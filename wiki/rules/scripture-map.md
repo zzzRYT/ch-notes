@@ -30,3 +30,23 @@ source:
 시대는 **성경 사건의 시대**이지 작성일이나 책의 저작 시기가 아니다. 신약 책이 구약 사건을 회상해도 사건 범위가 시대를 정한다. 장소는 시대별로 독립 항목이라 같은 지역이라도 시대가 다르면 다른 `Place`다.
 
 데이터는 시대 3개(여호수아·왕국·예수님 사역), 시대별 장소 5개, 사건 5개뿐이며 근거(`source`·`basis`)가 있는 항목만 수록한다. 장소의 `source`는 OpenBible.info 지리 데이터(CC BY 4.0)의 식별과 링크를 남기고, 항목을 더할 때는 근거를 함께 남겨 `map-data.test.ts`(무결성·출처)를 통과시킨다. 눅 19:45-48 → 성전산 연결은 OpenBible이 그 구절 자체를 이 장소에 연결하지 않아 **본문 배경에서 추론한 것**이다(`source`가 그렇게 밝힌다).
+
+## RULE-MAP-004 · 전체 저장 기록을 대상으로 하고 변경을 반영한다
+
+```yaml
+id: RULE-MAP-004
+policy: POL-NOTE-003
+requirement: MUST
+statement: 말씀 지도의 조회는 최근 목록의 200편 제한 없이 저장된 모든 노트를 대상으로 한다. 훅은 화면에 들어올 때와 삭제·복원(`noteRevision`) 뒤에 다시 읽고, 늦게 끝난 이전 조회는 버린다. 조회 중(`loading`)과 조회 실패(`error`)는 빈 결과(`ready`, 연결 0건)와 구분되는 상태로 돌려준다.
+implemented_by:
+  - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (listRefSummaries)
+  - apps/ch-life/src/pages/scripture-map/model/useScriptureMap.ts
+verified_by:
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#note-repo listRefSummaries
+  - test: apps/ch-life/src/pages/scripture-map/model/__tests__/useScriptureMap.test.tsx
+confidence: 코드추론
+source:
+  - GitHub 이슈 #102 (전체 기록 조회·훅), 부모 이슈 #98
+```
+
+`listRefSummaries`는 `{id, title, scripture, citedRefs, createdAt}`만 읽는 SELECT 전용이라 스키마·데이터를 바꾸지 않는다([`CONTRACT-NOTE-REPO`](../contracts/CONTRACT-NOTE-REPO.md)). 검색(FTS)과 달리 `scripture`·`citedRefs`를 직접 읽으므로 [`RULE-SEARCH-001`](search.md)의 "본문 검색 안 됨"과 무관하다. 훅을 쓰는 화면은 아직 없다 — 조회 실패 시 "다시 시도" 제공, 조회 중 "0편" 숨김, 사라진 선택의 해제는 화면을 들여오는 변경에서 이 규칙에 더한다.

@@ -237,3 +237,29 @@ describe("note-repo", () => {
     expect(note?.body[0]).toMatchObject({ editionId: "future-edition" });
   });
 });
+
+describe("note-repo listRefSummaries", () => {
+  const body = [{ type: "paragraph" as const, text: "" }];
+
+  it("200편 상한 없이 모든 노트를 최신순으로 돌려주고 본문은 싣지 않는다", async () => {
+    const repo = setup();
+    for (let i = 0; i < 205; i++) {
+      await repo.create({ id: `n${i}`, body, citedRefs: i === 0 ? ["수 6:1"] : [], scripture: i === 0 ? "수 6:1-5" : null });
+    }
+    const all = await repo.listRefSummaries();
+    expect(all).toHaveLength(205);
+    const oldest = all.find((n) => n.id === "n0");
+    expect(oldest).toMatchObject({ scripture: "수 6:1-5", citedRefs: ["수 6:1"] });
+    expect(oldest).not.toHaveProperty("body");
+    expect(all.map((n) => n.createdAt)).toEqual([...all.map((n) => n.createdAt)].sort((a, b) => b - a));
+  });
+
+  it("삭제하면 빠지고 복원하면 같은 id로 돌아온다", async () => {
+    const repo = setup();
+    const id = await repo.create({ body, citedRefs: ["수 6:1"] });
+    const snapshot = await repo.delete(id);
+    expect(await repo.listRefSummaries()).toEqual([]);
+    if (snapshot) await repo.restore(snapshot);
+    expect((await repo.listRefSummaries()).map((n) => n.id)).toEqual([id]);
+  });
+});

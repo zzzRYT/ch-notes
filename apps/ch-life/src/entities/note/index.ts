@@ -12,6 +12,7 @@ export {
   type NoteRepo,
   type NoteInput,
   type NotePatch,
+  type NoteRefSummary,
 } from "./model/note-repo";
 export {
   makeQuoteBlock,

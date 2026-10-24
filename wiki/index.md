@@ -7,17 +7,17 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 77 |
+| 도메인 규칙 `RULE` | 78 |
 | 계약 `CONTRACT` | 7 |
 | 결정 `ADR` | 29 |
-| **합계** | **125** |
+| **합계** | **126** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **49/77 (64%)** |
+| 자동 증거(test/ci)가 붙은 RULE | **50/78 (64%)** |
 | 나머지 28건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
 | 근거가 기록으로 남아 있는 항목 | 71 |
-| 코드에서 추론한 항목 | 49 |
+| 코드에서 추론한 항목 | 50 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
 자동 증거 비율이 60%에 못 미치는 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없고**([`drift.md`](drift.md) C3), **OTA 규칙은 실기기와 실제 발행 없이는 재현되지 않는다**. 그 규칙들은 대문자 요구를 쓸 때 반드시 `waiver`를 붙인다.
@@ -167,6 +167,7 @@
 | ID | 요구 | 증거 | 근거 | 내용 |
 |---|---|---|---|---|
 | [`RULE-MAP-001`](rules/scripture-map.md) | MUST | 자동 | 코드추론 | 노트의 설교 본문과 인용 참조는 파싱되고 번들 본문 조회에 성공한 것만 사건 범위와 대조한다. 같은 책·장에서 절 구간이 겹치는 사건에만 연결하고, 장 전체나 책 분류로 장소를 퍼뜨리지 않는다. 역방향 범위·없는 절·자유 문장·연결표에 없는 본문은 조용히 건너뛰며 표식을 만들지 않는다. 한 노트의 여러 참조가 같은 사건에 닿으면 (노트, 장소) 한 쌍으로 합친다. |
+| [`RULE-MAP-004`](rules/scripture-map.md) | MUST | 자동 | 코드추론 | 말씀 지도의 조회는 최근 목록의 200편 제한 없이 저장된 모든 노트를 대상으로 한다. 훅은 화면에 들어올 때와 삭제·복원(`noteRevision`) 뒤에 다시 읽고, 늦게 끝난 이전 조회는 버린다. 조회 중(`loading`)과 조회 실패(`error`)는 빈 결과(`ready`, 연결 0건)와 구분되는 상태로 돌려준다. |
 
 ## CONTRACT — 계약
 
@@ -176,7 +177,7 @@
 | [`CONTRACT-DB-NOTES`](contracts/CONTRACT-DB-NOTES.md) | 기록됨 | 노트는 ch-life.db의 notes 테이블에 저장되고, 검색은 notes_fts 가상 테이블에 트리거로 동기화된다. 이 DDL은 두 파일에 중복 기록되어 있으며 항상 함께 바뀌어야 한다. |
 | [`CONTRACT-DOMAIN-NOTE`](contracts/CONTRACT-DOMAIN-NOTE.md) | 코드추론 | 노트 엔티티가 소유하는 Note / BlockNode / CitationVerse 타입 정의. DB 행, 마크다운 파일, 화면 상태가 모두 이 모양으로 수렴한다. 인용 스냅샷은 성경 엔티티를 참조하지 않고 본문·참조·판본(editionId)을 스스로 든다. |
 | [`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md) | 기록됨 | 노트 하나는 YAML frontmatter + 표준 Markdown 본문을 가진 .md 파일 하나로 표현된다. 이 형식은 앱 밖으로 나가므로 하위 호환을 깨면 이미 내보낸 파일을 다시 읽을 수 없다. |
-| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 일곱 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
+| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 여덟 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
 | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) | 기록됨 | 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다. |
 | [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) | 기록됨 | 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 그대로 직렬화된다. fontScale과 themePreference는 필수이며, 나머지 필드는 없거나 잘못돼도 개별 폴백한다. |
 
