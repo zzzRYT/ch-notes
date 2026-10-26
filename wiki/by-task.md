@@ -77,8 +77,8 @@
 
 **먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · RULE-EDIT-014 · RULE-EDIT-015 · RULE-EDIT-016 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
 
-**코드** `src/widgets/note-editor/ui/{RichNoteEditor,EditorSkeleton,QuoteEditModal,SermonMetaHeader}.tsx`(앱에 연결된 WebView 에디터) · `src/widgets/note-editor/lib/{verse-bridge,doc-sync-bridge,rich-doc}.ts` · `editor-web/**`(WebView 번들 — 고치면 `pnpm editor:build`) · `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock}.tsx`(네이티브 에디터, 미연결 — drift B32) · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/widgets/note-editor/lib/list-blocks.ts`(글머리 목록) · `src/entities/note/lib/inline-marks.ts`(강조 토글·렌더 토큰) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,replace-quote,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
-**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,replace-quote,scripture-field,split-paragraph}.test.ts` · `src/widgets/note-editor/lib/__tests__/list-blocks.test.ts` · `src/entities/note/lib/__tests__/inline-marks.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (12/16)
+**코드** `src/widgets/note-editor/ui/{RichNoteEditor,EditorSkeleton,QuoteEditModal,SermonMetaHeader}.tsx`(앱에 연결된 WebView 에디터) · `src/widgets/note-editor/lib/{verse-bridge,verse-insert,doc-sync-bridge,rich-doc}.ts` · `editor-web/**`(WebView 번들 — 고치면 `pnpm editor:build`) · `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock}.tsx`(네이티브 에디터, 미연결 — drift B32) · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/widgets/note-editor/lib/list-blocks.ts`(글머리 목록) · `src/entities/note/lib/inline-marks.ts`(강조 토글·렌더 토큰) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,replace-quote,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
+**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,replace-quote,scripture-field,split-paragraph}.test.ts` · `src/widgets/note-editor/lib/__tests__/{list-blocks,verse-insert}.test.ts` · `src/entities/note/lib/__tests__/inline-marks.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (12/16)
 
 **같은 변경에서 함께 고친다**
 1. **인용 블록은 `makeQuoteBlock`(`src/entities/note/model/citation.ts`) 한 곳에서만 만든다.** 인용의 모양(`status`·`editionId`)을 바꾸면 여기와 마크다운 파서(`src/entities/note/api/markdown-parse.ts`)를 같이 본다 — 파서는 형식 판별자 때문에 리터럴이 남아 있다.
@@ -91,6 +91,7 @@
 - 브라우저에서 넣는 인용은 커서 자리가 아니라 **본문 맨 끝**에 붙는다(A21).
 - 죽은 코드가 남아 있다 — `QuoteBlock`의 `loading`/`error`(B6). `pendingInsertRef`·`"newNote"`는 지웠다.
 - 범위 인용은 붙여 써야 한다(`1:1-3`). space가 트리거라 `1:1 - 3`은 `1:1`에서 이미 확정된다.
+- WebView 에디터에서 인용 카드는 **항상 최상위**여야 한다. 목록·인용문 안에 카드를 넣으면 화면에는 보여도 `docToBlocks`가 저장 때 버린다 — 확정 위치는 `verse-insert.ts`의 `verseShape`가 정한다(RULE-EDIT-001).
 - 삽입 후 원본 참조 텍스트를 지우기로 한 이유는 기록이 없다(E5).
 - **자동 증거 없음** — 캐럿 이동, backspace 병합, 힌트 칩, 인용 불변은 전부 수동(C3).
 
