@@ -21,12 +21,16 @@ RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않으므로, �
 id: RULE-EDIT-001
 policy: POL-SCRIPTURE-001
 requirement: MUST
-statement: 유효한 참조 바로 뒤에 공백이나 개행이 입력되면 인용 블록으로 확정한다. 문단 끝뿐 아니라 문단 중간에서도 동작한다.
+statement: 유효한 참조 바로 뒤에 공백이나 개행이 입력되면 인용 블록으로 확정한다. 문단 끝뿐 아니라 문단 중간에서도 동작한다. WebView 에디터에서는 문단뿐 아니라 제목·글머리·할 일·인용문 블록 안에서도 확정하고, 인용 카드는 항상 최상위 블록으로 놓인다.
 implemented_by:
   - apps/ch-life/src/features/scripture/insert/model/autocomplete.ts
   - apps/ch-life/src/widgets/note-editor/ui/ParagraphInput.tsx
+  - apps/ch-life/src/widgets/note-editor/lib/verse-bridge.ts (postTrigger — 트리거 가드)
+  - apps/ch-life/src/widgets/note-editor/lib/verse-insert.ts (verseShape, verseInsertTransaction)
 verified_by:
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/autocomplete.test.ts#detectTriggeredRef
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/verse-insert.test.ts
+  - manual: 제목·글머리·할 일·인용문 안에서 "창1:2 " 입력과 Enter (iOS WKWebView + 한글 IME, Android) — 실기기 확인 필요
 confidence: 기록됨
 source:
   - DESIGN.md "자동완성 UX 디테일" 구현 갱신(2026-05-31)
@@ -39,6 +43,10 @@ source:
 판정은 필드 끝을 보는 것이 아니라 **이전 값과 다음 값의 차이 구간**을 훑는다. 덕분에 `안녕하세요 창 1:3 누구세요`의 가운데 참조도, 붙여넣기도 동일하게 처리된다.
 
 개행에는 추가 처리가 있다. Enter를 누르면 아래 줄의 개행과 붙어 같은 문자열이 두 가지 순서로 만들어질 수 있어(`…3\n[\n]누구` vs `…3[\n]\n누구`), 단순 접두 비교로는 참조가 `\n`으로 끝나 매칭이 깨진다. 그래서 **같은 문자가 연속된 구간의 맨 앞**까지 되짚어 트리거 위치를 잡는다(코드 주석에 상세 기록).
+
+**WebView 에디터의 확정 위치.** 웹이 트리거를 보내는 자리는 `verseShape`가 허용하는 곳뿐이다 — 최상위 문단·제목, 인용문 안의 문단·제목, 목록(글머리·번호·할 일) 항목의 첫 문단. 코드 블록, 인용 노드 자체, 중첩 목록(목록 안 목록), 인용문 안의 목록·인용문, 항목의 둘째 이후 문단은 갈라 낼 안전한 방법이 없어 **트리거를 보내지 않는다(전과 같이 조용히 무시).** 저장 모델이 평탄한 `BlockNode[]`라 카드가 목록·인용문 안에 있으면 `docToBlocks`가 저장 때 **조용히 버리기** 때문에(화면에는 보이지만 다시 열면 사라진다), 가드를 풀되 카드는 반드시 최상위로 꺼낸다.
+
+Enter는 블록이 이미 나뉜 뒤에 응답이 온다(목록에서는 새 항목이 먼저 생긴다). 응답 때 ⑴ 참조가 앞 블록의 끝이고 ⑵ 바로 뒤에 Enter가 만든 형제 블록(항목)이 있고 ⑶ 그것이 평범한 텍스트 블록일 때만 끼운다. 하나라도 어긋나면 버린다 — 추측해서 삽입하지 않는다.
 
 범위 인용의 구분자는 여기서만 **공백 없이 붙여 써야** 한다(`1:1-3`). 트리거가 space이므로 `1:1 - 3`은 `- 3`을 치기 전에 이미 단절 `1:1`로 확정되기 때문이다.
 
@@ -372,7 +380,9 @@ implemented_by:
   - apps/ch-life/src/widgets/note-editor/lib/list-blocks.ts
   - apps/ch-life/src/widgets/note-editor/ui/NoteEditor.tsx (applyListEdit, handleNewline, handleBackspaceAtStart)
   - apps/ch-life/src/features/scripture/insert/model/split-paragraph.ts
+  - apps/ch-life/src/widgets/note-editor/lib/verse-insert.ts (WebView 에디터의 글머리·할 일 안 확정)
 verified_by:
+  - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/verse-insert.test.ts
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#toggleBullet
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/list-blocks.test.ts#splitBulletLines
   - test: apps/ch-life/src/features/scripture/insert/model/__tests__/split-paragraph.test.ts
@@ -389,6 +399,8 @@ source:
 목록 버튼은 에디터가 들고 있는 활성 입력칸의 글자(`ActiveInputState.text`)로 줄을 나눈다. 이 값은 선택 이벤트에서도 갱신되므로 **렌더 상태가 아니라 `textRef`에서 읽어야 한다** — 선택 이벤트는 그 키 입력의 리렌더보다 먼저 와서, 상태로 채우면 한 글자 늦는다. iPad 시뮬레이터에서 한글을 치자마자 목록을 누르면 마지막 음절이 사라지는 것으로 재현·수정했다.
 
 ⚠️ 다시 마운트하는 순간(목록 편집·인용 삽입) 입력칸이 포커스를 잃었다가 다음 프레임에 되찾는다. 그 사이의 키 입력은 사라질 수 있고(시뮬레이터에서 키를 몰아 보낼 때 재현), 실기기에서 소프트웨어 키보드가 잠깐 내려갔다 올라오는지는 **확인이 필요하다.**
+
+**WebView 에디터(현재 앱)에서의 같은 동작.** 글머리·할 일 항목 안에서 참조가 확정되면 앞부분은 원래 항목으로 남고, 인용 카드가 최상위로 나오고, 뒷부분은 문단이 된다(저장 결과: `bullet|todo` → `quote` → `paragraph`). 항목이 여러 개인 목록의 **가운데 항목**에서 확정하면 **목록이 둘로 갈라진다** — 위쪽 목록은 앞 항목들 + 앞부분, 아래쪽 목록은 뒷부분 항목을 문단으로 꺼낸 나머지 항목들이다(첫 항목만 문단이 되고 나머지는 목록으로 남는다). 항목 맨 앞에서 확정하면 빈 항목이 카드 앞에 남고, 맨 끝이면 카드 뒤에 빈 문단이 생겨 캐럿이 거기로 간다.
 
 번호 목록·들여쓰기·체크리스트는 만들지 않았다.
 

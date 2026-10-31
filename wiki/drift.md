@@ -248,6 +248,8 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 **2026-09-27 갱신.** ⑴은 사용자 결정으로 옮겼다 — WebView의 인용 카드를 누르면 `verse-bridge`가 RN에 알리고, RN이 같은 `QuoteEditModal`·`replaceQuoteRef`로 새 인용을 만들어 그 자리 노드를 바꾼다([`RULE-EDIT-014`](rules/editor-insert.md)). 남은 것은 ⑵다.
 
+**2026-10-26 하위 항목 — 글머리·할 일·제목·인용문 안 인용 확정.** WebView 에디터는 인용 트리거를 최상위 문단에서만 보내서(`verse-bridge.ts`의 옛 가드), "/" 메뉴나 마크다운 입력 규칙으로 만든 제목·글머리·할 일·인용문 안에서는 `창1:2` + space/Enter가 아무 일도 하지 않았다. [`RULE-EDIT-016`](rules/editor-insert.md)의 "글머리 안에서 확정되면 앞은 글머리로 남고 뒤는 문단"은 네이티브 에디터에만 있던 동작이었다. 이제 WebView도 같은 결과를 낸다(`verse-insert.ts`) — 다만 목록 가운데 항목이면 목록이 둘로 갈라진다는 점, 중첩 목록·목록 안 인용문·항목의 둘째 이후 문단·코드 블록에서는 여전히 확정하지 않는다는 점이 다르다. 이 가드를 단순히 풀지 않은 이유: 중첩된 인용 노드는 `docToBlocks`가 저장 때 버린다. 위키가 이 동작을 적지 않았던 것도 이 어긋남의 일부였다([`RULE-EDIT-001`](rules/editor-insert.md)).
+
 ### B33. ~~WebView 노트 본문에 테마 설정 세 축이 연결되지 않았다~~ **해소(2026-10-09)**
 `ThemeProvider`는 `fontScale`·`fontStack`·`blockStyle`을 계산했지만 `RichNoteEditor`는 색만 CSS로 전달했다. 본문은 17px로 고정되고 인용도 항상 왼쪽 선 모양이었다. `RULE-SET-004`의 인용 모양 설명과 `RULE-SET-005`의 본문 배율 설명은 현재 편집기에는 맞지 않았다.
 
