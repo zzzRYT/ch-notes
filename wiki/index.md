@@ -7,17 +7,17 @@
 | | 개수 |
 |---|---|
 | 사용자 정책 `POL` | 12 |
-| 도메인 규칙 `RULE` | 75 |
+| 도메인 규칙 `RULE` | 79 |
 | 계약 `CONTRACT` | 7 |
 | 결정 `ADR` | 29 |
-| **합계** | **123** |
+| **합계** | **127** |
 
 | 지표 | 값 |
 |---|---|
-| 자동 증거(test/ci)가 붙은 RULE | **47/75 (63%)** |
+| 자동 증거(test/ci)가 붙은 RULE | **51/79 (65%)** |
 | 나머지 28건 | 수동 QA 또는 현상 서술 — 대부분 UI 계층 |
-| 근거가 기록으로 남아 있는 항목 | 70 |
-| 코드에서 추론한 항목 | 48 |
+| 근거가 기록으로 남아 있는 항목 | 71 |
+| 코드에서 추론한 항목 | 51 |
 | **확인 필요 (사용자 답 대기)** | **5** → [`drift.md`](drift.md) E절 |
 
 자동 증거 비율이 60%에 못 미치는 이유는 감추지 않는다. RN 컴포넌트 테스트 도구가 없어 **UI 규칙 전체에 자동 증거가 없고**([`drift.md`](drift.md) C3), **OTA 규칙은 실기기와 실제 발행 없이는 재현되지 않는다**. 그 규칙들은 대문자 요구를 쓸 때 반드시 `waiver`를 붙인다.
@@ -55,7 +55,7 @@
 
 | ID | 요구 | 증거 | 근거 | 내용 |
 |---|---|---|---|---|
-| [`RULE-EDIT-001`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 유효한 참조 바로 뒤에 공백이나 개행이 입력되면 인용 블록으로 확정한다. 문단 끝뿐 아니라 문단 중간에서도 동작한다. |
+| [`RULE-EDIT-001`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 유효한 참조 바로 뒤에 공백이나 개행이 입력되면 인용 블록으로 확정한다. 문단 끝뿐 아니라 문단 중간에서도 동작한다. WebView 에디터에서는 문단뿐 아니라 제목·글머리·할 일·인용문 블록 안에서도 확정하고, 인용 카드는 항상 최상위 블록으로 놓인다. |
 | [`RULE-EDIT-002`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 인용 확정 시 원래 문단은 [참조 앞 텍스트] / [인용 블록] / [참조 뒤 텍스트] 세 블록으로 나뉜다. 참조 문자열과 트리거 공백은 사라진다. |
 | [`RULE-EDIT-003`](rules/editor-insert.md) | SHOULD | 수동 | 기록됨 | 인용 블록이 삽입되면 캐럿은 그 아래 새 문단으로 이동해, 사용자가 손을 떼지 않고 계속 쓸 수 있어야 한다. |
 | [`RULE-EDIT-004`](rules/editor-insert.md) | SHOULD | 수동 | 코드추론 | 인용 블록 바로 아래 문단의 맨 앞에서 backspace를 누르면 인용 블록이 삭제되고, 위·아래 문단이 하나로 합쳐진다. |
@@ -71,6 +71,8 @@
 | [`RULE-EDIT-014`](rules/editor-insert.md) | SHOULD | 자동 | 기록됨 | 편집기의 인용 블록을 누르면 "인용 고치기" 시트가 열린다. 참조를 다시 입력하면 본문 미리보기가 바로 바뀌고, 조회되며 지금과 다른 구절일 때만 [바꾸기]가 켜진다. 바꾸면 그 자리의 인용이 makeQuoteBlock으로 다시 만들어지고 일반 본문 변경과 같은 자동저장 경로로 저장된다. |
 | [`RULE-EDIT-015`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 본문 문단에 포커스가 있으면 키보드 위에 굵게·밑줄·글머리 목록 버튼이 뜬다(기울임 버튼은 없다). 강조 버튼은 선택 영역을 해당 구분자로 감싸고, 이미 감싸져 있으면 벗긴다. 선택이 없으면 빈 구분자 쌍을 넣어 캐럿을 그 안에 두고, 켜진 강조의 닫는 구분자 바로 앞이면 캐럿을 그 뒤로 옮긴다(강조 끄기). 캐럿 위치에서 켜져 있는 강조는 버튼이 켜진 모양으로 보인다. |
 | [`RULE-EDIT-016`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | 목록 버튼은 캐럿이 있는 줄 하나만 글머리(bullet) 블록으로 떼어 내고, 글머리에서 다시 누르면 문단으로 되돌린다. 글머리에서 Return은 다음 글머리를 만들고, 빈 글머리에서 Return은 목록을 끝내 그 자리를 빈 문단으로 바꾼다. 글머리 맨 앞 backspace는 글머리를 문단으로 바꾼다. 글머리 안에서 참조가 확정되면 앞부분은 글머리로 남고 뒷부분은 문단이 된다. |
+| [`RULE-EDIT-017`](rules/editor-insert.md) | MUST | 자동 | 기록됨 | WebView 에디터가 기한(DOC_READY_TIMEOUT_MS) 안에 doc-ready를 알리지 않으면 스켈레톤 대신 에러 UI와 "다시 시도" 버튼을 보여준다. 다시 시도는 WebView를 다시 마운트해 페이지를 리로드한다. |
+| [`RULE-EDIT-018`](rules/editor-insert.md) | MUST | 자동 | 코드추론 | 노트 에디터 화면은 헤더 뒤로 버튼·기기 뒤로·뒤로 제스처 어느 쪽으로 떠나든, 에디터에 들어 있는 마지막 입력까지 저장이 끝난 뒤에 이동한다. 저장이 실패하면 이동하지 않고 에디터에 남아 오류 배너를 보인다. 방금 삭제한 노트는 떠날 때 다시 저장하지 않는다. |
 
 ### 노트 저장 — [`rules/note-persistence.md`](rules/note-persistence.md)
 
@@ -161,6 +163,13 @@
 | [`RULE-OTA-008`](rules/release.md) | MUST NOT | 수동 (waiver) | 코드추론 | OTA로 내보내는 번들은 기존 컬럼을 삭제·개명·타입변경하지 않는다. 마이그레이션에 되돌리는 경로가 없어, 번들을 되돌려도 스키마는 되돌아가지 않고 이전 번들이 바뀐 DB를 그대로 읽는다. |
 | [`RULE-OTA-009`](rules/release.md) | MUST NOT | 수동 (waiver) | 코드추론 | body_json에 새 BlockNode type을 기록하는 번들은 OTA로 발행하지 않는다. 되돌아간 이전 번들에서 그 노트를 열면, text 필드가 없는 블록은 에디터와 목록 미리보기를 즉시 깨뜨리고 있더라도 Markdown 내보내기에서 조용히 사라진다. |
 
+### 말씀 지도 — [`rules/scripture-map.md`](rules/scripture-map.md)
+
+| ID | 요구 | 증거 | 근거 | 내용 |
+|---|---|---|---|---|
+| [`RULE-MAP-001`](rules/scripture-map.md) | MUST | 자동 | 코드추론 | 노트의 설교 본문과 인용 참조는 파싱되고 번들 본문 조회에 성공한 것만 사건 범위와 대조한다. 같은 책·장에서 절 구간이 겹치는 사건에만 연결하고, 장 전체나 책 분류로 장소를 퍼뜨리지 않는다. 역방향 범위·없는 절·자유 문장·연결표에 없는 본문은 조용히 건너뛰며 표식을 만들지 않는다. 한 노트의 여러 참조가 같은 사건에 닿으면 (노트, 장소) 한 쌍으로 합친다. |
+| [`RULE-MAP-004`](rules/scripture-map.md) | MUST | 자동 | 코드추론 | 말씀 지도의 조회는 최근 목록의 200편 제한 없이 저장된 모든 노트를 대상으로 한다. 훅은 화면에 들어올 때와 삭제·복원(`noteRevision`) 뒤에 다시 읽고, 늦게 끝난 이전 조회는 버린다. 조회 중(`loading`)과 조회 실패(`error`)는 빈 결과(`ready`, 연결 0건)와 구분되는 상태로 돌려준다. |
+
 ## CONTRACT — 계약
 
 | ID | 근거 | 내용 |
@@ -169,7 +178,7 @@
 | [`CONTRACT-DB-NOTES`](contracts/CONTRACT-DB-NOTES.md) | 기록됨 | 노트는 ch-life.db의 notes 테이블에 저장되고, 검색은 notes_fts 가상 테이블에 트리거로 동기화된다. 이 DDL은 두 파일에 중복 기록되어 있으며 항상 함께 바뀌어야 한다. |
 | [`CONTRACT-DOMAIN-NOTE`](contracts/CONTRACT-DOMAIN-NOTE.md) | 코드추론 | 노트 엔티티가 소유하는 Note / BlockNode / CitationVerse 타입 정의. DB 행, 마크다운 파일, 화면 상태가 모두 이 모양으로 수렴한다. 인용 스냅샷은 성경 엔티티를 참조하지 않고 본문·참조·판본(editionId)을 스스로 든다. |
 | [`CONTRACT-MD-NOTE`](contracts/CONTRACT-MD-NOTE.md) | 기록됨 | 노트 하나는 YAML frontmatter + 표준 Markdown 본문을 가진 .md 파일 하나로 표현된다. 이 형식은 앱 밖으로 나가므로 하위 호환을 깨면 이미 내보낸 파일을 다시 읽을 수 없다. |
-| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 일곱 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
+| [`CONTRACT-NOTE-REPO`](contracts/CONTRACT-NOTE-REPO.md) | 코드추론 | 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 여덟 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다. |
 | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md) | 기록됨 | 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다. |
 | [`CONTRACT-SETTINGS-FILE`](contracts/CONTRACT-SETTINGS-FILE.md) | 기록됨 | 앱 설정은 문서 디렉터리의 settings.json 하나에 객체 그대로 직렬화된다. fontScale과 themePreference는 필수이며, 나머지 필드는 없거나 잘못돼도 개별 폴백한다. |
 

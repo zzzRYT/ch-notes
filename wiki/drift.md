@@ -248,6 +248,8 @@ collapse 토글은 `focus`(기본 변형)의 기본 블록 스타일이라 **사
 
 **2026-09-27 갱신.** ⑴은 사용자 결정으로 옮겼다 — WebView의 인용 카드를 누르면 `verse-bridge`가 RN에 알리고, RN이 같은 `QuoteEditModal`·`replaceQuoteRef`로 새 인용을 만들어 그 자리 노드를 바꾼다([`RULE-EDIT-014`](rules/editor-insert.md)). 남은 것은 ⑵다.
 
+**2026-10-26 하위 항목 — 글머리·할 일·제목·인용문 안 인용 확정.** WebView 에디터는 인용 트리거를 최상위 문단에서만 보내서(`verse-bridge.ts`의 옛 가드), "/" 메뉴나 마크다운 입력 규칙으로 만든 제목·글머리·할 일·인용문 안에서는 `창1:2` + space/Enter가 아무 일도 하지 않았다. [`RULE-EDIT-016`](rules/editor-insert.md)의 "글머리 안에서 확정되면 앞은 글머리로 남고 뒤는 문단"은 네이티브 에디터에만 있던 동작이었다. 이제 WebView도 같은 결과를 낸다(`verse-insert.ts`) — 다만 목록 가운데 항목이면 목록이 둘로 갈라진다는 점, 중첩 목록·목록 안 인용문·항목의 둘째 이후 문단·코드 블록에서는 여전히 확정하지 않는다는 점이 다르다. 이 가드를 단순히 풀지 않은 이유: 중첩된 인용 노드는 `docToBlocks`가 저장 때 버린다. 위키가 이 동작을 적지 않았던 것도 이 어긋남의 일부였다([`RULE-EDIT-001`](rules/editor-insert.md)).
+
 ### B33. ~~WebView 노트 본문에 테마 설정 세 축이 연결되지 않았다~~ **해소(2026-10-09)**
 `ThemeProvider`는 `fontScale`·`fontStack`·`blockStyle`을 계산했지만 `RichNoteEditor`는 색만 CSS로 전달했다. 본문은 17px로 고정되고 인용도 항상 왼쪽 선 모양이었다. `RULE-SET-004`의 인용 모양 설명과 `RULE-SET-005`의 본문 배율 설명은 현재 편집기에는 맞지 않았다.
 
@@ -338,6 +340,7 @@ RN 컴포넌트 테스트 라이브러리가 설치되어 있지 않다. 에디�
 | E22 | **글자 크기(`fontScale`)는 어디까지 적용되어야 하나?** 아이콘 글리프·요일 머리글·보조 라벨을 확대 대상으로 볼지 정한 적이 없었다. **제안(2026-09-20, 확인필요)** — [`ADR-0025`](decisions/ADR-0025-tailwind-uniwind-tokens.md) 전면 적용에서 이렇게 갈랐다: 읽는 텍스트는 전부 `text-*` 토큰(확대됨), 텍스트로 그린 **아이콘 글리프만** `text-[Npx]` 고정(`primitives.js` `icon/glyph/*`와 같은 구분). 요일 머리글·보조 라벨·칩 텍스트는 확대 대상에 넣었다. 이 경계가 맞으면 `RULE-UI`로 박고, 아니면 어느 쪽을 빼야 하는지 정해야 한다. | B27, [`RULE-SET-001`](rules/settings-theme.md) |
 | E23 | **Play 트랙을 `internal`에서 `alpha`로 올린 이유는?** `eas.json`의 `submit.production.android.track`이 바뀌었는데 기록이 없다. iOS 자동제출(ASC API 키)을 붙이면서 함께 정한 것인가, 아니면 별개의 판단인가? | [`CONTRACT-RELEASE`](contracts/CONTRACT-RELEASE.md), `docs/store/android-auto-submit.md` |
 | E24 | **preview OTA까지 수동으로 둔 이유, `dev` 직접 푸시를 허용한 이유는?** 2026-09-27에 결정만 기록됐다. 수동 preview는 "아무 가지에서나 쏠 수 있다"는 뜻이기도 하다. 이것이 의도라면 그대로 두고, `dev`로 제한할 생각이면 워크플로 가드를 더해야 한다. | [`ADR-0028`](decisions/ADR-0028-dev-branch.md) |
+| E26 | **외장 키보드에서 제목 칸 Tab이 날짜 칸을 건너뛰는 원인은?** (#131) 코드만으로는 못 가렸다 — Tab은 OS의 포커스 이동이고 RN 코어가 Tab·방향키·Esc를 JS로 넘기지 않으며, 로컬 시뮬레이터 빌드에는 Firebase 설정 파일이 필요해 재현하지 못했다. 가설: ⑴ iOS에서 Tab이 `onSubmitEditing`(→ `focusNext`)까지 일으켜 한 칸을 더 간다, ⑵ Android 포커스 탐색이 날짜 칸을 거른다. 어느 기기에서 본 증상인지, 달력 버튼 정지점을 넣은 뒤에도 같은지 실기기 확인이 필요하다. 계속되면 iOS `GCKeyboard`/Android `Window.Callback`으로 Tab·방향키·Esc를 JS에 넘기는 네이티브 확장(`modules/hardware-keyboard`)이 다음 수다. | [`RULE-EDIT-011`](rules/editor-insert.md), [`RULE-UI-008`](rules/layout-a11y.md) |
 
 ## G. 아직 정본화되지 않은 구현
 
