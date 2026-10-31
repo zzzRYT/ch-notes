@@ -188,7 +188,7 @@ confidence: 코드추론
 
 문단마다 `TextInput`이 별개이므로, 매 키 입력마다 상위 상태를 갱신하면 형제 블록이 전부 리렌더된다. 그래서 문단 안에서는 로컬 상태로 타이핑하고 **멈춘 뒤에만** 위로 올린다(코드 주석: `ParagraphInput`은 memo, 콜백은 `bodyRef`로 안정화).
 
-최악의 경우 입력 후 저장까지 **약 1.3초**가 비어 있다. 이 사이에 앱이 강제 종료되면 마지막 문단 입력이 사라질 수 있다. 다만 포커스를 잃을 때(`onBlur`)와 backspace 병합 시에는 디바운스를 취소하고 즉시 반영하므로, 화면을 벗어나는 정상 경로에서는 손실이 없다.
+최악의 경우 입력 후 저장까지 **약 1.3초**가 비어 있다. 이 사이에 앱이 강제 종료되면 마지막 문단 입력이 사라질 수 있다. 다만 포커스를 잃을 때(`onBlur`)와 backspace 병합 시에는 디바운스를 취소하고 즉시 반영하므로, 화면을 벗어나는 정상 경로에서는 손실이 없다. ⚠️ 이는 네이티브 `ParagraphInput` 기준이며, WebView 에디터에서는 화면을 떠날 때 자동저장 타이머가 취소돼 손실이 있었다 — [`RULE-EDIT-018`](#rule-edit-018--화면을-떠나기-전에-마지막-입력까지-저장하고-실패하면-남는다)이 막는다.
 
 v1 spec 3.5의 "500ms 후 전체 덮어쓰기"와 달리, 실제로는 **해당 노트 row만** UPDATE 한다.
 
@@ -245,16 +245,27 @@ statement: 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 �
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/lib/field-nav.ts
   - apps/ch-life/src/widgets/note-editor/ui/SermonMetaHeader.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/DatePickerModal.tsx
 verified_by:
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/field-nav.test.ts
+  - test: apps/ch-life/src/widgets/note-editor/ui/__tests__/SermonMetaHeader.test.tsx
+  - manual: 외장 키보드(Android·iPad)에서 제목 칸 Tab → 날짜 → 달력 버튼 → 설교자 → 장소 → 생명양식 → 본문, Shift+Tab 역순
+  - manual: 달력 버튼에서 Enter/Space → 달력 열림 → 방향키/Tab·Enter로 날짜 선택 또는 Esc로 닫기 → 포커스가 날짜 칸으로 복귀
 confidence: 기록됨
 source:
   - docs/plans/2026-05-24-sermon-meta-header.md Task 8, Task 10
+  - https://github.com/zzzRYT/ch-notes/issues/131
 ```
 
 외장 키보드나 소프트 키보드의 "다음" 키만으로 헤더 다섯 칸을 지나 본문까지 갈 수 있어야 한다는 요구다. 본문 진입 대상은 `body`에서 **첫 번째 문단 블록**이며, 문단이 하나도 없으면(`-1`) 아무 일도 하지 않는다.
 
 메타 헤더는 스크롤 콘텐츠 상단에 놓여 본문과 함께 스크롤되어 올라간다 — 고정 헤더가 아니다.
+
+**Tab / Shift+Tab과 달력 (#131)** — Tab 이동은 OS가 하는 포커스 이동이다. RN 코어는 Tab·방향키·Esc를 JS로 넘기지 않아서(`TextInput.onKeyPress`는 문자·Enter·Backspace뿐, View에는 `onKeyDown`이 없다) 앱이 Tab을 가로채 순서를 정할 수 없다. 그래서 순서는 화면 배치 그대로 두고, 그 위에서 아래를 보장한다.
+- 날짜 칸 바로 뒤의 달력 버튼은 키보드 정지점이다(`focusable`, 포커스 링). 순서는 제목 → 날짜 → 달력 버튼 → 설교자 → 장소 → 생명양식. Return 키 이동(`nextMetaField`)은 달력 버튼을 건너뛴다.
+- 달력 버튼에서 Enter/Space를 누르면 열린다(Android: 포커스된 Pressable의 click이 `onPress`로 간다. iOS: 전체 키보드 접근 사용 시). **실기기 미확인.**
+- 달력은 Android에서 Esc·뒤로 가기로 닫힌다(`Modal.onRequestClose`). 날짜 칸·이전/다음 달·오늘 버튼은 모두 버튼이라 방향키/Tab과 Enter로 닿는다(Android, **실기기 미확인**). iOS는 전체 키보드 접근이 꺼져 있으면 키보드로 달력을 조작할 수 없다 — 그래서 날짜는 칸에 직접 입력하는 길이 정본이다([`RULE-EDIT-012`](#rule-edit-012--날짜는-관대하게-받고-엄격하게-저장한다)).
+- 키보드(포커스된 달력 버튼)로 연 달력이 닫히면 포커스가 날짜 칸으로 돌아온다. 손가락으로 연 경우엔 옮기지 않는다 — 소프트 키보드가 뜨지 않게.
 
 ## RULE-EDIT-012 · 날짜는 관대하게 받고 엄격하게 저장한다
 
@@ -415,3 +426,35 @@ source:
 다시 시도할지 정할 수 있다. 재시도해도 본문 데이터는 바뀌지 않는다
 (`body_json`·`citedRefs`는 손대지 않음). 타임아웃은 네트워크와 무관한 로컬
 타이머다 (#119).
+
+## RULE-EDIT-018 · 화면을 떠나기 전에 마지막 입력까지 저장하고, 실패하면 남는다
+
+```yaml
+id: RULE-EDIT-018
+policy: POL-NOTE-001
+requirement: MUST
+statement: 노트 에디터 화면은 헤더 뒤로 버튼·기기 뒤로·뒤로 제스처 어느 쪽으로 떠나든, 에디터에 들어 있는 마지막 입력까지 저장이 끝난 뒤에 이동한다. 저장이 실패하면 이동하지 않고 에디터에 남아 오류 배너를 보인다. 방금 삭제한 노트는 떠날 때 다시 저장하지 않는다.
+implemented_by:
+  - apps/ch-life/src/pages/note-editor/model/useSaveBeforeLeave.ts (beforeRemove 가로채기)
+  - apps/ch-life/src/pages/note-editor/ui/NoteEditorPage.tsx (삭제 뒤 skip)
+  - apps/ch-life/src/widgets/note-editor/model/save-live.ts (에디터 본문을 읽어 flush)
+  - apps/ch-life/src/widgets/note-editor/ui/RichNoteEditor.tsx (readBody — 웹뷰 무응답은 1초 뒤 포기)
+  - apps/ch-life/src/features/note/autosave/model/useAutoSave.ts (flush(live) — 화면 상태 대신 live 본문 저장)
+verified_by:
+  - test: apps/ch-life/src/pages/note-editor/model/__tests__/useSaveBeforeLeave.test.tsx
+  - test: apps/ch-life/src/features/note/autosave/model/__tests__/useAutoSave-flush.test.tsx
+  - manual: 입력 직후 헤더 버튼·기기 뒤로·제스처로 나갔다 돌아와 마지막 글자가 남아 있는지, iOS 한글 조합 중 readBody가 글자를 삼키지 않는지, 비행기 모드에서 저장이 실패할 때의 동작 (미확인 — 실기기 필요)
+confidence: 코드추론
+source:
+  - https://github.com/zzzRYT/ch-notes/issues/105
+```
+
+자동저장은 화면을 떠날 때 대기 타이머를 **취소**하므로([`RULE-EDIT-008`](#rule-edit-008--자동저장은-두-단계-디바운스)), 이 규칙이 없으면 입력 후 최대 약 1초의 마지막 입력이 사라진다. WebView 에디터는 입력이 멈춘 뒤 500ms에야 RN으로 본문을 보내기 때문에 `useAutoSave`의 `flush()`만으로는 부족하다 — 에디터가 가진 본문을 직접 읽어(`readBody`) 그 본문으로 저장한다. 읽지 못하면(웹뷰 미준비·1초 무응답) RN 상태로 저장한다.
+
+이 규칙은 노트 편집 화면 전체에 적용된다. 폰의 노트 목록으로 돌아가는 기본 경로도 같은 화면을 거치므로 함께 보장된다.
+
+⚠️ 삭제 직전의 저장(폰 `deleteNote`, 태블릿 `handleDelete`)은 아직 `flush()`만 부르므로 에디터에만 있는 마지막 입력은 포함하지 않는다. 삭제를 되돌리면 그 입력이 빠진 노트가 복원될 수 있다.
+
+⚠️ 저장이 계속 실패하면 이 화면을 떠날 방법이 없다(오류 배너만 보이고 "저장하지 않고 나가기"가 없다). 탈출구를 둘지는 정해지지 않았다.
+
+⚠️ `readBody`는 떠나는 순간 `editor.getJSON()`을 호출한다. iOS 한글 조합 중 이 호출이 조합 중인 글자를 삼키는지는 **확인하지 못했다.**
