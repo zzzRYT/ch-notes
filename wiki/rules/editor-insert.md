@@ -237,16 +237,27 @@ statement: 설교 메타 필드는 제목 → 날짜 → 설교자 → 장소 �
 implemented_by:
   - apps/ch-life/src/widgets/note-editor/lib/field-nav.ts
   - apps/ch-life/src/widgets/note-editor/ui/SermonMetaHeader.tsx
+  - apps/ch-life/src/widgets/note-editor/ui/DatePickerModal.tsx
 verified_by:
   - test: apps/ch-life/src/widgets/note-editor/lib/__tests__/field-nav.test.ts
+  - test: apps/ch-life/src/widgets/note-editor/ui/__tests__/SermonMetaHeader.test.tsx
+  - manual: 외장 키보드(Android·iPad)에서 제목 칸 Tab → 날짜 → 달력 버튼 → 설교자 → 장소 → 생명양식 → 본문, Shift+Tab 역순
+  - manual: 달력 버튼에서 Enter/Space → 달력 열림 → 방향키/Tab·Enter로 날짜 선택 또는 Esc로 닫기 → 포커스가 날짜 칸으로 복귀
 confidence: 기록됨
 source:
   - docs/plans/2026-05-24-sermon-meta-header.md Task 8, Task 10
+  - https://github.com/zzzRYT/ch-notes/issues/131
 ```
 
 외장 키보드나 소프트 키보드의 "다음" 키만으로 헤더 다섯 칸을 지나 본문까지 갈 수 있어야 한다는 요구다. 본문 진입 대상은 `body`에서 **첫 번째 문단 블록**이며, 문단이 하나도 없으면(`-1`) 아무 일도 하지 않는다.
 
 메타 헤더는 스크롤 콘텐츠 상단에 놓여 본문과 함께 스크롤되어 올라간다 — 고정 헤더가 아니다.
+
+**Tab / Shift+Tab과 달력 (#131)** — Tab 이동은 OS가 하는 포커스 이동이다. RN 코어는 Tab·방향키·Esc를 JS로 넘기지 않아서(`TextInput.onKeyPress`는 문자·Enter·Backspace뿐, View에는 `onKeyDown`이 없다) 앱이 Tab을 가로채 순서를 정할 수 없다. 그래서 순서는 화면 배치 그대로 두고, 그 위에서 아래를 보장한다.
+- 날짜 칸 바로 뒤의 달력 버튼은 키보드 정지점이다(`focusable`, 포커스 링). 순서는 제목 → 날짜 → 달력 버튼 → 설교자 → 장소 → 생명양식. Return 키 이동(`nextMetaField`)은 달력 버튼을 건너뛴다.
+- 달력 버튼에서 Enter/Space를 누르면 열린다(Android: 포커스된 Pressable의 click이 `onPress`로 간다. iOS: 전체 키보드 접근 사용 시). **실기기 미확인.**
+- 달력은 Android에서 Esc·뒤로 가기로 닫힌다(`Modal.onRequestClose`). 날짜 칸·이전/다음 달·오늘 버튼은 모두 버튼이라 방향키/Tab과 Enter로 닿는다(Android, **실기기 미확인**). iOS는 전체 키보드 접근이 꺼져 있으면 키보드로 달력을 조작할 수 없다 — 그래서 날짜는 칸에 직접 입력하는 길이 정본이다([`RULE-EDIT-012`](#rule-edit-012--날짜는-관대하게-받고-엄격하게-저장한다)).
+- 키보드(포커스된 달력 버튼)로 연 달력이 닫히면 포커스가 날짜 칸으로 돌아온다. 손가락으로 연 경우엔 옮기지 않는다 — 소프트 키보드가 뜨지 않게.
 
 ## RULE-EDIT-012 · 날짜는 관대하게 받고 엄격하게 저장한다
 
