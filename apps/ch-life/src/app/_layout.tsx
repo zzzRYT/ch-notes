@@ -16,6 +16,7 @@ import {
   useSettingsPersistence,
   useSettingsStore,
 } from '@/features/settings/change';
+import { useScreenTracking } from '@/shared/analytics';
 import { openSqliteDatabase, useHardwareKeyboardDismiss } from '@/shared/lib';
 import { ActionBannerHost, ThemeProvider, useTheme } from '@/shared/ui';
 
@@ -59,6 +60,7 @@ function StoreUpdateNotice() {
 }
 
 function RootLayout() {
+  useScreenTracking();
   useSettingsPersistence();
   useHardwareKeyboardDismiss();
   const settings = useSettingsStore((s) => s.settings);
