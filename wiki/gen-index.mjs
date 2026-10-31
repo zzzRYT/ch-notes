@@ -27,7 +27,7 @@ const AREAS=[["RULE-REF","성경 참조 해석","rules/scripture-ref.md"],["RULE
  ["RULE-NOTE","노트 저장","rules/note-persistence.md"],["RULE-SEARCH","검색","rules/search.md"],
  ["RULE-MD","공유 파일","rules/share-markdown.md"],["RULE-BIBLE","성경 리더","rules/bible-reader.md"],
  ["RULE-SET","설정·테마","rules/settings-theme.md"],["RULE-UI","레이아웃·접근성","rules/layout-a11y.md"],
- ["RULE-OTA","OTA 배포","rules/release.md"]];
+ ["RULE-OTA","OTA 배포","rules/release.md"],["RULE-MAP","말씀 지도","rules/scripture-map.md"]];
 let out=`# 전체 ID 표
 
 [\`README.md\`](README.md)의 규약에 따라 발급된 모든 ID다. 숫자는 \`node wiki/check.mjs\` 실행 시점 기준이며, 이 표와 실제 파일이 어긋나면 **파일이 정본**이다.
