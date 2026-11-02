@@ -1,6 +1,11 @@
 import type { DbAdapter } from "@/shared/lib";
 import type { BlockNode, Note } from "../model/types";
-import type { NoteInput, NotePatch, NoteRepo } from "../model/note-repo";
+import type {
+  NoteInput,
+  NotePatch,
+  NoteRefSummary,
+  NoteRepo,
+} from "../model/note-repo";
 import { withCitationEdition } from "../model/citation";
 import { makeId } from "../lib/make-id";
 import { addMissingNoteColumns } from "./migrate";
@@ -167,6 +172,21 @@ export function makeSqliteNoteRepo(db: DbAdapter): NoteRepo {
           note.scripture,
         ],
       );
+    },
+
+    async listRefSummaries(): Promise<NoteRefSummary[]> {
+      const rows = await db.getAllAsync<
+        Pick<Row, "id" | "title" | "scripture" | "cited_refs" | "created_at">
+      >(
+        `SELECT id, title, scripture, cited_refs, created_at FROM notes ORDER BY created_at DESC`,
+      );
+      return rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        scripture: r.scripture,
+        citedRefs: JSON.parse(r.cited_refs) as string[],
+        createdAt: r.created_at,
+      }));
     },
 
     async searchNotes(query: string): Promise<Note[]> {

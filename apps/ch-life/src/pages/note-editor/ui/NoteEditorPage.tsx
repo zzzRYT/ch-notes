@@ -11,10 +11,12 @@ import {
   EditorSkeleton,
   NoteEditor,
   SermonMetaHeader,
+  saveLive,
   useNoteDraft,
   type NoteEditorHandle,
 } from '@/widgets/note-editor';
 import { BibleBrowser } from '@/widgets/scripture-browser';
+import { useSaveBeforeLeave } from '../model/useSaveBeforeLeave';
 
 export function NoteEditorPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +26,8 @@ export function NoteEditorPage() {
   const [deleting, setDeleting] = useState(false);
   const editorRef = useRef<NoteEditorHandle>(null);
   const deletingRef = useRef(false);
+  // 삭제한 노트는 떠날 때 다시 저장하면 안 된다.
+  const deletedRef = useRef(false);
 
   const draft = useNoteDraft({
     repo,
@@ -76,7 +80,10 @@ export function NoteEditorPage() {
 
     setDeleting(true);
     const deleted = await deleteNoteWithUndo(repo, id);
-    if (deleted) router.back();
+    if (deleted) {
+      deletedRef.current = true;
+      router.back();
+    }
     else {
       deletingRef.current = false;
       setDeleting(false);
@@ -86,6 +93,17 @@ export function NoteEditorPage() {
   const handleDelete = useCallback(
     () => confirmNoteDelete(() => void deleteNote()),
     [deleteNote],
+  );
+
+  // 버튼·기기 뒤로·제스처 어느 쪽으로 떠나도 마지막 입력까지 저장한 뒤에 떠난다.
+  // 실패하면 이 화면에 남아 기존 오류 표현을 보인다.
+  useSaveBeforeLeave(
+    () => saveLive(draft, editorRef),
+    (e) => {
+      console.warn('save before leave failed', e);
+      setSaveErr('저장하지 못해 나가지 않았어요. 다시 시도해 주세요.');
+    },
+    deletedRef,
   );
 
   // 불러오는 동안은 스켈레톤 — 옛 값이 잠깐 보였다 바뀌지 않게 하고, 빈 화면이 번쩍이지도 않게 한다.

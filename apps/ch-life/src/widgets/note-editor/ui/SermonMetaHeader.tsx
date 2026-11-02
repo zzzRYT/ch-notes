@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, type RefObject } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
 import { Calendar } from "lucide-react-native";
 import { validateScripture } from "@/features/scripture/insert";
 import { useTheme, scaled } from "@/shared/ui";
@@ -33,6 +33,10 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
   const { colors, fontScale } = useTheme();
   const [dateOpen, setDateOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  // 키보드로 달력 버튼에 닿았는지 — 포커스 링과, 달력이 닫힐 때 포커스를 돌려줄지 판단에 쓴다.
+  const [calendarFocused, setCalendarFocused] = useState(false);
+  const calendarFocusedRef = useRef(false);
+  const returnFocusToDateRef = useRef(false);
 
   // The date field is keyboard-typeable: the user can type a date and Return
   // through it. `dateText` holds the editable string; it syncs back to the
@@ -84,6 +88,26 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
       // Unparseable — revert to the last known good value rather than storing junk.
       setDateText(props.sermonDate ?? "");
     }
+  }
+
+  // 달력 버튼에 키보드 포커스가 있는 채로 열렸으면(Enter/Space) 닫힐 때 날짜 칸으로 돌아온다.
+  // 손가락으로 연 경우엔 onPressIn이 포커스 표식을 지워 두므로 소프트 키보드가 뜨지 않는다.
+  function openCalendar(): void {
+    returnFocusToDateRef.current = calendarFocusedRef.current;
+    setDateOpen(true);
+  }
+
+  function returnFocusToDate(): void {
+    if (!returnFocusToDateRef.current) return;
+    returnFocusToDateRef.current = false;
+    dateRef.current?.focus();
+  }
+
+  function closeCalendar(): void {
+    setDateOpen(false);
+    // iOS는 모달이 완전히 내려간 뒤(onDismissed)에 포커스를 줘야 먹는다.
+    // Android는 Dialog가 바로 닫히므로 다음 틱에 준다.
+    if (Platform.OS !== "ios") setTimeout(returnFocusToDate, 0);
   }
 
   // A calendar pick wins over whatever is being typed in the date field. We
@@ -147,11 +171,28 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
             }}
           />
           <Pressable
-            onPress={() => setDateOpen(true)}
+            onPress={openCalendar}
+            onPressIn={() => {
+              calendarFocusedRef.current = false;
+            }}
+            onFocus={() => {
+              calendarFocusedRef.current = true;
+              setCalendarFocused(true);
+            }}
+            onBlur={() => {
+              // openCalendar는 onPress에서 이 표식을 먼저 읽는다 — 모달이 열리며 blur가 와도 안전하다.
+              calendarFocusedRef.current = false;
+              setCalendarFocused(false);
+            }}
+            focusable
             accessibilityRole="button"
             accessibilityLabel="달력에서 날짜 선택"
             hitSlop={8}
-            className="w-10 h-9 rounded-8 border-hairline border-rule items-center justify-center bg-accent-soft active:opacity-60"
+            className={`w-10 h-9 rounded-8 items-center justify-center bg-accent-soft active:opacity-60 ${
+              calendarFocused
+                ? "border-2 border-accent"
+                : "border-hairline border-rule"
+            }`}
           >
             <Calendar
               size={scaled(18, fontScale)}
@@ -237,7 +278,8 @@ export function SermonMetaHeader(props: SermonMetaHeaderProps) {
         visible={dateOpen}
         value={props.sermonDate}
         onSelect={handlePickDate}
-        onClose={() => setDateOpen(false)}
+        onClose={closeCalendar}
+        onDismissed={returnFocusToDate}
       />
       <ScripturePreviewModal
         visible={previewOpen}

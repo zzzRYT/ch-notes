@@ -5,7 +5,11 @@ import { buildSavePayload, type SavePayload } from "./save-payload";
 type SaveFn = (patch: SavePayload) => Promise<void>;
 
 export type AutoSaveHandle = {
-  flush: () => Promise<void>;
+  /**
+   * 대기 중인 저장을 지금 끝낸다. `body`를 주면 화면 상태 대신 그 본문을 저장한다 —
+   * 에디터(WebView)가 아직 RN 상태로 보내지 않은 마지막 입력을 담을 때 쓴다.
+   */
+  flush: (live?: { body: BlockNode[] }) => Promise<void>;
   cancel: () => void;
 };
 
@@ -48,13 +52,13 @@ export function useAutoSave(opts: {
     [onError],
   );
 
-  const flush = useCallback(async () => {
+  const flush = useCallback(async (live?: { body: BlockNode[] }) => {
     cancel();
     if (!enabled) return;
     await save(
       buildSavePayload({
         title,
-        body,
+        body: live?.body ?? body,
         sermonDate,
         preacher,
         location,
