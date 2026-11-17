@@ -20,7 +20,8 @@ source:
 ## 결정
 
 - Firebase 프로젝트 `ssumssum-64dbf`(jinjinstar3@gmail.com), 연결된 GA4 속성 ID `556130222`. iOS·Android 앱 모두 `com.leejaejin.chlife`.
-- `@react-native-firebase/app` + `@react-native-firebase/analytics`. JS에서 이벤트를 따로 보내지 않고 **자동 수집 이벤트**(first_open, session_start, app_update 등)만 쓴다.
+- `@react-native-firebase/app` + `@react-native-firebase/analytics`. 이벤트는 **자동 수집 이벤트**(first_open, session_start, app_update 등)와 **`screen_view` 하나**만 쓴다.
+- **`screen_view`는 JS에서 직접 보낸다(2026-10-09, #95).** 네이티브 자동 화면 수집은 Activity/ViewController 하나만 보므로 라우트를 구분하지 못한다. 그래서 iOS `FirebaseAutomaticScreenReportingEnabled=false`, Android `google_analytics_automatic_screen_reporting_enabled=false`(`app.config.ts` 인라인 플러그인)로 끄고, `useScreenTracking`(`src/shared/lib/`)이 expo-router 경로가 바뀔 때만 보낸다. `screen_class`는 라우트 템플릿(`index`·`note/[id]`·`bible`·`settings`·`licenses`), `screen_name`은 `screen-view.ts` 한 곳의 매핑(`notes`·`note_editor`·`bible`·`settings`·`licenses`)이다. 매핑에 없는 라우트는 보내지 않고, 실제 노트 ID·쿼리·콘텐츠는 담지 않는다. 태블릿 `/` 안의 패널·노트 선택은 라우트 이동이 아니므로 조회로 세지 않는다. 웹은 보내지 않는다(`log-screen-view.web.ts`). 네이티브 설정이 바뀌므로 스토어 빌드가 필요하다(OTA 불가).
 - iOS는 `withoutAdIdSupport: true` — IDFA를 쓰지 않아 ATT 프롬프트가 없다.
 - Android는 `blockedPermissions`로 `com.google.android.gms.permission.AD_ID`를 뺀다. Firebase Analytics가 이 권한을 매니페스트에 병합하는데, Play Console은 "광고 ID 미사용" 선언과 어긋나는 AAB의 업로드를 거부한다(1.0.3 첫 제출에서 실패).
 - `GoogleService-Info.plist`·`google-services.json`은 저장소에 두지 않는다. 로컬은 `apps/ch-life/` 아래 파일, EAS는 file 타입 환경변수 `GOOGLE_SERVICE_INFO_PLIST`·`GOOGLE_SERVICES_JSON`(2026-09-27 production·preview·development에 sensitive로 등록).
