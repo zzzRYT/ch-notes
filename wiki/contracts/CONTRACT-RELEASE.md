@@ -6,6 +6,7 @@ policy: POL-RELEASE-001
 statement: 앱은 Hot Updater(OTA)와 EAS Build 두 경로로만 사용자에게 닿는다. OTA 번들은 앱 버전(updateStrategy appVersion)과 채널에 묶이므로 version을 올리면 기존 설치본에는 전달되지 않는다.
 implemented_by:
   - apps/ch-life/app.config.ts
+  - apps/ch-life/firebase.json
   - apps/ch-life/src/shared/config/version.ts
   - apps/ch-life/eas.json
   - .github/workflows/ci.yml
@@ -51,6 +52,8 @@ main website 변경 / 6시간 주기 → pages.yml → 공개 스토어 버전 �
 **마지막 줄이 앱 안의 업데이트 안내를 켠다**([`RULE-OTA-010`](../rules/release.md)). 버전은 공개 App Store Lookup 결과와 Google Play 공개 목록에서 읽는다. 두 스토어의 공개 시점이 다르므로 플랫폼별로 독립 갱신한다. 한쪽 조회에 실패하면 해당 플랫폼의 이전 값을 유지하고 Pages를 배포한 뒤 워크플로를 실패 처리해 확인할 수 있게 한다.
 
 `production` 채널은 **`release/**` 가지에서만** 발행된다 — 워크플로가 `github.ref`를 검사해 거부한다([`../decisions/ADR-0021`](../decisions/ADR-0021-release-strategy.md)).
+
+`firebase.json`의 자동 화면 수집 비활성화 설정은 iOS Info.plist·Android Manifest에 빌드 시 반영된다. 수동 라우트 추적(#95)을 기존 자동 수집 바이너리에 OTA로만 보내면 중복 조회가 발생하므로, 이 변경은 새 네이티브 빌드로 배포한다([`ADR-0029`](../decisions/ADR-0029-firebase-analytics.md)).
 
 **2026-10-09에 1.0.3+1과 1.0.4+1의 production OTA 발행을 확인했다.** 이전 R2 자격증명 오류는 해소 상태다([`../drift.md`](../drift.md) B19). 실제 기기 적용은 발행 결과와 별도로 확인한다.
 
