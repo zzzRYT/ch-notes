@@ -21,6 +21,7 @@
 | `src/shared/ui/**`, `src/features/settings/change/**`, `src/pages/notes/**`, `src/pages/settings/**` | [UI·테마·레이아웃](#7-ui테마레이아웃접근성) |
 | `src/global.css`, `src/theme.colors.css`, `metro.config.js`, `docs/design-system/figma-plugin/**` | [디자인 시스템·Figma](#7-1-디자인-시스템figma) |
 | `app.config.ts`, `eas.json`, `.github/workflows/**`, `src/features/app-update/notice/**`, `src/shared/config/version.ts`, `website/app-version.json` | [릴리스·개발 하네스](#8-릴리스개발-하네스) |
+| `src/features/scripture/map/**`, `src/pages/scripture-map/**` | [말씀 지도](#9-말씀-지도) |
 | `src/**` 폴더를 새로 만들거나 옮길 때, `eslint.config.js`의 경계 규칙 | [구조·레이어](#0-구조레이어) |
 | 커밋·브랜치·PR·이슈·릴리스 절차 | [`git.md`](git.md) |
 
@@ -75,10 +76,10 @@
 
 참조를 치고 space를 누르면 문단이 3분할되며 인용 블록이 끼어드는 기능. 트리거 감지 → 분할 → `citedRefs` 재계산 → 자동저장까지 한 묶음.
 
-**먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · RULE-EDIT-014 · RULE-EDIT-015 · RULE-EDIT-016 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
+**먼저 읽는다** — POL-SCRIPTURE-001 · POL-NOTE-001 · RULE-EDIT-001 · RULE-EDIT-002 · RULE-EDIT-007 · RULE-EDIT-003 · RULE-EDIT-004 · RULE-EDIT-014 · RULE-EDIT-015 · RULE-EDIT-016 · RULE-EDIT-017 · RULE-EDIT-018 · [CONTRACT-DOMAIN-NOTE](contracts/CONTRACT-DOMAIN-NOTE.md) · [ADR-0001](decisions/ADR-0001-native-block-editor.md) · [ADR-0002](decisions/ADR-0002-space-trigger.md)
 
-**코드** `src/widgets/note-editor/ui/{RichNoteEditor,EditorSkeleton,QuoteEditModal,SermonMetaHeader}.tsx`(앱에 연결된 WebView 에디터) · `src/widgets/note-editor/lib/{verse-bridge,doc-sync-bridge,rich-doc}.ts` · `editor-web/**`(WebView 번들 — 고치면 `pnpm editor:build`) · `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock}.tsx`(네이티브 에디터, 미연결 — drift B32) · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/widgets/note-editor/lib/list-blocks.ts`(글머리 목록) · `src/entities/note/lib/inline-marks.ts`(강조 토글·렌더 토큰) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,replace-quote,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/notes/ui/TabletWorkspace.tsx`
-**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,replace-quote,scripture-field,split-paragraph}.test.ts` · `src/widgets/note-editor/lib/__tests__/list-blocks.test.ts` · `src/entities/note/lib/__tests__/inline-marks.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (12/16)
+**코드** `src/widgets/note-editor/ui/{RichNoteEditor,EditorSkeleton,QuoteEditModal,SermonMetaHeader}.tsx`(앱에 연결된 WebView 에디터) · `src/widgets/note-editor/lib/{verse-bridge,verse-insert,doc-sync-bridge,rich-doc}.ts` · `editor-web/**`(WebView 번들 — 고치면 `pnpm editor:build`) · `src/widgets/note-editor/ui/{NoteEditor,ParagraphInput,QuoteBlock}.tsx`(네이티브 에디터, 미연결 — drift B32) · `src/widgets/note-editor/model/useNoteDraft.ts`(불러오기→자동저장→삽입을 폰·태블릿이 공유) · `src/widgets/note-editor/lib/list-blocks.ts`(글머리 목록) · `src/entities/note/lib/inline-marks.ts`(강조 토글·렌더 토큰) · `src/features/scripture/insert/model/{autocomplete,split-paragraph,insert-verse,replace-quote,scripture-field}.ts` · `src/features/note/autosave/model/useAutoSave.ts` · `src/entities/note/model/{cited-refs,citation}.ts` · `src/pages/note-editor/ui/NoteEditorPage.tsx` · `src/pages/note-editor/model/useSaveBeforeLeave.ts` · `src/widgets/note-editor/model/save-live.ts` · `src/pages/notes/ui/TabletWorkspace.tsx`
+**테스트** `src/features/scripture/insert/model/__tests__/{autocomplete,insert-verse,replace-quote,scripture-field,split-paragraph}.test.ts` · `src/widgets/note-editor/lib/__tests__/{list-blocks,verse-insert}.test.ts` · `src/entities/note/lib/__tests__/inline-marks.test.ts` · `src/entities/note/model/__tests__/cited-refs.test.ts` · `src/features/note/autosave/model/__tests__/useAutoSave-payload.test.ts` (12/16)
 
 **같은 변경에서 함께 고친다**
 1. **인용 블록은 `makeQuoteBlock`(`src/entities/note/model/citation.ts`) 한 곳에서만 만든다.** 인용의 모양(`status`·`editionId`)을 바꾸면 여기와 마크다운 파서(`src/entities/note/api/markdown-parse.ts`)를 같이 본다 — 파서는 형식 판별자 때문에 리터럴이 남아 있다.
@@ -91,6 +92,7 @@
 - 브라우저에서 넣는 인용은 커서 자리가 아니라 **본문 맨 끝**에 붙는다(A21).
 - 죽은 코드가 남아 있다 — `QuoteBlock`의 `loading`/`error`(B6). `pendingInsertRef`·`"newNote"`는 지웠다.
 - 범위 인용은 붙여 써야 한다(`1:1-3`). space가 트리거라 `1:1 - 3`은 `1:1`에서 이미 확정된다.
+- WebView 에디터에서 인용 카드는 **항상 최상위**여야 한다. 목록·인용문 안에 카드를 넣으면 화면에는 보여도 `docToBlocks`가 저장 때 버린다 — 확정 위치는 `verse-insert.ts`의 `verseShape`가 정한다(RULE-EDIT-001).
 - 삽입 후 원본 참조 텍스트를 지우기로 한 이유는 기록이 없다(E5).
 - **자동 증거 없음** — 캐럿 이동, backspace 병합, 힌트 칩, 인용 불변은 전부 수동(C3).
 
@@ -268,6 +270,28 @@
 - 서버에서 번들을 내려도(`bundle disable`) 오프라인 기기에는 닿지 않고, 닿아도 적용은 다음 콜드 런치다. **롤백 소요 시간에 하한이 없다**([ADR-0016](decisions/ADR-0016-cold-launch-apply.md)).
 - `app-version.json`은 Pages 배포 때 공개 스토어에서 갱신되므로, 심사 중인 버전을 미리 안내하지 않는다. Pages는 6시간마다 동기화한다.
 - 워크트리는 `.worktrees` 아래에 두라고 문서에 적혀 있으나 실제 위치가 다를 수 있다 — 시작 전에 `git worktree list`로 확인한다.
+
+---
+
+## 9. 말씀 지도
+
+저장된 노트의 본문·인용을 검토된 사건 범위에 연결해 시대별 장소와 관련 노트를 보여 주는 기능. 연결은 저장하지 않고 열 때마다 파생한다. **지금은 데이터·연결 로직까지만 있고 화면·진입점은 없다.**
+
+**먼저 읽는다** — POL-NOTE-003 · RULE-MAP-001 · RULE-MAP-004 · [CONTRACT-NOTE-REPO](contracts/CONTRACT-NOTE-REPO.md)(`listRefSummaries`) · RULE-SEARCH-001(지도는 FTS가 아니라 `scripture`·`citedRefs`를 읽는다)
+
+**코드** `src/features/scripture/map/{model,api}/**`(타입·연결·무결성 검증·시드 데이터) · `src/pages/scripture-map/model/useScriptureMap.ts`(전체 기록 조회 훅) · `src/entities/note/api/sqlite-note-repo.ts`(`listRefSummaries`)
+
+**테스트** `src/features/scripture/map/model/__tests__/{match-notes,map-data}.test.ts` · `src/pages/scripture-map/model/__tests__/useScriptureMap.test.tsx` · `src/entities/note/api/__tests__/note-repo.test.ts`(`listRefSummaries`)
+
+**같은 변경에서 함께 고친다**
+1. 연결 규칙(`match-notes.ts`)을 바꾸면 `RULE-MAP-001`과 `match-notes.test.ts`를 함께 고친다.
+2. 장소·사건·시대를 더하면 `places.json`·`scenes.json`·`periods.json`을 함께 고치고 근거(`source`·`basis`)를 남긴다. `map-data.test.ts`가 무결성과 출처를 본다.
+3. `NoteRepo`의 `listRefSummaries`를 고치면 `CONTRACT-NOTE-REPO`와 `RULE-MAP-004`를 함께 고친다.
+
+**함정**
+- 시대는 **사건의 시대**다. 책의 구약/신약 분류로 장소를 정하지 않는다.
+- 같은 좌표의 두 시대 장소(`jerusalem-temple-kingdom`·`jerusalem-temple-ministry`)는 좌표를 흩뜨리지 않는다. 시대가 달라도 좌표를 옮기지 않는다.
+- `source`에 OpenBible 외 출처를 인용하면 그 이용 조건을 앱에서 고지해야 한다. 고지 화면이 아직 없으므로 지금은 OpenBible(CC BY 4.0) 근거만 쓴다.
 
 ---
 

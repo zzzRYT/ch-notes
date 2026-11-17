@@ -12,11 +12,19 @@ type Props = {
   value: string | null; // YYYY-MM-DD
   onSelect: (ymd: string) => void;
   onClose: () => void;
+  // 모달이 완전히 내려간 뒤(iOS 전용 — RN Modal.onDismiss). 포커스 복귀처럼 화면이 비어야 하는 일에 쓴다.
+  onDismissed?: () => void;
 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
+export function DatePickerModal({
+  visible,
+  value,
+  onSelect,
+  onClose,
+  onDismissed,
+}: Props) {
   const initial = parseYmd(value ?? "") ?? parseYmd(todayYmd())!;
   const [view, setView] = useState({
     year: initial.getFullYear(),
@@ -44,7 +52,9 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
       visible={visible}
       transparent
       animationType="fade"
+      // Android는 뒤로 가기·Esc(외장 키보드)로 불린다. iOS Modal은 키보드 닫기를 전달하지 않는다.
       onRequestClose={onClose}
+      onDismiss={onDismissed}
     >
       <Pressable
         className="flex-1 bg-black/35 items-center justify-center p-6"
@@ -108,6 +118,7 @@ export function DatePickerModal({ visible, value, onSelect, onClose }: Props) {
                       }}
                       accessibilityRole="button"
                       accessibilityLabel={isToday ? `${day}일 오늘` : `${day}일`}
+                      accessibilityState={{ selected }}
                       className={CELL}
                     >
                       <View

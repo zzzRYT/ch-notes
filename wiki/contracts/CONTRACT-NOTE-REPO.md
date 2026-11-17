@@ -3,7 +3,7 @@
 ```yaml
 id: CONTRACT-NOTE-REPO
 policy: POL-NOTE-001
-statement: 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 일곱 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다.
+statement: 화면은 SQL을 직접 쓰지 않고 NoteRepo 인터페이스의 여덟 함수만 사용한다. 인터페이스는 entities/note/model에, SQLite 구현은 entities/note/api에 있고, 구현 인스턴스는 app/_layout.tsx(Composition Root)가 만들어 NoteRepoProvider로 넘긴다. 구현은 DbAdapter에만 의존해 프로덕션(expo-sqlite)과 테스트(better-sqlite3)에서 같은 코드로 동작한다.
 implemented_by:
   - apps/ch-life/src/entities/note/model/note-repo.ts (NoteRepo · NoteRepoProvider · useNoteRepo)
   - apps/ch-life/src/entities/note/api/sqlite-note-repo.ts (makeSqliteNoteRepo)
@@ -12,6 +12,7 @@ implemented_by:
 verified_by:
   - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts
   - test: apps/ch-life/src/entities/note/api/__tests__/note-repo-search.test.ts
+  - test: apps/ch-life/src/entities/note/api/__tests__/note-repo.test.ts#note-repo listRefSummaries
 confidence: 코드추론
 ```
 
@@ -26,6 +27,7 @@ confidence: 코드추론
 | `delete(id)` | 지우기 전 노트를 읽어 **스냅샷을 반환**한다. 없으면 `null` ([`RULE-NOTE-007`](../rules/note-persistence.md)) |
 | `restore(note)` | 스냅샷을 통째로 INSERT. **id·`created_at`을 보존**하므로 `create`와 다르다 ([`RULE-NOTE-007`](../rules/note-persistence.md)) |
 | `searchNotes(q)` | FTS 접두 매칭, 최대 200건 ([`RULE-SEARCH-*`](../rules/search.md)) |
+| `listRefSummaries()` | 저장된 **모든** 노트의 `{id, title, scripture, citedRefs, createdAt}`만, `created_at DESC`. **200건 상한 없음**, 본문(`body_json`)은 읽지 않고 스키마·데이터를 바꾸지 않는다. 말씀 지도(`useScriptureMap`)가 쓴다 |
 
 ## 주입 경로
 

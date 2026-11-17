@@ -1,13 +1,14 @@
 import { Node } from "@tiptap/core";
-import { Plugin, TextSelection, type EditorState } from "@tiptap/pm/state";
+import { Plugin, type EditorState } from "@tiptap/pm/state";
 import { BridgeExtension, type EditorBridge } from "@10play/tentap-editor";
 import { VERSE_NODE } from "./rich-doc";
+import { verseInsertTransaction, verseShape } from "./verse-insert";
 
 // WebView 번들(editor-web)과 RN 양쪽이 **같은 이 파일**을 쓴다 — tentap은 이름이
 // RN 설정에 없는 브리지를 웹에서 버린다. 참조 판정·본문 조회는 RN이 한다
 // (bible.json을 웹 번들에 넣지 않고, 판정 코드도 features/scripture/insert 하나로 둔다).
 //
-// 흐름: 웹에서 최상위 문단에 스페이스 입력 → 캐럿 앞 텍스트를 RN에 보냄 →
+// 흐름: 웹에서 문단·제목·글머리·할 일·인용문에 스페이스 입력 → 캐럿 앞 텍스트를 RN에 보냄 →
 // RN이 detectRefAtCursor + 조회 → 인용 블록을 돌려줌 → 웹이 [앞][인용][뒤]로 나눈다.
 
 const TRIGGER = "verse-trigger";
@@ -42,8 +43,8 @@ function post(msg: Msg) {
 
 function postTrigger(state: EditorState, pos: number, key: TriggerKey) {
   const $pos = state.doc.resolve(pos);
-  // ponytail: 최상위 문단만 — 목록 안 인용은 저장 모델(평탄한 BlockNode[])에 자리가 없다.
-  if ($pos.depth !== 1 || $pos.parent.type.name !== "paragraph") return;
+  // 목록·인용문 안에서도 확정하되 카드는 최상위로 꺼낸다(verse-insert) — 저장 모델이 평탄한 BlockNode[]다.
+  if (!verseShape($pos)) return;
   const before = $pos.parent.textBetween(0, $pos.parentOffset, undefined, "\n");
   post({ type: TRIGGER, payload: { before, pos, key } satisfies VerseTrigger });
 }
@@ -135,24 +136,9 @@ const VerseQuote = Node.create({
 // RN이 돌려준 인용을 문서에 넣는다. 그 사이 문서가 바뀌었으면(빠른 연타) 버린다.
 function applyResolve(editor: import("@tiptap/core").Editor, r: VerseResolve) {
   const { state } = editor;
-  const from = r.pos - r.cut;
-  const end = r.key === "space" ? r.pos + 1 : r.pos;
-  if (from < 0 || end > state.doc.content.size) return;
-  if (state.doc.textBetween(from, end) !== r.refText + (r.key === "space" ? " " : "")) return;
-  const node = state.schema.nodes[VERSE_NODE]!.create({ block: r.block, label: r.label });
-  if (r.key === "space") {
-    const tr = state.tr.delete(from, end).split(from);
-    tr.insert(from + 1, node);
-    tr.setSelection(TextSelection.create(tr.doc, from + 1 + node.nodeSize + 1));
-    editor.view.dispatch(tr.scrollIntoView());
-    return;
-  }
-  // Enter: 참조가 앞 문단의 끝이어야 한다(그사이 Enter가 문단을 나눴다). 캐럿은 이미
-  // 아래 문단에 있으므로 그대로 두고 매핑만 따라가게 한다.
-  if (state.doc.resolve(end).parentOffset !== state.doc.resolve(end).parent.content.size) return;
-  const tr = state.tr.delete(from, end);
-  tr.insert(from + 1, node);
-  editor.view.dispatch(tr.scrollIntoView());
+  const card = state.schema.nodes[VERSE_NODE]!.create({ block: r.block, label: r.label });
+  const tr = verseInsertTransaction(state, r, card);
+  if (tr) editor.view.dispatch(tr.scrollIntoView());
 }
 
 // 그 자리가 아직 누른 인용 그대로일 때만 바꾼다.

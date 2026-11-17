@@ -13,12 +13,13 @@
 | 파일 | ID | 무엇을 정하나 | 대응 코드 | 자동 증거 |
 |---|---|---|---|---|
 | [scripture-ref.md](scripture-ref.md) | RULE-REF-001 ~ RULE-REF-005 | 참조 파싱 → 책 이름 해석 → 본문 조회 → 표시 포맷 | `src/entities/scripture/**` | 5/5 |
-| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-017 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 12/16 |
+| [editor-insert.md](editor-insert.md) | RULE-EDIT-001 ~ RULE-EDIT-018 | 참조 감지 → 문단 3분할 → 인용 블록 → 자동저장 · 인용 참조 교체 | `src/widgets/note-editor/**`, `src/features/scripture/insert/**` | 12/16 |
 | [note-persistence.md](note-persistence.md) | RULE-NOTE-001 ~ RULE-NOTE-008 | 로컬 SQLite 저장, id 생성, read-then-merge, 마이그레이션 | `src/entities/note/{model,api}/**` | 6/8 |
 | [search.md](search.md) | RULE-SEARCH-001 ~ RULE-SEARCH-007 | FTS 접두 검색, 대상은 제목·인용뿐 | `src/entities/note/api/sqlite-note-repo.ts` | 5/7 |
 | [bible-reader.md](bible-reader.md) | RULE-BIBLE-001 ~ RULE-BIBLE-007 | 리더 3-진입점, 탐색은 공유하고 위치 복원·삽입은 진입점마다 다름 | `src/widgets/scripture-browser/**` | 4/7 |
 | [share-markdown.md](share-markdown.md) | RULE-MD-001 ~ RULE-MD-008 | `.md` 왕복에서 무엇이 보존되고 무엇이 사라지는가 | `src/entities/note/api/markdown-*.ts`, `src/features/note/{import,export}/**` | 6/8 |
 | [settings-theme.md](settings-theme.md) | RULE-SET-001 ~ RULE-SET-006 | 설정 파싱 엄격도, 색은 `variation` 하나로 결정 | `src/features/settings/change/**`, `src/shared/ui/**` | 4/6 |
+| [scripture-map.md](scripture-map.md) | RULE-MAP-001, RULE-MAP-004 | 노트의 본문·인용을 검토된 사건 범위에 연결, 전체 기록 조회 (데이터·로직·훅만, 화면 없음) | `src/features/scripture/map/**`, `src/pages/scripture-map/**`, `src/entities/note/api/sqlite-note-repo.ts` | 2/2 |
 | [layout-a11y.md](layout-a11y.md) | RULE-UI-001 ~ RULE-UI-008 | 900px 폰/태블릿 분기, 터치 크기·라벨·대비·입력 장치 | `src/pages/notes/**`, `src/shared/ui/**`, `modules/hardware-keyboard/**` | **1/8** |
 | [release.md](release.md) | RULE-OTA-001 ~ RULE-OTA-010 | 오프라인 기본인 앱에 OTA를 얹을 때의 제약 | `src/app/_layout.tsx`, `src/entities/note/api/migrate.ts`, `src/features/app-update/notice/**` | **2/10** |
 

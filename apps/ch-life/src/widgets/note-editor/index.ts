@@ -9,3 +9,4 @@ export {
   type NoteDraftPatch,
   type NoteDraftStatus,
 } from "./model/useNoteDraft";
+export { saveLive } from "./model/save-live";

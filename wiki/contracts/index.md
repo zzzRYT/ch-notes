@@ -12,7 +12,7 @@
 |---|---|---|---|
 | [CONTRACT-DOMAIN-NOTE.md](CONTRACT-DOMAIN-NOTE.md) | CONTRACT-DOMAIN-NOTE | `Note` / `BlockNode` / `Verse` / `Settings` 타입 — 모든 계층이 여기로 수렴 | `Note`에 필드를 더하거나 새 블록 종류를 만들 때 |
 | [CONTRACT-DB-NOTES.md](CONTRACT-DB-NOTES.md) | CONTRACT-DB-NOTES | `notes` / `notes_fts` DDL과 FTS 트리거 | 컬럼 추가, 검색 대상 변경, 마이그레이션 |
-| [CONTRACT-NOTE-REPO.md](CONTRACT-NOTE-REPO.md) | CONTRACT-NOTE-REPO | 저장소 일곱 함수와 `DbAdapter` — 화면은 SQL을 직접 쓰지 않는다 | 저장·조회 기능 추가, 어댑터 변경 |
+| [CONTRACT-NOTE-REPO.md](CONTRACT-NOTE-REPO.md) | CONTRACT-NOTE-REPO | 저장소 여덟 함수와 `DbAdapter` — 화면은 SQL을 직접 쓰지 않는다 | 저장·조회 기능 추가, 어댑터 변경 |
 | [CONTRACT-MD-NOTE.md](CONTRACT-MD-NOTE.md) | CONTRACT-MD-NOTE | 공유 `.md` 문법 — frontmatter 키, 인용 판별 토큰, 파일명 | 내보내기·가져오기 문법 변경 |
 | [CONTRACT-BIBLE-JSON.md](CONTRACT-BIBLE-JSON.md) | CONTRACT-BIBLE-JSON | `bible.json` 3단 중첩 구조와 CC BY-SA 의무 | 번역본 교체·추가, 조회 방식 변경 |
 | [CONTRACT-SETTINGS-FILE.md](CONTRACT-SETTINGS-FILE.md) | CONTRACT-SETTINGS-FILE | `settings.json` 스키마와 두 가지 검증 엄격도 | 설정 필드 추가, validator 변경 |
