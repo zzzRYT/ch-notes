@@ -42,18 +42,17 @@ OTA 잡은 시크릿·변수 7개의 **형식까지** 검사한다 — 모양이
 
 ## EAS Build
 
-- **2단계 배포**: GitHub Actions → "EAS Build" → Run workflow → `production` + 대상 platform을
-  선택한다. 워크플로는 `--no-wait`로 큐에 넣고 build URL만 반환한다. build가 완료되면
-  agent가 해당 commit·앱 버전·platform의 성공 build ID를 조회한다:
-  `eas build:list --platform all --build-profile production --git-commit-hash <SHA> --status finished --json`.
-  각 플랫폼의 ID를 지정해 따로 제출한다:
-  `eas submit --platform ios --id <IOS_BUILD_ID> --profile production --non-interactive --wait`
-  `eas submit --platform android --id <ANDROID_BUILD_ID> --profile production --non-interactive --wait`.
-- `--latest`는 다른 build를 잘못 선택할 수 있으므로 쓰지 않는다. 저장소의 submit 자격증명은
-  `apps/ch-life/credentials/` 파일 경로로 설정되어 있으므로 EAS CLI 실행 환경에 해당 파일과
-  `EXPO_TOKEN`이 있어야 한다. 키 내용은 로그·대화에 출력하지 않는다.
-- 제출은 스토어 업로드 단계다. iOS는 App Store Connect에서 심사 제출을 사람이 진행한다.
-  Android는 현재 `alpha` 트랙에 업로드되며 공개 출시 승격은 별도다.
+- **자동 체인**: GitHub Actions → "EAS Submit (native → store review)" → Run workflow →
+  `platform` + `android_track` 선택. 워크플로가 `eas build --wait`로 빌드 완료까지 기다린 뒤
+  같은 job에서 `eas submit --non-interactive`으로 제출한다. aside CLI(브라우저 자동화)는
+  은퇴 — 공식 API 경로만 쓴다.
+- 제출 자격증명은 GitHub Secrets에서 복원한다: `EXPO_TOKEN`, `PLAY_SERVICE_ACCOUNT_JSON`,
+  `ASC_API_KEY_P8`. 로컬 `apps/ch-life/credentials/` 파일은 gitignore라 CI의 출처가 될 수 없다.
+  키 내용은 로그·대화에 출력하지 않는다.
+- iOS는 ASC API 키로 업로드 + 심사 제출까지 시도한다. Apple이 새 설문을 내거나 최초 제출이
+  막히면 App Store Connect에서 마무리한다.
+- Android 트랙은 실행 시 선택한다. `production`(기본)이면 심사 직행, `alpha`면 콘솔에서
+  수동 승격이다.
 - `production` 프로필은 `autoIncrement: true`(빌드번호 자동 증가).
 - 스토어 공개와 태그 뒤, 릴리스 커밋을 임시 `chore/backmerge-<버전>` PR로 `main`에 역머지한다. 이 PR이 병합되어야 릴리스가 끝난다.
 

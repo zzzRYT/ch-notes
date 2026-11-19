@@ -156,7 +156,7 @@ git switch -c feat/작업명
 
 - 버전은 네 자리로 읽는다 — `1.0.2+3`의 앞 세 자리는 스토어 빌드, `+3`은 그 버전에 낸 OTA 순번(`src/shared/config/version.ts`).
 - `production` 채널 OTA는 `release/<버전>` 가지에서 수동 실행으로만 나간다.
-- ⚠️ **자동 OTA는 현재 실패한다** — R2 자격증명이 잘못돼 있다(`wiki/drift.md` B19). 스토어의 1.0.1 설치본은 hot-updater가 없어 어떤 OTA도 받지 못한다.
+- R2 자격증명 오류(`wiki/drift.md` B19)는 2026-10-09에 해소됐다 — `release/1.0.3`·`1.0.4` production OTA 발행 성공. 스토어의 1.0.1 설치본은 hot-updater가 없어 어떤 OTA도 받지 못한다.
 
 절차와 이유는 [`wiki/git.md`](wiki/git.md) 5절. 그 밖에 `apps/ch-life/.claude/skills/eas-release`, [`docs/store/ota-deploy.md`](docs/store/ota-deploy.md), [`docs/store/android-auto-submit.md`](docs/store/android-auto-submit.md).
 
